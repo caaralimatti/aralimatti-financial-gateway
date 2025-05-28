@@ -2,7 +2,8 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { FileText, Download, User, LogOut } from 'lucide-react';
+import { FileText, Download, User, LogOut, Calendar, MessageSquare } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const ClientDashboard = () => {
   const { profile, signOut } = useAuth();
@@ -74,9 +75,11 @@ const ClientDashboard = () => {
                 <p className="text-sm text-gray-600">Access your financial documents</p>
               </div>
             </div>
-            <Button className="w-full" variant="outline">
-              View Documents
-            </Button>
+            <Link to="/documents">
+              <Button className="w-full" variant="outline">
+                View Documents
+              </Button>
+            </Link>
           </div>
 
           {/* Downloads Card */}
@@ -90,9 +93,11 @@ const ClientDashboard = () => {
                 <p className="text-sm text-gray-600">Download reports and statements</p>
               </div>
             </div>
-            <Button className="w-full" variant="outline">
-              View Downloads
-            </Button>
+            <Link to="/documents">
+              <Button className="w-full" variant="outline">
+                View Downloads
+              </Button>
+            </Link>
           </div>
         </div>
 
@@ -101,17 +106,42 @@ const ClientDashboard = () => {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Button className="w-full justify-start" variant="outline">
+              <FileText className="h-4 w-4 mr-2" />
               Request Document
             </Button>
             <Button className="w-full justify-start" variant="outline">
+              <Calendar className="h-4 w-4 mr-2" />
               Schedule Meeting
             </Button>
             <Button className="w-full justify-start" variant="outline">
+              <Download className="h-4 w-4 mr-2" />
               View Tax Returns
             </Button>
             <Button className="w-full justify-start" variant="outline">
+              <MessageSquare className="h-4 w-4 mr-2" />
               Contact Support
             </Button>
+          </div>
+        </div>
+
+        {/* Recent Activity */}
+        <div className="mt-8 bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <FileText className="h-5 w-5 text-green-600" />
+              <div className="flex-1">
+                <p className="text-sm font-medium">New document uploaded</p>
+                <p className="text-xs text-gray-600">Tax Return 2023 - 2 days ago</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <MessageSquare className="h-5 w-5 text-blue-600" />
+              <div className="flex-1">
+                <p className="text-sm font-medium">Message from your accountant</p>
+                <p className="text-xs text-gray-600">Regarding quarterly filing - 1 week ago</p>
+              </div>
+            </div>
           </div>
         </div>
       </main>

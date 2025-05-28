@@ -11,6 +11,7 @@ import Auth from "./pages/Auth";
 import ClientDashboard from "./pages/ClientDashboard";
 import StaffDashboard from "./pages/StaffDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import DocumentsPage from "./pages/DocumentsPage";
 import Unauthorized from "./pages/Unauthorized";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
@@ -45,6 +46,14 @@ const App = () => {
                 element={
                   <ProtectedRoute allowedRoles={['client']}>
                     <ClientDashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/documents" 
+                element={
+                  <ProtectedRoute allowedRoles={['client']}>
+                    <DocumentsPage />
                   </ProtectedRoute>
                 } 
               />

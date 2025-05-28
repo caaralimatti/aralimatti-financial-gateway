@@ -9,30 +9,96 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          admin_user_id: string | null
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: unknown | null
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          admin_user_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          admin_user_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          target_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_logs_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string | null
           email: string
+          failed_login_attempts: number | null
           full_name: string | null
+          google_linked: boolean | null
           id: string
+          is_active: boolean | null
+          last_login: string | null
+          locked_until: string | null
+          password_hash: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string | null
+          username: string | null
         }
         Insert: {
           created_at?: string | null
           email: string
+          failed_login_attempts?: number | null
           full_name?: string | null
+          google_linked?: boolean | null
           id: string
+          is_active?: boolean | null
+          last_login?: string | null
+          locked_until?: string | null
+          password_hash?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
+          username?: string | null
         }
         Update: {
           created_at?: string | null
           email?: string
+          failed_login_attempts?: number | null
           full_name?: string | null
+          google_linked?: boolean | null
           id?: string
+          is_active?: boolean | null
+          last_login?: string | null
+          locked_until?: string | null
+          password_hash?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
+          username?: string | null
         }
         Relationships: []
       }
@@ -45,11 +111,23 @@ export type Database = {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      handle_failed_login: {
+        Args: { user_email: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           user_id: string
           check_role: Database["public"]["Enums"]["user_role"]
         }
+        Returns: boolean
+      }
+      is_account_locked: {
+        Args: { user_email: string }
+        Returns: boolean
+      }
+      reset_failed_login_attempts: {
+        Args: { user_email: string }
         Returns: boolean
       }
     }
