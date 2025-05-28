@@ -5,15 +5,12 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import DocumentCard from '@/components/DocumentCard';
 import { 
   FileText, 
-  Download, 
   Search, 
   Filter, 
-  Calendar,
   ArrowLeft,
   LogOut
 } from 'lucide-react';
@@ -44,40 +41,61 @@ const DocumentsPage = () => {
     queryFn: async () => {
       if (!profile?.id) return [];
       
-      const { data, error } = await supabase
+      console.log('Fetching documents for client:', profile.id);
+      
+      // First, get documents for this client
+      const { data: documentsData, error: documentsError } = await supabase
         .from('documents')
-        .select(`
-          *,
-          profiles!documents_uploaded_by_fkey(full_name)
-        `)
+        .select('*')
         .eq('client_id', profile.id)
         .order('uploaded_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching documents:', error);
-        throw error;
+      if (documentsError) {
+        console.error('Error fetching documents:', documentsError);
+        throw documentsError;
       }
 
-      return data?.map(doc => ({
+      console.log('Raw documents data:', documentsData);
+
+      // Then get uploader names separately
+      const uploaderIds = [...new Set(documentsData?.map(doc => doc.uploaded_by) || [])];
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', uploaderIds);
+
+      if (profilesError) {
+        console.error('Error fetching uploader profiles:', profilesError);
+        // Continue without uploader names rather than failing completely
+      }
+
+      console.log('Uploader profiles:', profilesData);
+
+      // Combine the data
+      const documentsWithUploaderNames = documentsData?.map(doc => ({
         ...doc,
-        uploader_name: doc.profiles?.full_name || 'Unknown'
+        uploader_name: profilesData?.find(profile => profile.id === doc.uploaded_by)?.full_name || 'Unknown'
       })) || [];
+
+      console.log('Final documents with uploader names:', documentsWithUploaderNames);
+      return documentsWithUploaderNames;
     },
     enabled: !!profile?.id,
   });
 
   const handleDownload = async (document: Document) => {
     try {
-      // In a real implementation, you would handle the file download here
-      // For now, we'll just show a toast
+      console.log('Downloading document:', document.title);
       toast({
         title: "Download Started",
         description: `Downloading ${document.title}`,
       });
       
-      // You could implement actual file download logic here
+      // In a real implementation, you would handle the file download here
+      // For now, we'll just show a toast
       // window.open(document.file_url, '_blank');
     } catch (error) {
+      console.error('Download error:', error);
       toast({
         variant: "destructive",
         title: "Download Failed",
@@ -93,22 +111,6 @@ const DocumentsPage = () => {
     } catch (error) {
       console.error('Error signing out:', error);
     }
-  };
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
   };
 
   const filteredDocuments = documents?.filter(doc => {
@@ -210,44 +212,11 @@ const DocumentsPage = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredDocuments.map((document) => (
-            <Card key={document.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg line-clamp-2">{document.title}</CardTitle>
-                    <Badge variant="secondary" className="mt-2">
-                      {document.category}
-                    </Badge>
-                  </div>
-                  <FileText className="h-6 w-6 text-primary flex-shrink-0 ml-2" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                {document.description && (
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-3">
-                    {document.description}
-                  </p>
-                )}
-                
-                <div className="space-y-2 text-xs text-gray-500 mb-4">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-3 w-3" />
-                    {formatDate(document.uploaded_at)}
-                  </div>
-                  <div>Size: {formatFileSize(document.file_size)}</div>
-                  <div>Uploaded by: {document.uploader_name}</div>
-                </div>
-
-                <Button 
-                  onClick={() => handleDownload(document)}
-                  className="w-full"
-                  size="sm"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download
-                </Button>
-              </CardContent>
-            </Card>
+            <DocumentCard
+              key={document.id}
+              document={document}
+              onDownload={handleDownload}
+            />
           ))}
         </div>
       </main>
