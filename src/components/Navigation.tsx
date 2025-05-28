@@ -1,9 +1,11 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import { Link } from 'react-router-dom';
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, profile, signOut } = useAuth();
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -13,15 +15,39 @@ const Navigation = () => {
     setIsMenuOpen(false);
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  const getDashboardLink = () => {
+    if (!profile) return '/auth';
+    switch (profile.role) {
+      case 'admin':
+        return '/admin-dashboard';
+      case 'staff_type1':
+      case 'staff_type2':
+        return '/staff-dashboard';
+      case 'client':
+      default:
+        return '/client-dashboard';
+    }
+  };
+
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm shadow-sm z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <h1 className="text-xl font-montserrat font-bold text-primary">
-              C A Aralimatti & Co
-            </h1>
+            <Link to="/">
+              <h1 className="text-xl font-montserrat font-bold text-primary">
+                C A Aralimatti & Co
+              </h1>
+            </Link>
           </div>
 
           {/* Desktop Navigation */}
@@ -57,13 +83,39 @@ const Navigation = () => {
               >
                 Contact Us
               </button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="ml-4 border-primary text-primary hover:bg-primary hover:text-white"
-              >
-                Login
-              </Button>
+              
+              {/* Authentication Buttons */}
+              {user ? (
+                <div className="flex items-center space-x-2">
+                  <Link to={getDashboardLink()}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-primary text-primary hover:bg-primary hover:text-white"
+                    >
+                      Dashboard
+                    </Button>
+                  </Link>
+                  <Button
+                    onClick={handleLogout}
+                    variant="ghost"
+                    size="sm"
+                    className="text-neutral-700 hover:text-primary"
+                  >
+                    Logout
+                  </Button>
+                </div>
+              ) : (
+                <Link to="/auth">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="ml-4 border-primary text-primary hover:bg-primary hover:text-white"
+                  >
+                    Login
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
 
@@ -119,14 +171,40 @@ const Navigation = () => {
             >
               Contact Us
             </button>
-            <div className="px-3 py-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-primary text-primary hover:bg-primary hover:text-white"
-              >
-                Login
-              </Button>
+            
+            {/* Mobile Authentication */}
+            <div className="px-3 py-2 border-t">
+              {user ? (
+                <div className="space-y-2">
+                  <Link to={getDashboardLink()}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full border-primary text-primary hover:bg-primary hover:text-white"
+                    >
+                      Dashboard
+                    </Button>
+                  </Link>
+                  <Button
+                    onClick={handleLogout}
+                    variant="ghost"
+                    size="sm"
+                    className="w-full text-neutral-700 hover:text-primary"
+                  >
+                    Logout
+                  </Button>
+                </div>
+              ) : (
+                <Link to="/auth">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full border-primary text-primary hover:bg-primary hover:text-white"
+                  >
+                    Login
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
         </div>

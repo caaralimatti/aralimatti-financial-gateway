@@ -1,0 +1,242 @@
+
+import React, { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
+const Auth = () => {
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+
+  const { signIn, signUp, resetPassword, profile } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  React.useEffect(() => {
+    if (profile) {
+      // Redirect based on user role
+      switch (profile.role) {
+        case 'admin':
+          navigate('/admin-dashboard');
+          break;
+        case 'staff_type1':
+        case 'staff_type2':
+          navigate('/staff-dashboard');
+          break;
+        case 'client':
+        default:
+          navigate('/client-dashboard');
+          break;
+      }
+    }
+  }, [profile, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      if (showForgotPassword) {
+        await resetPassword(email);
+        toast({
+          title: "Password reset email sent",
+          description: "Check your email for the reset link.",
+        });
+        setShowForgotPassword(false);
+      } else if (isLogin) {
+        await signIn(email, password);
+        toast({
+          title: "Welcome back!",
+          description: "You have been successfully logged in.",
+        });
+      } else {
+        await signUp(email, password, fullName);
+        toast({
+          title: "Account created!",
+          description: "Please check your email to verify your account.",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "An error occurred. Please try again.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5 flex items-center justify-center px-4">
+      <div className="max-w-md w-full">
+        {/* Back to Home */}
+        <Link
+          to="/"
+          className="inline-flex items-center text-sm text-neutral-600 hover:text-primary mb-8 transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Home
+        </Link>
+
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-neutral-900 mb-2">
+            C A Aralimatti & Co
+          </h1>
+          <h2 className="text-xl font-semibold text-neutral-700 mb-2">
+            {showForgotPassword 
+              ? 'Reset Password' 
+              : isLogin 
+                ? 'Welcome Back' 
+                : 'Create Account'
+            }
+          </h2>
+          <p className="text-neutral-600">
+            {showForgotPassword 
+              ? 'Enter your email to receive a password reset link'
+              : isLogin 
+                ? 'Sign in to access your dashboard' 
+                : 'Join our platform today'
+            }
+          </p>
+        </div>
+
+        {/* Auth Form */}
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Email Field */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-neutral-700 mb-2">
+                Email Address
+              </label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="Enter your email"
+                className="w-full"
+              />
+            </div>
+
+            {/* Password Field (hidden for forgot password) */}
+            {!showForgotPassword && (
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-neutral-700 mb-2">
+                  Password
+                </label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    placeholder="Enter your password"
+                    className="w-full pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-neutral-400" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-neutral-400" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Full Name Field (only for signup) */}
+            {!isLogin && !showForgotPassword && (
+              <div>
+                <label htmlFor="fullName" className="block text-sm font-medium text-neutral-700 mb-2">
+                  Full Name
+                </label>
+                <Input
+                  id="fullName"
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                  placeholder="Enter your full name"
+                  className="w-full"
+                />
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full"
+            >
+              {loading ? 'Please wait...' : 
+                showForgotPassword ? 'Send Reset Link' :
+                isLogin ? 'Sign In' : 'Create Account'
+              }
+            </Button>
+
+            {/* Forgot Password Link */}
+            {isLogin && !showForgotPassword && (
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(true)}
+                  className="text-sm text-primary hover:underline"
+                >
+                  Forgot your password?
+                </button>
+              </div>
+            )}
+
+            {/* Toggle Between Login/Signup */}
+            {!showForgotPassword && (
+              <div className="text-center pt-4 border-t">
+                <p className="text-sm text-neutral-600">
+                  {isLogin ? "Don't have an account?" : "Already have an account?"}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setIsLogin(!isLogin)}
+                  className="text-primary hover:underline font-medium"
+                >
+                  {isLogin ? 'Create Account' : 'Sign In'}
+                </button>
+              </div>
+            )}
+
+            {/* Back to Login */}
+            {showForgotPassword && (
+              <div className="text-center pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(false)}
+                  className="text-primary hover:underline font-medium"
+                >
+                  Back to Sign In
+                </button>
+              </div>
+            )}
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Auth;
