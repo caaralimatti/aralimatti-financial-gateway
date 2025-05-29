@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
-type UserRole = 'client' | 'staff_type1' | 'staff_type2' | 'admin';
+type UserRole = 'client' | 'staff' | 'admin';
 
 interface Profile {
   id: string;
@@ -51,7 +51,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('Error fetching profile:', error);
-        // If profile doesn't exist, create a default one
         if (error.code === 'PGRST116') {
           console.log('Profile not found, creating default profile...');
           const { data: newProfile, error: insertError } = await supabase
@@ -80,7 +79,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.id);
@@ -96,7 +94,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -144,11 +141,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     console.log('Sign up successful:', data);
 
-    // If the user is immediately available (email confirmation disabled), 
-    // manually create the profile if it doesn't exist
     if (data.user && !data.user.email_confirmed_at) {
       console.log('Email confirmation disabled, checking profile creation...');
-      // Give the trigger a moment to run
       setTimeout(async () => {
         try {
           const { data: existingProfile } = await supabase

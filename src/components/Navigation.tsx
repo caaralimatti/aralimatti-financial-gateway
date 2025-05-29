@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -28,8 +29,7 @@ const Navigation = () => {
     switch (profile.role) {
       case 'admin':
         return '/admin-dashboard';
-      case 'staff_type1':
-      case 'staff_type2':
+      case 'staff':
         return '/staff-dashboard';
       case 'client':
       default:

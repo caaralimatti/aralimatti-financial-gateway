@@ -3,7 +3,7 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
-type UserRole = 'client' | 'staff_type1' | 'staff_type2' | 'admin';
+type UserRole = 'client' | 'staff' | 'admin';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;

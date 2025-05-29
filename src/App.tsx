@@ -16,11 +16,10 @@ import Unauthorized from "./pages/Unauthorized";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
-// Create QueryClient outside of component to prevent recreation
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: 1000 * 60 * 5,
       retry: false,
     },
   },
@@ -60,7 +59,7 @@ const App = () => {
               <Route 
                 path="/staff-dashboard" 
                 element={
-                  <ProtectedRoute allowedRoles={['staff_type1', 'staff_type2']}>
+                  <ProtectedRoute allowedRoles={['staff']}>
                     <StaffDashboard />
                   </ProtectedRoute>
                 } 
@@ -74,7 +73,6 @@ const App = () => {
                 } 
               />
               
-              {/* Catch-all route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>

@@ -2,7 +2,7 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Users, FileText, Upload, Settings, LogOut } from 'lucide-react';
+import { Users, FileText, Upload, LogOut } from 'lucide-react';
 
 const StaffDashboard = () => {
   const { profile, signOut } = useAuth();
