@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import { 
   Sidebar, 
   SidebarContent, 
@@ -25,9 +26,11 @@ import {
 import { Link } from 'react-router-dom';
 
 const GSTSidebar: React.FC = () => {
+  const location = useLocation();
+
   const sidebarItems = [
-    { title: 'Dashboard', icon: LayoutDashboard, url: '/staff-dashboard', active: false },
-    { title: 'Tasks', icon: CheckSquare, url: '#' },
+    { title: 'Dashboard', icon: LayoutDashboard, url: '/staff-dashboard' },
+    { title: 'Tasks', icon: CheckSquare, url: '/tasks' },
     { title: 'Compliance Calendar', icon: Calendar, url: '#' },
     { title: 'Documents', icon: FileText, url: '#' },
     { title: 'Manage', icon: Users, url: '#' },
@@ -36,7 +39,7 @@ const GSTSidebar: React.FC = () => {
     { title: 'Reports', icon: BarChart3, url: '#' },
     { title: 'Support & Help', icon: HelpCircle, url: '#' },
     { title: 'Settings', icon: Settings, url: '#' },
-    { title: 'GST Login', icon: LogIn, url: '/gst-login', active: true },
+    { title: 'GST Login', icon: LogIn, url: '/gst-login' },
     { title: 'Income Tax Login', icon: LogIn, url: '#' },
   ];
 
@@ -57,7 +60,7 @@ const GSTSidebar: React.FC = () => {
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton 
                 asChild
-                isActive={item.active}
+                isActive={location.pathname === item.url}
                 className="w-full justify-start"
               >
                 {item.url === '#' ? (
