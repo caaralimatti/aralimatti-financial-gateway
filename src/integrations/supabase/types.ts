@@ -9,6 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      gst_clients: {
+        Row: {
+          client_name: string
+          created_at: string
+          email: string
+          gstin: string
+          id: string
+          login_id: string | null
+          mobile: string
+          password: string | null
+          updated_at: string
+        }
+        Insert: {
+          client_name: string
+          created_at?: string
+          email: string
+          gstin: string
+          id?: string
+          login_id?: string | null
+          mobile: string
+          password?: string | null
+          updated_at?: string
+        }
+        Update: {
+          client_name?: string
+          created_at?: string
+          email?: string
+          gstin?: string
+          id?: string
+          login_id?: string | null
+          mobile?: string
+          password?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
@@ -54,7 +53,7 @@ const StaffDashboard = () => {
   };
 
   const sidebarItems = [
-    { title: 'Dashboard', icon: LayoutDashboard, url: '#', active: true },
+    { title: 'Dashboard', icon: LayoutDashboard, url: '/staff-dashboard', active: true },
     { title: 'Tasks', icon: CheckSquare, url: '#' },
     { title: 'Compliance Calendar', icon: Calendar, url: '#' },
     { title: 'Documents', icon: FileText, url: '#' },
@@ -64,7 +63,7 @@ const StaffDashboard = () => {
     { title: 'Reports', icon: BarChart3, url: '#' },
     { title: 'Support & Help', icon: HelpCircle, url: '#' },
     { title: 'Settings', icon: Settings, url: '#' },
-    { title: 'GST Login', icon: LogIn, url: '#' },
+    { title: 'GST Login', icon: LogIn, url: '/gst-login' },
     { title: 'Income Tax Login', icon: LogIn, url: '#' },
   ];
 
@@ -104,7 +103,7 @@ const StaffDashboard = () => {
   ];
 
   const quickAccessLinks = [
-    { name: 'GST Portal', url: '#', icon: ExternalLink },
+    { name: 'GST Portal', url: '/gst-login', icon: ExternalLink },
     { name: 'Income Tax Portal', url: '#', icon: ExternalLink },
     { name: 'MCA Portal', url: '#', icon: ExternalLink }
   ];

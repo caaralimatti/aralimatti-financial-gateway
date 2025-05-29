@@ -12,6 +12,7 @@ import ClientDashboard from "./pages/ClientDashboard";
 import StaffDashboard from "./pages/StaffDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import DocumentsPage from "./pages/DocumentsPage";
+import GSTLogin from "./pages/GSTLogin";
 import Unauthorized from "./pages/Unauthorized";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
@@ -61,6 +62,14 @@ const App = () => {
                 element={
                   <ProtectedRoute allowedRoles={['staff']}>
                     <StaffDashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/gst-login" 
+                element={
+                  <ProtectedRoute allowedRoles={['staff', 'admin']}>
+                    <GSTLogin />
                   </ProtectedRoute>
                 } 
               />
