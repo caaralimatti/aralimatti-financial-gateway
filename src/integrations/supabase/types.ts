@@ -9,187 +9,16 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      audit_logs: {
-        Row: {
-          action: string
-          admin_user_id: string | null
-          created_at: string
-          details: Json | null
-          id: string
-          ip_address: unknown | null
-          target_user_id: string | null
-        }
-        Insert: {
-          action: string
-          admin_user_id?: string | null
-          created_at?: string
-          details?: Json | null
-          id?: string
-          ip_address?: unknown | null
-          target_user_id?: string | null
-        }
-        Update: {
-          action?: string
-          admin_user_id?: string | null
-          created_at?: string
-          details?: Json | null
-          id?: string
-          ip_address?: unknown | null
-          target_user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "audit_logs_admin_user_id_fkey"
-            columns: ["admin_user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "audit_logs_target_user_id_fkey"
-            columns: ["target_user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      documents: {
-        Row: {
-          category: string
-          client_id: string
-          description: string | null
-          file_size: number
-          file_type: string
-          file_url: string
-          id: string
-          title: string
-          updated_at: string
-          uploaded_at: string
-          uploaded_by: string
-        }
-        Insert: {
-          category?: string
-          client_id: string
-          description?: string | null
-          file_size?: number
-          file_type: string
-          file_url: string
-          id?: string
-          title: string
-          updated_at?: string
-          uploaded_at?: string
-          uploaded_by: string
-        }
-        Update: {
-          category?: string
-          client_id?: string
-          description?: string | null
-          file_size?: number
-          file_type?: string
-          file_url?: string
-          id?: string
-          title?: string
-          updated_at?: string
-          uploaded_at?: string
-          uploaded_by?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "documents_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "documents_uploaded_by_fkey"
-            columns: ["uploaded_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      profiles: {
-        Row: {
-          created_at: string | null
-          email: string
-          failed_login_attempts: number | null
-          full_name: string | null
-          google_linked: boolean | null
-          id: string
-          is_active: boolean | null
-          last_login: string | null
-          locked_until: string | null
-          password_hash: string | null
-          role: Database["public"]["Enums"]["user_role"]
-          updated_at: string | null
-          username: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          email: string
-          failed_login_attempts?: number | null
-          full_name?: string | null
-          google_linked?: boolean | null
-          id: string
-          is_active?: boolean | null
-          last_login?: string | null
-          locked_until?: string | null
-          password_hash?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
-          updated_at?: string | null
-          username?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          email?: string
-          failed_login_attempts?: number | null
-          full_name?: string | null
-          google_linked?: boolean | null
-          id?: string
-          is_active?: boolean | null
-          last_login?: string | null
-          locked_until?: string | null
-          password_hash?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
-          updated_at?: string | null
-          username?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      get_user_role: {
-        Args: { user_id: string }
-        Returns: Database["public"]["Enums"]["user_role"]
-      }
-      handle_failed_login: {
-        Args: { user_email: string }
-        Returns: boolean
-      }
-      has_role: {
-        Args: {
-          user_id: string
-          check_role: Database["public"]["Enums"]["user_role"]
-        }
-        Returns: boolean
-      }
-      is_account_locked: {
-        Args: { user_email: string }
-        Returns: boolean
-      }
-      reset_failed_login_attempts: {
-        Args: { user_email: string }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
-      user_role: "client" | "staff_type1" | "staff_type2" | "admin"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -304,8 +133,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      user_role: ["client", "staff_type1", "staff_type2", "admin"],
-    },
+    Enums: {},
   },
 } as const
