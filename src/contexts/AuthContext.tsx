@@ -43,34 +43,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchProfile = async (userId: string) => {
     try {
+      console.log('Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching profile:', error);
-        if (error.code === 'PGRST116') {
-          console.log('Profile not found, creating default profile...');
-          const { data: newProfile, error: insertError } = await supabase
-            .from('profiles')
-            .insert({
-              id: userId,
-              email: user?.email || '',
-              full_name: user?.user_metadata?.full_name || '',
-              role: 'client'
-            })
-            .select()
-            .single();
-          
-          if (!insertError && newProfile) {
-            setProfile(newProfile);
-          }
-        }
+        setProfile(null);
         return;
       }
       
+      console.log('Profile fetched:', data);
       setProfile(data);
     } catch (error) {
       console.error('Error in fetchProfile:', error);
@@ -79,6 +65,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    console.log('Setting up auth state listener...');
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.id);
@@ -86,7 +74,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          await fetchProfile(session.user.id);
+          // Use setTimeout to avoid potential deadlocks in auth callbacks
+          setTimeout(() => {
+            fetchProfile(session.user.id);
+          }, 0);
         } else {
           setProfile(null);
         }
@@ -94,7 +85,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
+    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -108,7 +101,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    console.log('Attempting to sign in...');
+    console.log('Attempting to sign in with:', email);
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -118,6 +111,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Sign in error:', error);
       throw error;
     }
+    console.log('Sign in successful');
   };
 
   const signUp = async (email: string, password: string, fullName: string, role: UserRole = 'client') => {
@@ -140,46 +134,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     console.log('Sign up successful:', data);
-
-    if (data.user && !data.user.email_confirmed_at) {
-      console.log('Email confirmation disabled, checking profile creation...');
-      setTimeout(async () => {
-        try {
-          const { data: existingProfile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', data.user!.id)
-            .single();
-          
-          if (!existingProfile) {
-            console.log('Profile not found, creating manually...');
-            await supabase
-              .from('profiles')
-              .insert({
-                id: data.user!.id,
-                email: data.user!.email!,
-                full_name: fullName,
-                role: role
-              });
-          }
-        } catch (profileError) {
-          console.error('Error handling profile creation:', profileError);
-        }
-      }, 1000);
-    }
   };
 
   const signOut = async () => {
+    console.log('Signing out...');
     const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    if (error) {
+      console.error('Sign out error:', error);
+      throw error;
+    }
+    console.log('Sign out successful');
   };
 
   const resetPassword = async (email: string) => {
+    console.log('Resetting password for:', email);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Reset password error:', error);
+      throw error;
+    }
+    console.log('Reset password email sent');
   };
 
   const value = {

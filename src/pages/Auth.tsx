@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -15,6 +16,7 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [userRole, setUserRole] = useState<'client' | 'staff' | 'admin'>('client');
 
   const { signIn, signUp, resetPassword, profile } = useAuth();
   const navigate = useNavigate();
@@ -22,6 +24,7 @@ const Auth = () => {
 
   React.useEffect(() => {
     if (profile) {
+      console.log('User authenticated with role:', profile.role);
       // Redirect based on user role
       switch (profile.role) {
         case 'admin':
@@ -51,19 +54,22 @@ const Auth = () => {
         });
         setShowForgotPassword(false);
       } else if (isLogin) {
+        console.log('Attempting login for:', email);
         await signIn(email, password);
         toast({
           title: "Welcome back!",
           description: "You have been successfully logged in.",
         });
       } else {
-        await signUp(email, password, fullName);
+        console.log('Attempting signup for:', email, 'with role:', userRole);
+        await signUp(email, password, fullName, userRole);
         toast({
           title: "Account created!",
-          description: "Please check your email to verify your account.",
+          description: `Account created successfully with ${userRole} role.`,
         });
       }
     } catch (error: any) {
+      console.error('Auth error:', error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -177,6 +183,25 @@ const Auth = () => {
               </div>
             )}
 
+            {/* Role Selection (only for signup) */}
+            {!isLogin && !showForgotPassword && (
+              <div>
+                <label htmlFor="role" className="block text-sm font-medium text-neutral-700 mb-2">
+                  Account Type
+                </label>
+                <select
+                  id="role"
+                  value={userRole}
+                  onChange={(e) => setUserRole(e.target.value as 'client' | 'staff' | 'admin')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+                >
+                  <option value="client">Client</option>
+                  <option value="staff">Staff</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+            )}
+
             {/* Submit Button */}
             <Button
               type="submit"
@@ -232,6 +257,16 @@ const Auth = () => {
             )}
           </form>
         </div>
+
+        {/* Quick Admin Setup */}
+        {!isLogin && !showForgotPassword && (
+          <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+            <p className="text-sm text-blue-700">
+              <strong>Quick Admin Setup:</strong> To create the admin user you requested, 
+              select "Admin" from Account Type, use email "admin" and password "123456".
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
