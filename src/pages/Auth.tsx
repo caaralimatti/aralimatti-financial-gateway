@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -28,8 +27,7 @@ const Auth = () => {
         case 'admin':
           navigate('/admin-dashboard');
           break;
-        case 'staff_type1':
-        case 'staff_type2':
+        case 'staff':
           navigate('/staff-dashboard');
           break;
         case 'client':
