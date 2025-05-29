@@ -19,6 +19,8 @@ export type Database = {
           login_id: string | null
           mobile: string
           password: string | null
+          registration_type: string | null
+          return_frequency: string | null
           updated_at: string
         }
         Insert: {
@@ -30,6 +32,8 @@ export type Database = {
           login_id?: string | null
           mobile: string
           password?: string | null
+          registration_type?: string | null
+          return_frequency?: string | null
           updated_at?: string
         }
         Update: {
@@ -41,6 +45,8 @@ export type Database = {
           login_id?: string | null
           mobile?: string
           password?: string | null
+          registration_type?: string | null
+          return_frequency?: string | null
           updated_at?: string
         }
         Relationships: []

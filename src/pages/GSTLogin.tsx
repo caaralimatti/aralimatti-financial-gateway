@@ -44,6 +44,7 @@ import {
   CreditCard
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { Link } from 'react-router-dom';
 
 interface GSTClient {
   id: string;
@@ -51,6 +52,8 @@ interface GSTClient {
   gstin: string;
   email: string;
   mobile: string;
+  registration_type: string;
+  return_frequency: string;
 }
 
 const GSTLogin = () => {
@@ -93,7 +96,7 @@ const GSTLogin = () => {
         setLoading(true);
         const { data, error } = await supabase
           .from('gst_clients')
-          .select('id, client_name, gstin, email, mobile')
+          .select('id, client_name, gstin, email, mobile, registration_type, return_frequency')
           .order('client_name');
 
         if (error) {
@@ -177,10 +180,17 @@ const GSTLogin = () => {
                       isActive={item.active}
                       className="w-full justify-start"
                     >
-                      <a href={item.url} className="flex items-center gap-3 px-3 py-2">
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </a>
+                      {item.url === '#' ? (
+                        <button className="flex items-center gap-3 px-3 py-2 w-full text-left">
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.title}</span>
+                        </button>
+                      ) : (
+                        <Link to={item.url} className="flex items-center gap-3 px-3 py-2">
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.title}</span>
+                        </Link>
+                      )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
@@ -388,6 +398,20 @@ const GSTLogin = () => {
                             <span className="font-medium text-gray-900 dark:text-white">
                               {selectedClient.mobile}
                             </span>
+                          </div>
+                          <div className="flex items-center gap-3 text-sm">
+                            <Building2 className="h-4 w-4 text-gray-400" />
+                            <span className="text-gray-600 dark:text-gray-400">Registration Type:</span>
+                            <Badge variant={selectedClient.registration_type === 'Regular' ? 'default' : 'secondary'}>
+                              {selectedClient.registration_type}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-3 text-sm">
+                            <Calendar className="h-4 w-4 text-gray-400" />
+                            <span className="text-gray-600 dark:text-gray-400">Return Frequency:</span>
+                            <Badge variant={selectedClient.return_frequency === 'Monthly' ? 'default' : 'outline'}>
+                              {selectedClient.return_frequency}
+                            </Badge>
                           </div>
                         </div>
 
