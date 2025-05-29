@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { Link } from 'react-router-dom';
 import { 
   SidebarProvider, 
   Sidebar, 
@@ -156,10 +157,17 @@ const StaffDashboard = () => {
                       isActive={item.active}
                       className="w-full justify-start"
                     >
-                      <a href={item.url} className="flex items-center gap-3 px-3 py-2">
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </a>
+                      {item.url === '#' ? (
+                        <button className="flex items-center gap-3 px-3 py-2 w-full text-left">
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.title}</span>
+                        </button>
+                      ) : (
+                        <Link to={item.url} className="flex items-center gap-3 px-3 py-2">
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.title}</span>
+                        </Link>
+                      )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
@@ -300,10 +308,17 @@ const StaffDashboard = () => {
                         className="w-full justify-between"
                         asChild
                       >
-                        <a href={link.url} className="flex items-center justify-between">
-                          <span>{link.name}</span>
-                          <link.icon className="h-4 w-4" />
-                        </a>
+                        {link.url === '#' ? (
+                          <button className="flex items-center justify-between w-full">
+                            <span>{link.name}</span>
+                            <link.icon className="h-4 w-4" />
+                          </button>
+                        ) : (
+                          <Link to={link.url} className="flex items-center justify-between">
+                            <span>{link.name}</span>
+                            <link.icon className="h-4 w-4" />
+                          </Link>
+                        )}
                       </Button>
                     ))}
                   </CardContent>
