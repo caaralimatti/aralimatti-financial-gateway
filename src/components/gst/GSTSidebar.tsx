@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { 
   Sidebar, 
@@ -8,7 +8,10 @@ import {
   SidebarMenu, 
   SidebarMenuItem, 
   SidebarMenuButton,
-  SidebarFooter
+  SidebarFooter,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton
 } from '@/components/ui/sidebar';
 import { 
   LayoutDashboard, 
@@ -21,12 +24,20 @@ import {
   BarChart3, 
   HelpCircle, 
   Settings, 
-  LogIn
+  LogIn,
+  ChevronDown,
+  ChevronRight,
+  UserPlus,
+  FileSpreadsheet
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 const GSTSidebar: React.FC = () => {
   const location = useLocation();
+  const [isGSTMenuOpen, setIsGSTMenuOpen] = useState(
+    location.pathname.startsWith('/gst-')
+  );
 
   const sidebarItems = [
     { title: 'Dashboard', icon: LayoutDashboard, url: '/staff-dashboard' },
@@ -39,8 +50,13 @@ const GSTSidebar: React.FC = () => {
     { title: 'Reports', icon: BarChart3, url: '#' },
     { title: 'Support & Help', icon: HelpCircle, url: '#' },
     { title: 'Settings', icon: Settings, url: '#' },
-    { title: 'GST Login', icon: LogIn, url: '/gst-login' },
     { title: 'Income Tax Login', icon: LogIn, url: '#' },
+  ];
+
+  const gstSubMenuItems = [
+    { title: 'Login', icon: LogIn, url: '/gst-login' },
+    { title: 'Registration', icon: UserPlus, url: '/gst-registration' },
+    { title: 'Reports', icon: FileSpreadsheet, url: '/gst-reports' },
   ];
 
   return (
@@ -77,6 +93,40 @@ const GSTSidebar: React.FC = () => {
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
+          
+          {/* GST Login Collapsible Section */}
+          <SidebarMenuItem>
+            <Collapsible open={isGSTMenuOpen} onOpenChange={setIsGSTMenuOpen}>
+              <CollapsibleTrigger asChild>
+                <SidebarMenuButton className="w-full justify-start">
+                  <LogIn className="h-4 w-4" />
+                  <span>GST Login</span>
+                  {isGSTMenuOpen ? (
+                    <ChevronDown className="h-4 w-4 ml-auto" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 ml-auto" />
+                  )}
+                </SidebarMenuButton>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <SidebarMenuSub>
+                  {gstSubMenuItems.map((subItem) => (
+                    <SidebarMenuSubItem key={subItem.title}>
+                      <SidebarMenuSubButton 
+                        asChild
+                        isActive={location.pathname === subItem.url}
+                      >
+                        <Link to={subItem.url} className="flex items-center gap-3">
+                          <subItem.icon className="h-4 w-4" />
+                          <span>{subItem.title}</span>
+                        </Link>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  ))}
+                </SidebarMenuSub>
+              </CollapsibleContent>
+            </Collapsible>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
 

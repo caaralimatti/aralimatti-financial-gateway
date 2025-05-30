@@ -13,6 +13,8 @@ import StaffDashboard from "./pages/StaffDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import DocumentsPage from "./pages/DocumentsPage";
 import GSTLogin from "./pages/GSTLogin";
+import GSTRegistration from "./pages/GSTRegistration";
+import GSTReports from "./pages/GSTReports";
 import TasksPage from "./pages/TasksPage";
 import Unauthorized from "./pages/Unauthorized";
 import ResetPassword from "./pages/ResetPassword";
@@ -79,6 +81,22 @@ const App = () => {
                 element={
                   <ProtectedRoute allowedRoles={['staff', 'admin']}>
                     <GSTLogin />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/gst-registration" 
+                element={
+                  <ProtectedRoute allowedRoles={['staff', 'admin']}>
+                    <GSTRegistration />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/gst-reports" 
+                element={
+                  <ProtectedRoute allowedRoles={['staff', 'admin']}>
+                    <GSTReports />
                   </ProtectedRoute>
                 } 
               />
