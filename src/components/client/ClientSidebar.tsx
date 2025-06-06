@@ -46,7 +46,7 @@ const ClientSidebar: React.FC<ClientSidebarProps> = ({ activeTab, setActiveTab }
   ];
 
   const incomeTaxSubItems = [
-    { id: 'income-tax', title: 'Quick Glance', icon: Eye },
+    { id: 'income-tax-quick-glance', title: 'Quick Glance', icon: Eye },
     { id: 'file-itr', title: 'File ITR', icon: Upload },
     { id: 'past-itr', title: 'Past ITR Filings', icon: History },
   ];

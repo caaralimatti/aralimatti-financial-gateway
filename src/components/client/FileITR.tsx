@@ -5,9 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Upload, Calendar, FileText, AlertCircle } from 'lucide-react';
+import IncomeTaxApp from './IncomeTaxApp';
 
 const FileITR = () => {
   const [selectedYear, setSelectedYear] = useState('');
+  const [showIncomeTaxApp, setShowIncomeTaxApp] = useState(false);
 
   const assessmentYears = [
     { value: 'AY2024-25', label: 'AY 2024-25 (FY 2023-24)' },
@@ -22,6 +24,22 @@ const FileITR = () => {
     { form: 'ITR-3', description: 'For individuals/HUFs with business/professional income' },
     { form: 'ITR-4', description: 'For presumptive business income (Sugam)' },
   ];
+
+  if (showIncomeTaxApp) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button variant="outline" onClick={() => setShowIncomeTaxApp(false)}>
+            ← Back to ITR Filing
+          </Button>
+          <Badge variant="outline" className="text-blue-600 border-blue-200">
+            Document Checklist for {selectedYear}
+          </Badge>
+        </div>
+        <IncomeTaxApp />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -71,6 +89,33 @@ const FileITR = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Document Checklist Access */}
+      {selectedYear && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Document Preparation</CardTitle>
+            <CardDescription>Prepare your documents before filing ITR</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200">
+              <h4 className="font-medium text-green-800 dark:text-green-200 mb-2">
+                📋 Document Checklist Available
+              </h4>
+              <p className="text-sm text-green-700 dark:text-green-300 mb-3">
+                Use our interactive document checklist to ensure you have all required documents for your ITR filing.
+              </p>
+              <Button 
+                onClick={() => setShowIncomeTaxApp(true)}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Open Document Checklist
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* ITR Form Selection */}
       {selectedYear && (

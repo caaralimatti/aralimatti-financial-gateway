@@ -20,6 +20,7 @@ import ClientSidebar from '@/components/client/ClientSidebar';
 import IncomeTaxApp from '@/components/client/IncomeTaxApp';
 import FileITR from '@/components/client/FileITR';
 import PastITRFilings from '@/components/client/PastITRFilings';
+import IncomeTaxQuickGlance from '@/components/client/IncomeTaxQuickGlance';
 
 const ClientDashboard = () => {
   const { profile, signOut } = useAuth();
@@ -275,8 +276,8 @@ const ClientDashboard = () => {
         return renderDocuments();
       case 'gst-registration':
         return renderGSTRegistration();
-      case 'income-tax':
-        return <IncomeTaxApp />;
+      case 'income-tax-quick-glance':
+        return <IncomeTaxQuickGlance />;
       case 'file-itr':
         return <FileITR />;
       case 'past-itr':
