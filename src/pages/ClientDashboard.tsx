@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,6 +18,8 @@ import {
 import GSTOnboardingChecklist from '@/components/gst/GSTOnboardingChecklist';
 import ClientSidebar from '@/components/client/ClientSidebar';
 import IncomeTaxApp from '@/components/client/IncomeTaxApp';
+import FileITR from '@/components/client/FileITR';
+import PastITRFilings from '@/components/client/PastITRFilings';
 
 const ClientDashboard = () => {
   const { profile, signOut } = useAuth();
@@ -206,35 +207,28 @@ const ClientDashboard = () => {
 
   const renderGSTRegistration = () => (
     <div className="space-y-6">
-      {/* Disclaimer */}
+      {/* Updated Disclaimer */}
       <Card className="border-l-4 border-l-yellow-500 bg-yellow-50 dark:bg-yellow-900/20">
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-yellow-800 dark:text-yellow-200">
-            Key Takeaway for Sole Proprietorship
+            Important Pro-Tips
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-yellow-800 dark:text-yellow-200">
-            Documentation is simpler, focusing on the individual owner's identity and the business location's legitimacy.
-          </p>
-          
-          <div>
-            <h4 className="font-semibold text-yellow-800 dark:text-yellow-200 mb-2">Important Pro-Tips</h4>
-            <ul className="space-y-2 text-yellow-800 dark:text-yellow-200">
-              <li className="flex items-start gap-2">
-                <span className="font-bold">•</span>
-                <span>Ensure all uploaded files (JPEG/PDF) are under <strong>100 KB</strong>.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="font-bold">•</span>
-                <span>For rented or shared premises, a <strong>No Objection Certificate (NOC)</strong> from the owner is mandatory and a common point of rejection if missed.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="font-bold">•</span>
-                <span>The name and address on all documents must <strong>exactly match</strong> the details in the application form to avoid delays.</span>
-              </li>
-            </ul>
-          </div>
+          <ul className="space-y-2 text-yellow-800 dark:text-yellow-200">
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>Ensure all uploaded files (JPEG/PDF) are under <strong>100 KB</strong>.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>For rented or shared premises, a <strong>No Objection Certificate (NOC)</strong> from the owner is mandatory and a common point of rejection if missed.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold">•</span>
+              <span>The name and address on all documents must <strong>exactly match</strong> the details in the application form to avoid delays.</span>
+            </li>
+          </ul>
         </CardContent>
       </Card>
 
@@ -283,6 +277,10 @@ const ClientDashboard = () => {
         return renderGSTRegistration();
       case 'income-tax':
         return <IncomeTaxApp />;
+      case 'file-itr':
+        return <FileITR />;
+      case 'past-itr':
+        return <PastITRFilings />;
       case 'billing':
         return renderBilling();
       default:
