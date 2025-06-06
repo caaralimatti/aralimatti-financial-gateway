@@ -3,12 +3,34 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, ChevronRight, Info, FileText, Users, Building } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ChevronDown, ChevronUp, FileText, Download, Upload } from 'lucide-react';
 import GSTDocumentModal from './GSTDocumentModal';
-import GSTComplexityChart from './GSTComplexityChart';
 
-const gstData = {
+interface GSTData {
+  [key: string]: {
+    label: string;
+    icon: string;
+    docCount: number;
+    keyTakeaway: string;
+    docs: {
+      specific: { name: string; detailKey: string | null }[];
+      personnel: { name: string; detailKey: string | null }[];
+    };
+  };
+}
+
+interface UniversalDoc {
+  name: string;
+  detailKey: string | null;
+}
+
+interface DetailModal {
+  title: string;
+  content: string;
+}
+
+const gstData: GSTData = {
   proprietorship: {
     label: 'Sole Proprietorship',
     icon: '👤',
@@ -139,204 +161,361 @@ const gstData = {
   }
 };
 
-const universalDocs = [
+const universalDocs: UniversalDoc[] = [
   { name: "Proof of Principal Place of Business", detailKey: 'address' },
   { name: "Proof of Bank Account", detailKey: 'bank' },
   { name: "Proof of Appointment of Authorized Signatory", detailKey: 'auth' },
 ];
 
-const GSTOnboardingChecklist: React.FC = () => {
+const detailModals: { [key: string]: DetailModal } = {
+  pan: { title: "Permanent Account Number (PAN)", content: `<p>PAN is mandatory for the business entity itself and all key individuals (proprietor, partners, directors). The details on the PAN must exactly match the application.</p>` },
+  aadhaar: { title: "Aadhaar Card", content: `<p>Aadhaar is used for identity verification of all key individuals. Opting for Aadhaar Authentication during registration is highly recommended as it speeds up the process and reduces the chances of a physical verification.</p>` },
+  photo: { title: "Photograph", content: `<p>A recent passport-size photograph is required for all key individuals (proprietor, partners, directors, Karta, trustees). </p><p><b>Specifications:</b> JPEG format, maximum file size 100 KB.</p>` },
+  address: {
+    title: "Proof of Place of Business",
+    content: `
+      <p class="mb-4">This document verifies the physical location of your business. The requirements change based on who owns the property. All utility bills must be recent (not older than 2-3 months).</p>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-gray-500">
+          <thead class="text-xs text-gray-700 uppercase bg-gray-100">
+            <tr><th scope="col" class="px-4 py-2">Property Type</th><th scope="col" class="px-4 py-2">Required Documents</th></tr>
+          </thead>
+          <tbody>
+            <tr class="bg-white border-b"><td class="px-4 py-2 font-medium">Owned Property</td><td class="px-4 py-2">Any ONE: Latest Electricity Bill, Water Bill, or Property Tax Receipt in the owner's name.</td></tr>
+            <tr class="bg-gray-50 border-b"><td class="px-4 py-2 font-medium">Rented / Leased</td><td class="px-4 py-2"><b>1.</b> Valid Rent/Lease Agreement<br><b>2.</b> A utility bill in the landlord's name<br><b>3.</b> A No Objection Certificate (NOC) from the landlord.</td></tr>
+            <tr class="bg-white"><td class="px-4 py-2 font-medium">Shared / Consent</td><td class="px-4 py-2"><b>1.</b> Consent Letter/NOC from the property owner<br><b>2.</b> A utility bill in the owner's name to prove their ownership.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    `
+  },
+  bank: {
+    title: "Proof of Bank Account",
+    content: `
+      <p class="mb-4">You must provide proof of a bank account held in the legal name of the business. While the application might proceed without it initially, it's mandatory for final approval.</p>
+      <p><b>Acceptable Documents (Any ONE):</b></p>
+      <ul class="list-disc list-inside mt-2">
+        <li>The first page of the Bank Passbook</li>
+        <li>A recent Bank Statement</li>
+        <li>A canceled cheque (with the business name printed)</li>
+      </ul>
+      <p class="mt-2"><b>Specifications:</b> JPEG or PDF format, maximum file size 100 KB.</p>
+    `
+  },
+  dsc: { title: "Digital Signature Certificate (DSC)", content: `<p>A valid Class 2 or Class 3 DSC is mandatory for signing the application for Companies and LLPs. It's the digital equivalent of a physical signature. For other entities, an Aadhaar-based EVC (Electronic Verification Code) can often be used instead.</p>` },
+  auth: { title: "Proof of Authorized Signatory", content: `<p>This document formally appoints the person responsible for GST compliance. It is typically a <b>Board Resolution</b> for Companies/LLPs or a simple <b>Authorization Letter</b> for other entities.</p>` }
+};
+
+interface GSTOnboardingChecklistProps {
+  isClient?: boolean;
+}
+
+const GSTOnboardingChecklist: React.FC<GSTOnboardingChecklistProps> = ({ isClient = false }) => {
   const [selectedEntity, setSelectedEntity] = useState<string | null>(null);
-  const [modalContent, setModalContent] = useState<{ title: string; content: string } | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState<DetailModal | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<{ [key: string]: File }>({});
+  const [formData, setFormData] = useState({
+    businessName: '',
+    email: '',
+    phone: '',
+    address: ''
+  });
 
   const handleEntitySelect = (entityKey: string) => {
     setSelectedEntity(entityKey);
   };
 
-  const handleDocumentDetail = (detailKey: string) => {
-    const details = {
-      pan: { title: "Permanent Account Number (PAN)", content: "PAN is mandatory for the business entity itself and all key individuals (proprietor, partners, directors). The details on the PAN must exactly match the application." },
-      aadhaar: { title: "Aadhaar Card", content: "Aadhaar is used for identity verification of all key individuals. Opting for Aadhaar Authentication during registration is highly recommended as it speeds up the process and reduces the chances of a physical verification." },
-      photo: { title: "Photograph", content: "A recent passport-size photograph is required for all key individuals (proprietor, partners, directors, Karta, trustees). Specifications: JPEG format, maximum file size 100 KB." },
-      address: { title: "Proof of Place of Business", content: "This document verifies the physical location of your business. Requirements change based on property ownership. All utility bills must be recent (not older than 2-3 months)." },
-      bank: { title: "Proof of Bank Account", content: "You must provide proof of a bank account held in the legal name of the business. Acceptable documents include bank passbook first page, recent bank statement, or canceled cheque." },
-      dsc: { title: "Digital Signature Certificate (DSC)", content: "A valid Class 2 or Class 3 DSC is mandatory for signing the application for Companies and LLPs. It's the digital equivalent of a physical signature." },
-      auth: { title: "Proof of Authorized Signatory", content: "This document formally appoints the person responsible for GST compliance. Typically a Board Resolution for Companies/LLPs or Authorization Letter for other entities." }
-    };
-    
-    if (details[detailKey as keyof typeof details]) {
-      setModalContent(details[detailKey as keyof typeof details]);
+  const handleDetailClick = (detailKey: string) => {
+    const modal = detailModals[detailKey];
+    if (modal) {
+      setModalContent(modal);
+      setModalOpen(true);
     }
   };
 
-  const selectedEntityData = selectedEntity ? gstData[selectedEntity as keyof typeof gstData] : null;
+  const handleFileUpload = (docName: string, file: File) => {
+    setUploadedFiles(prev => ({
+      ...prev,
+      [docName]: file
+    }));
+  };
+
+  const handleDownload = () => {
+    if (!selectedEntity) return;
+
+    const entity = gstData[selectedEntity];
+    const allDocs = [
+      ...universalDocs,
+      ...entity.docs.specific,
+      ...entity.docs.personnel
+    ];
+
+    const downloadData = {
+      businessType: entity.label,
+      businessDetails: formData,
+      requiredDocuments: allDocs.map(doc => ({
+        name: doc.name,
+        uploaded: !!uploadedFiles[doc.name],
+        fileName: uploadedFiles[doc.name]?.name || 'Not uploaded'
+      })),
+      generatedAt: new Date().toLocaleString()
+    };
+
+    const dataStr = JSON.stringify(downloadData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `gst-registration-${entity.label.toLowerCase().replace(/\s+/g, '-')}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const renderDocumentItem = (doc: { name: string; detailKey: string | null }) => (
+    <div key={doc.name} className="py-3 flex items-center justify-between">
+      <div className="flex items-center space-x-3">
+        <div className="flex-shrink-0">
+          <FileText className="h-4 w-4 text-gray-400" />
+        </div>
+        <span className="text-sm text-gray-700">{doc.name}</span>
+      </div>
+      <div className="flex items-center space-x-2">
+        {isClient && (
+          <label className="cursor-pointer">
+            <input
+              type="file"
+              className="hidden"
+              accept=".pdf,.jpg,.jpeg,.png"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleFileUpload(doc.name, file);
+              }}
+            />
+            <Button
+              type="button"
+              variant={uploadedFiles[doc.name] ? "default" : "outline"}
+              size="sm"
+              className="text-xs"
+            >
+              <Upload className="h-3 w-3 mr-1" />
+              {uploadedFiles[doc.name] ? "Uploaded" : "Upload"}
+            </Button>
+          </label>
+        )}
+        {doc.detailKey && (
+          <Button
+            onClick={() => handleDetailClick(doc.detailKey!)}
+            variant="outline"
+            size="sm"
+            className="text-xs text-teal-600 hover:text-teal-800 bg-teal-50 border-teal-200"
+          >
+            Details
+          </Button>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">GST Registration Document Checklist</h2>
-        <p className="text-gray-600 dark:text-gray-400">Select your business type to view the required documents</p>
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          GST Registration Document Checklist
+        </h2>
+        <p className="text-gray-600 dark:text-gray-400">
+          Select your business type to view required documents
+        </p>
       </div>
 
-      {/* GST Process Overview */}
-      <Card className="border border-gray-200 dark:border-gray-700">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 md:space-x-4 text-center">
-            <div className="flex-1">
-              <div className="text-lg font-semibold text-gray-900 dark:text-white">1. Prepare Documents</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Gather required documents based on entity type</div>
-            </div>
-            <div className="text-gray-300 text-2xl">→</div>
-            <div className="flex-1">
-              <div className="text-lg font-semibold text-gray-900 dark:text-white">2. Submit Application</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">File GST registration online</div>
-            </div>
-            <div className="text-gray-300 text-2xl">→</div>
-            <div className="flex-1">
-              <div className="text-lg font-semibold text-gray-900 dark:text-white">3. Get GSTIN</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Receive 15-digit GST identification number</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Entity Type Selection */}
-      <Card className="border border-gray-200 dark:border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Select Business Type</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
-            {Object.entries(gstData).map(([key, entity]) => (
-              <div
-                key={key}
-                className={`bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border-2 cursor-pointer hover:shadow-md transition-all duration-200 flex flex-col items-center justify-center text-center h-32 ${
-                  selectedEntity === key 
-                    ? 'border-teal-500 shadow-lg shadow-teal-100' 
-                    : 'border-transparent hover:border-teal-500'
-                }`}
-                onClick={() => handleEntitySelect(key)}
-              >
-                <div className="text-4xl mb-2">{entity.icon}</div>
-                <div className="font-semibold text-sm text-gray-700 dark:text-gray-300">{entity.label}</div>
-                <Badge variant="outline" className="mt-1 text-xs">
-                  {entity.docCount} docs
-                </Badge>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Document Checklist */}
-      {selectedEntityData && (
-        <div className="space-y-6">
-          {/* Key Takeaway */}
-          <Card className="border border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20">
-            <CardContent className="p-4">
-              <div className="flex items-start space-x-3">
-                <Info className="h-5 w-5 text-yellow-600 mt-0.5" />
-                <div>
-                  <h4 className="font-semibold text-yellow-800 dark:text-yellow-200">Pro Tip</h4>
-                  <p className="text-yellow-700 dark:text-yellow-300 text-sm mt-1">{selectedEntityData.keyTakeaway}</p>
-                </div>
-              </div>
+      {/* Business Type Selection */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
+        {Object.entries(gstData).map(([key, entity]) => (
+          <Card
+            key={key}
+            className={`cursor-pointer transition-all duration-200 hover:shadow-md h-32 ${
+              selectedEntity === key
+                ? 'border-teal-500 shadow-lg border-2'
+                : 'border-gray-200 hover:border-teal-300'
+            }`}
+            onClick={() => handleEntitySelect(key)}
+          >
+            <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full">
+              <div className="text-4xl mb-2">{entity.icon}</div>
+              <span className="font-semibold text-sm text-gray-700 dark:text-gray-300">
+                {entity.label}
+              </span>
             </CardContent>
           </Card>
+        ))}
+      </div>
 
-          {/* Document Sections */}
-          <div className="space-y-4">
-            {/* Universal Documents */}
-            <DocumentSection
-              title="Universal Documents"
-              icon={<FileText className="h-5 w-5" />}
-              documents={universalDocs}
-              onDocumentDetail={handleDocumentDetail}
-            />
+      {/* Business Details Form (Client Only) */}
+      {isClient && selectedEntity && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold">Business Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Business Name
+                </label>
+                <input
+                  type="text"
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  value={formData.businessName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, businessName: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Phone
+                </label>
+                <input
+                  type="tel"
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  value={formData.phone}
+                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Address
+                </label>
+                <input
+                  type="text"
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  value={formData.address}
+                  onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-            {/* Entity-Specific Documents */}
-            {selectedEntityData.docs.specific.length > 0 && (
-              <DocumentSection
-                title="Entity-Specific Documents"
-                icon={<Building className="h-5 w-5" />}
-                documents={selectedEntityData.docs.specific}
-                onDocumentDetail={handleDocumentDetail}
-              />
+      {/* Document Checklist */}
+      {selectedEntity && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Required Documents for {gstData[selectedEntity].label}
+              </h3>
+              <Badge variant="outline" className="mt-1">
+                {gstData[selectedEntity].docCount} document categories
+              </Badge>
+            </div>
+            {isClient && (
+              <Button onClick={handleDownload} className="flex items-center gap-2">
+                <Download className="h-4 w-4" />
+                Download Summary
+              </Button>
             )}
-
-            {/* Personnel Documents */}
-            <DocumentSection
-              title="Key Personnel Documents"
-              icon={<Users className="h-5 w-5" />}
-              documents={selectedEntityData.docs.personnel}
-              onDocumentDetail={handleDocumentDetail}
-            />
           </div>
 
-          {/* Complexity Chart */}
-          <GSTComplexityChart selectedEntity={selectedEntity} />
+          {/* Universal Documents */}
+          <Card>
+            <Collapsible defaultOpen>
+              <CollapsibleTrigger className="w-full">
+                <CardHeader className="hover:bg-gray-50 transition-colors">
+                  <CardTitle className="text-left flex items-center justify-between">
+                    Universal Documents (Required for All)
+                    <ChevronDown className="h-4 w-4" />
+                  </CardTitle>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent>
+                  <div className="divide-y divide-gray-200">
+                    {universalDocs.map(renderDocumentItem)}
+                  </div>
+                </CardContent>
+              </CollapsibleContent>
+            </Collapsible>
+          </Card>
+
+          {/* Entity-Specific Documents */}
+          {gstData[selectedEntity].docs.specific.length > 0 && (
+            <Card>
+              <Collapsible defaultOpen>
+                <CollapsibleTrigger className="w-full">
+                  <CardHeader className="hover:bg-gray-50 transition-colors">
+                    <CardTitle className="text-left flex items-center justify-between">
+                      Entity-Specific Documents
+                      <ChevronDown className="h-4 w-4" />
+                    </CardTitle>
+                  </CardHeader>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <CardContent>
+                    <div className="divide-y divide-gray-200">
+                      {gstData[selectedEntity].docs.specific.map(renderDocumentItem)}
+                    </div>
+                  </CardContent>
+                </CollapsibleContent>
+              </Collapsible>
+            </Card>
+          )}
+
+          {/* Personnel Documents */}
+          <Card>
+            <Collapsible defaultOpen>
+              <CollapsibleTrigger className="w-full">
+                <CardHeader className="hover:bg-gray-50 transition-colors">
+                  <CardTitle className="text-left flex items-center justify-between">
+                    Key Personnel Documents
+                    <ChevronDown className="h-4 w-4" />
+                  </CardTitle>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent>
+                  <div className="divide-y divide-gray-200">
+                    {gstData[selectedEntity].docs.personnel.map(renderDocumentItem)}
+                  </div>
+                </CardContent>
+              </CollapsibleContent>
+            </Collapsible>
+          </Card>
+
+          {/* Pro Tips */}
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
+            <div className="flex">
+              <div className="ml-3">
+                <p className="text-sm text-yellow-700">
+                  <strong className="font-bold text-yellow-800">Pro Tip:</strong>{' '}
+                  {gstData[selectedEntity].keyTakeaway}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Document Detail Modal */}
+      {/* Modal */}
       <GSTDocumentModal
-        isOpen={!!modalContent}
-        onClose={() => setModalContent(null)}
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
         title={modalContent?.title || ''}
         content={modalContent?.content || ''}
       />
     </div>
-  );
-};
-
-interface DocumentSectionProps {
-  title: string;
-  icon: React.ReactNode;
-  documents: Array<{ name: string; detailKey: string | null }>;
-  onDocumentDetail: (detailKey: string) => void;
-}
-
-const DocumentSection: React.FC<DocumentSectionProps> = ({ title, icon, documents, onDocumentDetail }) => {
-  const [isOpen, setIsOpen] = useState(true);
-
-  return (
-    <Card className="border border-gray-200 dark:border-gray-700">
-      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CollapsibleTrigger asChild>
-          <Button variant="ghost" className="w-full justify-between p-4 h-auto">
-            <div className="flex items-center space-x-3">
-              {icon}
-              <span className="font-semibold text-gray-900 dark:text-white">{title}</span>
-              <Badge variant="outline">{documents.length}</Badge>
-            </div>
-            {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-          </Button>
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div className="px-4 pb-4">
-            <div className="divide-y divide-gray-200 dark:divide-gray-700">
-              {documents.map((doc, index) => (
-                <div key={index} className="py-3 flex items-center justify-between">
-                  <span className="text-gray-700 dark:text-gray-300">{doc.name}</span>
-                  {doc.detailKey && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="ml-2 text-teal-600 hover:text-teal-800 text-xs"
-                      onClick={() => onDocumentDetail(doc.detailKey!)}
-                    >
-                      <Info className="h-3 w-3 mr-1" />
-                      Details
-                    </Button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
-    </Card>
   );
 };
 
