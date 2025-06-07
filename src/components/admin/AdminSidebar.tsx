@@ -10,7 +10,10 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel
+  SidebarGroupLabel,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton
 } from '@/components/ui/sidebar';
 import { 
   LayoutDashboard, 
@@ -18,7 +21,11 @@ import {
   UserPlus, 
   Settings, 
   BarChart3, 
-  Shield
+  Shield,
+  Plus,
+  List,
+  Upload,
+  Edit3
 } from 'lucide-react';
 
 interface AdminSidebarProps {
@@ -30,7 +37,17 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActiveTab }) 
   const sidebarItems = [
     { id: 'dashboard', title: 'Dashboard', icon: LayoutDashboard },
     { id: 'user-management', title: 'User Management', icon: Users },
-    { id: 'client-management', title: 'Client Management', icon: UserPlus },
+    { 
+      id: 'clients', 
+      title: 'Clients', 
+      icon: Users,
+      subItems: [
+        { id: 'clients-add', title: 'Add', icon: Plus },
+        { id: 'clients-list', title: 'List', icon: List },
+        { id: 'clients-import', title: 'Import', icon: Upload },
+        { id: 'clients-bulk-edit', title: 'Bulk Edit', icon: Edit3 }
+      ]
+    },
     { id: 'system-settings', title: 'System Settings', icon: Settings },
     { id: 'analytics', title: 'Analytics', icon: BarChart3 },
   ];
@@ -54,13 +71,29 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActiveTab }) 
               {sidebarItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton 
-                    isActive={activeTab === item.id}
-                    onClick={() => setActiveTab(item.id)}
+                    isActive={activeTab === item.id || (item.subItems && item.subItems.some(sub => activeTab === sub.id))}
+                    onClick={() => setActiveTab(item.subItems ? item.subItems[1].id : item.id)}
                     className="w-full justify-start"
                   >
                     <item.icon className="h-4 w-4" />
                     <span>{item.title}</span>
                   </SidebarMenuButton>
+                  
+                  {item.subItems && (
+                    <SidebarMenuSub>
+                      {item.subItems.map((subItem) => (
+                        <SidebarMenuSubItem key={subItem.id}>
+                          <SidebarMenuSubButton
+                            isActive={activeTab === subItem.id}
+                            onClick={() => setActiveTab(subItem.id)}
+                          >
+                            <subItem.icon className="h-4 w-4" />
+                            <span>{subItem.title}</span>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  )}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>

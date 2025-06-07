@@ -10,6 +10,8 @@ import AdminManagementCards from '@/components/admin/AdminManagementCards';
 import AdminRecentActivity from '@/components/admin/AdminRecentActivity';
 import UserManagement from '@/components/admin/UserManagement';
 import ClientManagement from '@/components/admin/ClientManagement';
+import ClientImport from '@/components/admin/ClientImport';
+import ClientBulkEdit from '@/components/admin/ClientBulkEdit';
 import SmartSearchBar from '@/components/admin/SmartSearchBar';
 
 const AdminDashboard = () => {
@@ -28,6 +30,7 @@ const AdminDashboard = () => {
   const handleQuickAdd = (item: string) => {
     console.log('Quick add:', item);
     if (item === 'client') {
+      setActiveTab('clients-add');
       setShowAddClientModal(true);
     }
     // Handle other quick add items here
@@ -37,8 +40,13 @@ const AdminDashboard = () => {
     switch (activeTab) {
       case 'user-management':
         return <UserManagement />;
-      case 'client-management':
+      case 'clients-add':
+      case 'clients-list':
         return <ClientManagement />;
+      case 'clients-import':
+        return <ClientImport />;
+      case 'clients-bulk-edit':
+        return <ClientBulkEdit />;
       case 'system-settings':
         return (
           <div className="text-center py-12">
