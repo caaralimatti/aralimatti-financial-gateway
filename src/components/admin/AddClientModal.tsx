@@ -22,7 +22,7 @@ const AddClientModal = ({ open, onOpenChange, editingClient }: AddClientModalPro
   const [clientForm, setClientForm] = useState({
     taxesApplicable: {
       gst: editingClient?.gst_applicable || false,
-      incomeTax: editingClient?.income_tax_applicable || true,
+      incomeTax: editingClient?.income_tax_applicable !== false, // Changed from literal true to boolean expression
       other: editingClient?.other_tax_applicable || false
     },
     basicDetails: {
@@ -115,7 +115,7 @@ const AddClientModal = ({ open, onOpenChange, editingClient }: AddClientModalPro
       
       // Reset form
       setClientForm({
-        taxesApplicable: { gst: false, incomeTax: true, other: false },
+        taxesApplicable: { gst: false, incomeTax: false, other: false }, // Changed to consistent boolean types
         basicDetails: { fileNo: '', clientType: '', name: '', tradeName: '', dateOfBirth: '', otherUsers: '', workingUser: '', tags: '', notes: '' },
         incomeTaxDetails: { returns: [], pan: '', tan: '' },
         contactPersons: [],
