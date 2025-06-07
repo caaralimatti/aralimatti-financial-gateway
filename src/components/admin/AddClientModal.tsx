@@ -5,68 +5,147 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Info } from 'lucide-react';
+import { Info, Loader2 } from 'lucide-react';
+import { useClients } from '@/hooks/useClients';
 import ClientFormTabs from './ClientFormTabs';
+import type { Tables } from '@/integrations/supabase/types';
 
 interface AddClientModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editingClient?: Tables<'clients'> | null;
 }
 
-const AddClientModal = ({ open, onOpenChange }: AddClientModalProps) => {
+const AddClientModal = ({ open, onOpenChange, editingClient }: AddClientModalProps) => {
+  const { createClient, updateClient, isCreating, isUpdating } = useClients();
+  
   const [clientForm, setClientForm] = useState({
     taxesApplicable: {
-      gst: false,
-      incomeTax: true,
-      other: false
+      gst: editingClient?.gst_applicable || false,
+      incomeTax: editingClient?.income_tax_applicable || true,
+      other: editingClient?.other_tax_applicable || false
     },
     basicDetails: {
-      fileNo: '',
-      clientType: '',
-      name: '',
-      tradeName: '',
-      dateOfBirth: '',
-      otherUsers: '',
-      workingUser: '',
-      tags: '',
-      notes: ''
+      fileNo: editingClient?.file_no || '',
+      clientType: editingClient?.client_type || '',
+      name: editingClient?.name || '',
+      tradeName: editingClient?.trade_name || '',
+      dateOfBirth: editingClient?.date_of_birth || '',
+      otherUsers: editingClient?.other_users || '',
+      workingUser: editingClient?.working_user_id || '',
+      tags: editingClient?.tags?.join(', ') || '',
+      notes: editingClient?.notes || ''
     },
     incomeTaxDetails: {
       returns: [],
-      pan: '',
-      tan: ''
+      pan: editingClient?.pan || '',
+      tan: editingClient?.tan || ''
     },
     contactPersons: [],
     clientGroups: [],
     loginDetails: {
-      itPan: '',
-      itPassword: '',
-      itTan: '',
-      itDeductorPassword: '',
-      tracesUsername: '',
-      tracesDeductorPassword: '',
-      tracesTaxpayerPassword: '',
-      mcaV2Username: '',
-      mcaV2Password: '',
-      mcaV3Username: '',
-      mcaV3Password: '',
-      dgftUsername: '',
-      dgftPassword: ''
+      itPan: editingClient?.it_pan || '',
+      itPassword: editingClient?.it_password || '',
+      itTan: editingClient?.it_tan || '',
+      itDeductorPassword: editingClient?.it_deductor_password || '',
+      tracesUsername: editingClient?.traces_username || '',
+      tracesDeductorPassword: editingClient?.traces_deductor_password || '',
+      tracesTaxpayerPassword: editingClient?.traces_taxpayer_password || '',
+      mcaV2Username: editingClient?.mca_v2_username || '',
+      mcaV2Password: editingClient?.mca_v2_password || '',
+      mcaV3Username: editingClient?.mca_v3_username || '',
+      mcaV3Password: editingClient?.mca_v3_password || '',
+      dgftUsername: editingClient?.dgft_username || '',
+      dgftPassword: editingClient?.dgft_password || ''
     },
     attachments: []
   });
+
+  const handleSave = async () => {
+    try {
+      // Validate required fields
+      if (!clientForm.basicDetails.name || !clientForm.basicDetails.clientType || !clientForm.basicDetails.fileNo) {
+        console.error('Missing required fields');
+        return;
+      }
+
+      const clientData = {
+        file_no: clientForm.basicDetails.fileNo,
+        client_type: clientForm.basicDetails.clientType as any,
+        name: clientForm.basicDetails.name,
+        trade_name: clientForm.basicDetails.tradeName || null,
+        date_of_birth: clientForm.basicDetails.dateOfBirth || null,
+        other_users: clientForm.basicDetails.otherUsers || null,
+        working_user_id: clientForm.basicDetails.workingUser || null,
+        tags: clientForm.basicDetails.tags ? clientForm.basicDetails.tags.split(',').map(tag => tag.trim()).filter(Boolean) : null,
+        notes: clientForm.basicDetails.notes || null,
+        
+        // Taxes applicable
+        gst_applicable: clientForm.taxesApplicable.gst,
+        income_tax_applicable: clientForm.taxesApplicable.incomeTax,
+        other_tax_applicable: clientForm.taxesApplicable.other,
+        
+        // Income tax details
+        pan: clientForm.incomeTaxDetails.pan || null,
+        tan: clientForm.incomeTaxDetails.tan || null,
+        
+        // Login details
+        it_pan: clientForm.loginDetails.itPan || null,
+        it_password: clientForm.loginDetails.itPassword || null,
+        it_tan: clientForm.loginDetails.itTan || null,
+        it_deductor_password: clientForm.loginDetails.itDeductorPassword || null,
+        traces_username: clientForm.loginDetails.tracesUsername || null,
+        traces_deductor_password: clientForm.loginDetails.tracesDeductorPassword || null,
+        traces_taxpayer_password: clientForm.loginDetails.tracesTaxpayerPassword || null,
+        mca_v2_username: clientForm.loginDetails.mcaV2Username || null,
+        mca_v2_password: clientForm.loginDetails.mcaV2Password || null,
+        mca_v3_username: clientForm.loginDetails.mcaV3Username || null,
+        mca_v3_password: clientForm.loginDetails.mcaV3Password || null,
+        dgft_username: clientForm.loginDetails.dgftUsername || null,
+        dgft_password: clientForm.loginDetails.dgftPassword || null,
+      };
+
+      if (editingClient) {
+        await updateClient({ id: editingClient.id, ...clientData });
+      } else {
+        await createClient(clientData);
+      }
+
+      onOpenChange(false);
+      
+      // Reset form
+      setClientForm({
+        taxesApplicable: { gst: false, incomeTax: true, other: false },
+        basicDetails: { fileNo: '', clientType: '', name: '', tradeName: '', dateOfBirth: '', otherUsers: '', workingUser: '', tags: '', notes: '' },
+        incomeTaxDetails: { returns: [], pan: '', tan: '' },
+        contactPersons: [],
+        clientGroups: [],
+        loginDetails: { itPan: '', itPassword: '', itTan: '', itDeductorPassword: '', tracesUsername: '', tracesDeductorPassword: '', tracesTaxpayerPassword: '', mcaV2Username: '', mcaV2Password: '', mcaV3Username: '', mcaV3Password: '', dgftUsername: '', dgftPassword: '' },
+        attachments: []
+      });
+    } catch (error) {
+      console.error('Error saving client:', error);
+    }
+  };
+
+  const isLoading = isCreating || isUpdating;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex justify-between items-center">
-            <DialogTitle className="text-xl font-semibold">Add Client</DialogTitle>
+            <DialogTitle className="text-xl font-semibold">
+              {editingClient ? 'Edit Client' : 'Add Client'}
+            </DialogTitle>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
+              <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
                 Cancel
               </Button>
-              <Button>Save Client</Button>
+              <Button onClick={handleSave} disabled={isLoading}>
+                {isLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                {editingClient ? 'Update Client' : 'Save Client'}
+              </Button>
             </div>
           </div>
         </DialogHeader>

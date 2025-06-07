@@ -81,19 +81,24 @@ const ClientFormTabs = ({ clientForm, setClientForm }: ClientFormTabsProps) => {
           </div>
           <div className="space-y-2">
             <Label htmlFor="clientType">Type of Client <span className="text-red-500">*</span></Label>
-            <Select onValueChange={(value) => setClientForm(prev => ({
-              ...prev,
-              basicDetails: { ...prev.basicDetails, clientType: value }
-            }))}>
+            <Select 
+              value={clientForm.basicDetails.clientType}
+              onValueChange={(value) => setClientForm(prev => ({
+                ...prev,
+                basicDetails: { ...prev.basicDetails, clientType: value }
+              }))}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select Ownership Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="individual">Individual</SelectItem>
-                <SelectItem value="company">Company</SelectItem>
-                <SelectItem value="partnership">Partnership</SelectItem>
-                <SelectItem value="llp">LLP</SelectItem>
-                <SelectItem value="proprietorship">Proprietorship</SelectItem>
+                <SelectItem value="Individual">Individual</SelectItem>
+                <SelectItem value="Company">Company</SelectItem>
+                <SelectItem value="Partnership">Partnership</SelectItem>
+                <SelectItem value="LLP">LLP</SelectItem>
+                <SelectItem value="Trust">Trust</SelectItem>
+                <SelectItem value="HUF">HUF</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -148,15 +153,15 @@ const ClientFormTabs = ({ clientForm, setClientForm }: ClientFormTabsProps) => {
                 </TooltipContent>
               </Tooltip>
             </Label>
-            <Select>
-              <SelectTrigger>
-                <SelectValue placeholder="Select Other Users" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="user1">User 1</SelectItem>
-                <SelectItem value="user2">User 2</SelectItem>
-              </SelectContent>
-            </Select>
+            <Input
+              id="otherUsers"
+              placeholder="Other Users"
+              value={clientForm.basicDetails.otherUsers}
+              onChange={(e) => setClientForm(prev => ({
+                ...prev,
+                basicDetails: { ...prev.basicDetails, otherUsers: e.target.value }
+              }))}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="workingUser" className="flex items-center gap-2">
@@ -170,15 +175,15 @@ const ClientFormTabs = ({ clientForm, setClientForm }: ClientFormTabsProps) => {
                 </TooltipContent>
               </Tooltip>
             </Label>
-            <Select>
-              <SelectTrigger>
-                <SelectValue placeholder="Select Working User" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="worker1">Worker 1</SelectItem>
-                <SelectItem value="worker2">Worker 2</SelectItem>
-              </SelectContent>
-            </Select>
+            <Input
+              id="workingUser"
+              placeholder="Working User"
+              value={clientForm.basicDetails.workingUser}
+              onChange={(e) => setClientForm(prev => ({
+                ...prev,
+                basicDetails: { ...prev.basicDetails, workingUser: e.target.value }
+              }))}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="tags" className="flex items-center gap-2">
@@ -188,25 +193,19 @@ const ClientFormTabs = ({ clientForm, setClientForm }: ClientFormTabsProps) => {
                   <Info className="h-4 w-4 text-gray-400" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Tags are used to group users based on some task required to be done. For example, if you have a tag called "Professional Tax" then all users with this tag will be shown when you filter users with "Professional Tax" tag. It will ease the process of creating task. No tag is required for pre-defined GST and Income Tax tasks. You can create new tags by clicking on "New Tag" button.</p>
+                  <p>Tags are used to group users based on some task required to be done. Enter tags separated by commas.</p>
                 </TooltipContent>
               </Tooltip>
             </Label>
-            <div className="flex gap-2">
-              <Select>
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Select Tags" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="tag1">Professional Tax</SelectItem>
-                  <SelectItem value="tag2">Property Tax</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button variant="outline" size="sm">
-                <Plus className="h-4 w-4 mr-1" />
-                New Tag
-              </Button>
-            </div>
+            <Input
+              id="tags"
+              placeholder="Enter tags separated by commas"
+              value={clientForm.basicDetails.tags}
+              onChange={(e) => setClientForm(prev => ({
+                ...prev,
+                basicDetails: { ...prev.basicDetails, tags: e.target.value }
+              }))}
+            />
           </div>
         </div>
         <div className="space-y-2">
@@ -408,14 +407,26 @@ const ClientFormTabs = ({ clientForm, setClientForm }: ClientFormTabsProps) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>PAN</Label>
-              <Input placeholder="PAN" />
+              <Input 
+                placeholder="PAN"
+                value={clientForm.loginDetails.itPan}
+                onChange={(e) => setClientForm(prev => ({
+                  ...prev,
+                  loginDetails: { ...prev.loginDetails, itPan: e.target.value }
+                }))}
+              />
             </div>
             <div className="space-y-2">
               <Label>IT Portal Password</Label>
               <div className="relative">
                 <Input 
                   type={showPassword.itPassword ? "text" : "password"}
-                  placeholder="IT Portal Password" 
+                  placeholder="IT Portal Password"
+                  value={clientForm.loginDetails.itPassword}
+                  onChange={(e) => setClientForm(prev => ({
+                    ...prev,
+                    loginDetails: { ...prev.loginDetails, itPassword: e.target.value }
+                  }))}
                 />
                 <Button
                   type="button"
@@ -430,14 +441,26 @@ const ClientFormTabs = ({ clientForm, setClientForm }: ClientFormTabsProps) => {
             </div>
             <div className="space-y-2">
               <Label>TAN</Label>
-              <Input placeholder="TAN" />
+              <Input 
+                placeholder="TAN"
+                value={clientForm.loginDetails.itTan}
+                onChange={(e) => setClientForm(prev => ({
+                  ...prev,
+                  loginDetails: { ...prev.loginDetails, itTan: e.target.value }
+                }))}
+              />
             </div>
             <div className="space-y-2">
               <Label>IT Portal Deductor Password</Label>
               <div className="relative">
                 <Input 
                   type={showPassword.itDeductorPassword ? "text" : "password"}
-                  placeholder="IT Portal Deductor Password" 
+                  placeholder="IT Portal Deductor Password"
+                  value={clientForm.loginDetails.itDeductorPassword}
+                  onChange={(e) => setClientForm(prev => ({
+                    ...prev,
+                    loginDetails: { ...prev.loginDetails, itDeductorPassword: e.target.value }
+                  }))}
                 />
                 <Button
                   type="button"
