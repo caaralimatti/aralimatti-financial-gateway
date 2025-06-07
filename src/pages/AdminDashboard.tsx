@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -33,7 +34,15 @@ import {
 const AdminDashboard = () => {
   const { profile, signOut } = useAuth();
   const [showAddClientModal, setShowAddClientModal] = useState(false);
-  const [showPassword, setShowPassword] = useState({});
+  const [showPassword, setShowPassword] = useState({
+    itPassword: false,
+    itDeductorPassword: false,
+    tracesDeductorPassword: false,
+    tracesTaxpayerPassword: false,
+    mcaV2Password: false,
+    mcaV3Password: false,
+    dgftPassword: false
+  });
   const [clientForm, setClientForm] = useState({
     taxesApplicable: {
       gst: false,
@@ -84,7 +93,7 @@ const AdminDashboard = () => {
     }
   };
 
-  const togglePassword = (field) => {
+  const togglePassword = (field: keyof typeof showPassword) => {
     setShowPassword(prev => ({
       ...prev,
       [field]: !prev[field]
@@ -292,7 +301,7 @@ const AdminDashboard = () => {
                               onCheckedChange={(checked) => 
                                 setClientForm(prev => ({
                                   ...prev,
-                                  taxesApplicable: { ...prev.taxesApplicable, gst: checked }
+                                  taxesApplicable: { ...prev.taxesApplicable, gst: !!checked }
                                 }))
                               }
                             />
@@ -305,7 +314,7 @@ const AdminDashboard = () => {
                               onCheckedChange={(checked) => 
                                 setClientForm(prev => ({
                                   ...prev,
-                                  taxesApplicable: { ...prev.taxesApplicable, incomeTax: checked }
+                                  taxesApplicable: { ...prev.taxesApplicable, incomeTax: !!checked }
                                 }))
                               }
                             />
@@ -318,7 +327,7 @@ const AdminDashboard = () => {
                               onCheckedChange={(checked) => 
                                 setClientForm(prev => ({
                                   ...prev,
-                                  taxesApplicable: { ...prev.taxesApplicable, other: checked }
+                                  taxesApplicable: { ...prev.taxesApplicable, other: !!checked }
                                 }))
                               }
                             />
