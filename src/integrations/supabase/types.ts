@@ -221,6 +221,11 @@ export type Database = {
           dgft_username: string | null
           file_no: string
           gst_applicable: boolean | null
+          gst_number: string | null
+          gst_password: string | null
+          gst_registration_type: string | null
+          gst_return_frequency: string | null
+          gst_username: string | null
           id: string
           income_tax_applicable: boolean | null
           it_deductor_password: string | null
@@ -259,6 +264,11 @@ export type Database = {
           dgft_username?: string | null
           file_no: string
           gst_applicable?: boolean | null
+          gst_number?: string | null
+          gst_password?: string | null
+          gst_registration_type?: string | null
+          gst_return_frequency?: string | null
+          gst_username?: string | null
           id?: string
           income_tax_applicable?: boolean | null
           it_deductor_password?: string | null
@@ -297,6 +307,11 @@ export type Database = {
           dgft_username?: string | null
           file_no?: string
           gst_applicable?: boolean | null
+          gst_number?: string | null
+          gst_password?: string | null
+          gst_registration_type?: string | null
+          gst_return_frequency?: string | null
+          gst_username?: string | null
           id?: string
           income_tax_applicable?: boolean | null
           it_deductor_password?: string | null
