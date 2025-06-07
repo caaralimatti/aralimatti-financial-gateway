@@ -22,7 +22,7 @@ const AddClientModal = ({ open, onOpenChange, editingClient }: AddClientModalPro
   const [clientForm, setClientForm] = useState({
     taxesApplicable: {
       gst: editingClient?.gst_applicable || false,
-      incomeTax: editingClient?.income_tax_applicable !== false, // Changed from literal true to boolean expression
+      incomeTax: editingClient?.income_tax_applicable !== false,
       other: editingClient?.other_tax_applicable || false
     },
     basicDetails: {
@@ -56,7 +56,13 @@ const AddClientModal = ({ open, onOpenChange, editingClient }: AddClientModalPro
       mcaV3Username: editingClient?.mca_v3_username || '',
       mcaV3Password: editingClient?.mca_v3_password || '',
       dgftUsername: editingClient?.dgft_username || '',
-      dgftPassword: editingClient?.dgft_password || ''
+      dgftPassword: editingClient?.dgft_password || '',
+      // GST specific fields
+      gstNumber: editingClient?.gst_number || '',
+      gstUsername: editingClient?.gst_username || '',
+      gstPassword: editingClient?.gst_password || '',
+      gstRegistrationType: editingClient?.gst_registration_type || 'Regular',
+      gstReturnFrequency: editingClient?.gst_return_frequency || 'Monthly'
     },
     attachments: []
   });
@@ -103,6 +109,13 @@ const AddClientModal = ({ open, onOpenChange, editingClient }: AddClientModalPro
         mca_v3_password: clientForm.loginDetails.mcaV3Password || null,
         dgft_username: clientForm.loginDetails.dgftUsername || null,
         dgft_password: clientForm.loginDetails.dgftPassword || null,
+        
+        // GST details (only save if GST is applicable)
+        gst_number: clientForm.taxesApplicable.gst ? clientForm.loginDetails.gstNumber || null : null,
+        gst_username: clientForm.taxesApplicable.gst ? clientForm.loginDetails.gstUsername || null : null,
+        gst_password: clientForm.taxesApplicable.gst ? clientForm.loginDetails.gstPassword || null : null,
+        gst_registration_type: clientForm.taxesApplicable.gst ? clientForm.loginDetails.gstRegistrationType || null : null,
+        gst_return_frequency: clientForm.taxesApplicable.gst ? clientForm.loginDetails.gstReturnFrequency || null : null,
       };
 
       if (editingClient) {
@@ -115,12 +128,18 @@ const AddClientModal = ({ open, onOpenChange, editingClient }: AddClientModalPro
       
       // Reset form
       setClientForm({
-        taxesApplicable: { gst: false, incomeTax: false, other: false }, // Changed to consistent boolean types
+        taxesApplicable: { gst: false, incomeTax: false, other: false },
         basicDetails: { fileNo: '', clientType: '', name: '', tradeName: '', dateOfBirth: '', otherUsers: '', workingUser: '', tags: '', notes: '' },
         incomeTaxDetails: { returns: [], pan: '', tan: '' },
         contactPersons: [],
         clientGroups: [],
-        loginDetails: { itPan: '', itPassword: '', itTan: '', itDeductorPassword: '', tracesUsername: '', tracesDeductorPassword: '', tracesTaxpayerPassword: '', mcaV2Username: '', mcaV2Password: '', mcaV3Username: '', mcaV3Password: '', dgftUsername: '', dgftPassword: '' },
+        loginDetails: { 
+          itPan: '', itPassword: '', itTan: '', itDeductorPassword: '', 
+          tracesUsername: '', tracesDeductorPassword: '', tracesTaxpayerPassword: '', 
+          mcaV2Username: '', mcaV2Password: '', mcaV3Username: '', mcaV3Password: '', 
+          dgftUsername: '', dgftPassword: '',
+          gstNumber: '', gstUsername: '', gstPassword: '', gstRegistrationType: 'Regular', gstReturnFrequency: 'Monthly'
+        },
         attachments: []
       });
     } catch (error) {
