@@ -16,7 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -40,7 +39,6 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange, onUserC
     role: '',
     phone: '',
     address: '',
-    status: true,
   });
 
   const handleSave = async () => {
@@ -92,8 +90,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange, onUserC
             id: authData.user.id,
             email: formData.email,
             full_name: formData.fullName,
-            role: formData.role as 'admin' | 'staff' | 'client',
-            is_active: formData.status
+            role: formData.role as 'admin' | 'staff' | 'client'
           }]);
 
         if (profileError) {
@@ -121,7 +118,6 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange, onUserC
       role: '',
       phone: '',
       address: '',
-      status: true,
     });
     onOpenChange(false);
   };
@@ -252,20 +248,6 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange, onUserC
                   rows={3}
                 />
               </div>
-            </div>
-          </div>
-
-          {/* Status Toggle */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Status</h3>
-            
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="status"
-                checked={formData.status}
-                onCheckedChange={(checked) => setFormData({ ...formData, status: checked })}
-              />
-              <Label htmlFor="status">Active User</Label>
             </div>
           </div>
         </div>
