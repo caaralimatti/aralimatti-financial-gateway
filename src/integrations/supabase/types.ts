@@ -412,6 +412,7 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          is_active: boolean
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
         }
@@ -420,6 +421,7 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
+          is_active?: boolean
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
@@ -428,6 +430,7 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          is_active?: boolean
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
@@ -675,7 +678,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_current_user_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_user_active: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       client_status: "Active" | "Inactive" | "Pending" | "Suspended"

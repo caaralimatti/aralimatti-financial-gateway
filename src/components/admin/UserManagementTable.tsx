@@ -10,25 +10,18 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import UserTableRow from './UserTableRow';
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-  status: string;
-}
+import { UserProfile } from '@/hooks/useUserManagement';
 
 interface UserManagementTableProps {
-  users: User[];
-  onToggleStatus: (userId: number) => void;
-  onDeleteUser: (userId: number) => void;
+  users: UserProfile[];
+  onEdit: (user: UserProfile) => void;
+  onDelete: (user: UserProfile) => void;
 }
 
 const UserManagementTable: React.FC<UserManagementTableProps> = ({
   users,
-  onToggleStatus,
-  onDeleteUser,
+  onEdit,
+  onDelete,
 }) => {
   return (
     <Card>
@@ -53,8 +46,8 @@ const UserManagementTable: React.FC<UserManagementTableProps> = ({
                   <UserTableRow
                     key={user.id}
                     user={user}
-                    onToggleStatus={onToggleStatus}
-                    onDeleteUser={onDeleteUser}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
                   />
                 ))
               ) : (

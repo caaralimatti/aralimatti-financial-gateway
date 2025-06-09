@@ -1,46 +1,79 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import AddUserModal from './AddUserModal';
+import EditUserModal from './EditUserModal';
+import DeleteUserModal from './DeleteUserModal';
 import UserManagementHeader from './UserManagementHeader';
 import UserManagementFilters from './UserManagementFilters';
 import UserManagementTable from './UserManagementTable';
 import UserManagementPagination from './UserManagementPagination';
+import { useUserManagement, UserProfile } from '@/hooks/useUserManagement';
 
 const UserManagement: React.FC = () => {
+  const { users, isLoading, error } = useUserManagement();
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
-
-  // Simulated user data
-  const users = [
-    { id: 1, name: 'John Doe', email: 'john@example.com', role: 'Admin', status: 'Active' },
-    { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'Staff', status: 'Active' },
-    { id: 3, name: 'Bob Johnson', email: 'bob@example.com', role: 'Client', status: 'Inactive' },
-    { id: 4, name: 'Alice Brown', email: 'alice@example.com', role: 'Staff', status: 'Active' },
-    { id: 5, name: 'Charlie Wilson', email: 'charlie@example.com', role: 'Client', status: 'Active' },
-  ];
+  const [showEditUserModal, setShowEditUserModal] = useState(false);
+  const [showDeleteUserModal, setShowDeleteUserModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
 
   const itemsPerPage = 10;
-  const totalPages = Math.ceil(users.length / itemsPerPage);
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesRole = roleFilter === 'all' || user.role.toLowerCase() === roleFilter;
-    const matchesStatus = statusFilter === 'all' || user.status.toLowerCase() === statusFilter;
-    
-    return matchesSearch && matchesRole && matchesStatus;
-  });
+  // Filter users based on search, role, and status
+  const filteredUsers = useMemo(() => {
+    return users.filter(user => {
+      const matchesSearch = user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           user.email.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesRole = roleFilter === 'all' || user.role.toLowerCase() === roleFilter;
+      const matchesStatus = statusFilter === 'all' || 
+                           (statusFilter === 'active' && user.is_active) ||
+                           (statusFilter === 'inactive' && !user.is_active);
+      
+      return matchesSearch && matchesRole && matchesStatus;
+    });
+  }, [users, searchQuery, roleFilter, statusFilter]);
 
-  const handleToggleStatus = (userId: number) => {
-    console.log('Toggle status for user:', userId);
+  // Pagination
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const paginatedUsers = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredUsers.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredUsers, currentPage, itemsPerPage]);
+
+  // Reset pagination when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, roleFilter, statusFilter]);
+
+  const handleEditUser = (user: UserProfile) => {
+    setSelectedUser(user);
+    setShowEditUserModal(true);
   };
 
-  const handleDeleteUser = (userId: number) => {
-    console.log('Delete user:', userId);
+  const handleDeleteUser = (user: UserProfile) => {
+    setSelectedUser(user);
+    setShowDeleteUserModal(true);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <h2 className="text-xl font-semibold text-red-600 mb-2">Error Loading Users</h2>
+        <p className="text-gray-600">Please try refreshing the page or contact support if the problem persists.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -56,22 +89,36 @@ const UserManagement: React.FC = () => {
       />
 
       <UserManagementTable
-        users={filteredUsers}
-        onToggleStatus={handleToggleStatus}
-        onDeleteUser={handleDeleteUser}
+        users={paginatedUsers}
+        onEdit={handleEditUser}
+        onDelete={handleDeleteUser}
       />
 
-      <UserManagementPagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        itemsPerPage={itemsPerPage}
-        totalItems={filteredUsers.length}
-        onPageChange={setCurrentPage}
-      />
+      {totalPages > 1 && (
+        <UserManagementPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          itemsPerPage={itemsPerPage}
+          totalItems={filteredUsers.length}
+          onPageChange={setCurrentPage}
+        />
+      )}
 
       <AddUserModal 
         open={showAddUserModal} 
         onOpenChange={setShowAddUserModal} 
+      />
+
+      <EditUserModal
+        open={showEditUserModal}
+        onOpenChange={setShowEditUserModal}
+        user={selectedUser}
+      />
+
+      <DeleteUserModal
+        open={showDeleteUserModal}
+        onOpenChange={setShowDeleteUserModal}
+        user={selectedUser}
       />
     </div>
   );

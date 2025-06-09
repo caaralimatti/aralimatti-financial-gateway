@@ -11,6 +11,7 @@ import BasicDetailsForm from './forms/BasicDetailsForm';
 import RoleAssignmentForm from './forms/RoleAssignmentForm';
 import ContactInformationForm from './forms/ContactInformationForm';
 import StatusToggleForm from './forms/StatusToggleForm';
+import { useUserManagement } from '@/hooks/useUserManagement';
 
 interface AddUserModalProps {
   open: boolean;
@@ -18,6 +19,7 @@ interface AddUserModalProps {
 }
 
 const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange }) => {
+  const { createUser, isCreating } = useUserManagement();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -25,26 +27,53 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange }) => {
     email: '',
     password: '',
     confirmPassword: '',
-    role: '',
+    role: 'client' as 'admin' | 'staff' | 'client',
     phone: '',
     address: '',
     status: true,
   });
 
-  const handleSave = () => {
-    console.log('Save user:', formData);
-    // Reset form and close modal
-    setFormData({
-      fullName: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-      role: '',
-      phone: '',
-      address: '',
-      status: true,
-    });
-    onOpenChange(false);
+  const handleSave = async () => {
+    // Basic validation
+    if (!formData.fullName || !formData.email || !formData.password || !formData.role) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      alert('Passwords do not match');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      alert('Password must be at least 6 characters long');
+      return;
+    }
+
+    try {
+      await createUser({
+        email: formData.email,
+        password: formData.password,
+        fullName: formData.fullName,
+        role: formData.role,
+        isActive: formData.status,
+      });
+
+      // Reset form and close modal
+      setFormData({
+        fullName: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        role: 'client',
+        phone: '',
+        address: '',
+        status: true,
+      });
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error creating user:', error);
+    }
   };
 
   const handleCancel = () => {
@@ -54,7 +83,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange }) => {
       email: '',
       password: '',
       confirmPassword: '',
-      role: '',
+      role: 'client',
       phone: '',
       address: '',
       status: true,
@@ -90,7 +119,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange }) => {
 
           <RoleAssignmentForm
             role={formData.role}
-            onRoleChange={(role) => handleFormDataChange({ role })}
+            onRoleChange={(role) => handleFormDataChange({ role: role as 'admin' | 'staff' | 'client' })}
           />
 
           <ContactInformationForm
@@ -112,8 +141,8 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange }) => {
           <Button variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button onClick={handleSave}>
-            Save User
+          <Button onClick={handleSave} disabled={isCreating}>
+            {isCreating ? 'Creating...' : 'Save User'}
           </Button>
         </div>
       </DialogContent>
