@@ -64,7 +64,7 @@ const UserManagement: React.FC = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, email, full_name, role, is_active, created_at')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -81,7 +81,7 @@ const UserManagement: React.FC = () => {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ is_active: !currentStatus })
+        .update({ is_active: !currentStatus } as any)
         .eq('id', userId);
 
       if (error) throw error;
