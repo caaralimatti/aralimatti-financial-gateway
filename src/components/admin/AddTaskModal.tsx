@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Trash2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Plus, X, Upload, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -19,23 +21,6 @@ interface SubTask {
   is_completed: boolean;
 }
 
-interface StaffUser {
-  id: string;
-  full_name: string | null;
-  email: string;
-}
-
-interface Client {
-  id: string;
-  name: string;
-  file_no: string;
-}
-
-interface Category {
-  id: string;
-  name: string;
-}
-
 interface AddTaskModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -45,9 +30,9 @@ interface AddTaskModalProps {
 const AddTaskModal: React.FC<AddTaskModalProps> = ({ open, onOpenChange, onTaskCreated }) => {
   const { profile } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [staffUsers, setStaffUsers] = useState<StaffUser[]>([]);
-  const [clients, setClients] = useState<Client[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [staffUsers, setStaffUsers] = useState<any[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -78,14 +63,12 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ open, onOpenChange, onTaskC
       const { data, error } = await supabase
         .from('profiles')
         .select('id, full_name, email')
-        .eq('role', 'staff')
-        .order('full_name');
+        .eq('role', 'staff');
       
       if (error) throw error;
       setStaffUsers(data || []);
     } catch (error) {
       console.error('Error fetching staff users:', error);
-      setStaffUsers([]);
     }
   };
 
@@ -136,16 +119,14 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ open, onOpenChange, onTaskC
     setLoading(true);
     try {
       // Create the main task
-      const taskInsertData = {
-        ...formData,
-        created_by_profile_id: profile.id,
-        estimated_effort_hours: formData.estimated_effort_hours ? Number(formData.estimated_effort_hours) : null,
-        client_id: formData.client_id === 'none' ? null : formData.client_id || null
-      };
-
       const { data: taskData, error: taskError } = await supabase
         .from('tasks')
-        .insert([taskInsertData])
+        .insert([{
+          ...formData,
+          created_by_profile_id: profile.id,
+          estimated_effort_hours: formData.estimated_effort_hours ? Number(formData.estimated_effort_hours) : null,
+          client_id: formData.client_id === 'none' ? null : formData.client_id || null
+        }])
         .select()
         .single();
 

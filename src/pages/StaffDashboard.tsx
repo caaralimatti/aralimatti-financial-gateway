@@ -1,29 +1,65 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Link } from 'react-router-dom';
 import { 
-  LogOut, 
+  SidebarProvider, 
+  Sidebar, 
+  SidebarContent, 
+  SidebarHeader, 
+  SidebarMenu, 
+  SidebarMenuItem, 
+  SidebarMenuButton,
+  SidebarFooter,
+  SidebarInset,
+  SidebarTrigger,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
+  SidebarGroup,
+  SidebarGroupContent
+} from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { 
+  LayoutDashboard, 
+  CheckSquare, 
+  Calendar, 
   FileText, 
   Users, 
-  Calendar, 
-  CheckSquare,
-  Clock,
-  AlertCircle,
-  Plus,
-  ExternalLink,
+  Database, 
+  MessageSquare, 
+  BarChart3, 
+  HelpCircle, 
+  Settings, 
+  LogIn,
   Bell,
-  Settings,
-  MessageCircle
+  Search,
+  LogOut,
+  ExternalLink,
+  TrendingUp,
+  Clock,
+  AlertTriangle,
+  CheckCircle,
+  Calculator,
+  ChevronRight,
+  Eye,
+  Upload,
+  History
 } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import StaffTaskDashboard from '@/components/staff/StaffTaskDashboard';
+import IncomeTaxApp from '@/components/client/IncomeTaxApp';
+import FileITR from '@/components/client/FileITR';
+import PastITRFilings from '@/components/client/PastITRFilings';
 
 const StaffDashboard = () => {
   const { profile, signOut } = useAuth();
+  const [darkMode, setDarkMode] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [incomeTaxOpen, setIncomeTaxOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -33,11 +69,31 @@ const StaffDashboard = () => {
     }
   };
 
-  const stats = [
+  const sidebarItems = [
+    { title: 'Dashboard', icon: LayoutDashboard, id: 'dashboard', url: '/staff-dashboard' },
+    { title: 'Tasks', icon: CheckSquare, id: 'tasks', url: '#' },
+    { title: 'Compliance Calendar', icon: Calendar, id: 'calendar', url: '#' },
+    { title: 'Documents', icon: FileText, id: 'documents', url: '#' },
+    { title: 'Manage', icon: Users, id: 'manage', url: '#' },
+    { title: 'Master', icon: Database, id: 'master', url: '#' },
+    { title: 'Messages', icon: MessageSquare, id: 'messages', url: '#' },
+    { title: 'Reports', icon: BarChart3, id: 'reports', url: '#' },
+    { title: 'Support & Help', icon: HelpCircle, id: 'support', url: '#' },
+    { title: 'Settings', icon: Settings, id: 'settings', url: '#' },
+    { title: 'GST Login', icon: LogIn, id: 'gst-login', url: '/gst-login' },
+  ];
+
+  const incomeTaxSubItems = [
+    { id: 'income-tax-quick', title: 'Quick Glance', icon: Eye },
+    { id: 'file-itr-staff', title: 'File ITR', icon: Upload },
+    { id: 'past-itr-staff', title: 'Past ITR Filings', icon: History },
+  ];
+
+  const statsCards = [
     {
       title: 'Pending Tasks',
       value: '24',
-      subtitle: '+2 from yesterday',
+      description: '+2 from yesterday',
       icon: Clock,
       color: 'text-yellow-600',
       bgColor: 'bg-yellow-50'
@@ -45,33 +101,33 @@ const StaffDashboard = () => {
     {
       title: 'Upcoming Deadlines',
       value: '8',
-      subtitle: 'Next 7 days',
-      icon: AlertCircle,
+      description: 'Next 7 days',
+      icon: AlertTriangle,
       color: 'text-red-600',
       bgColor: 'bg-red-50'
     },
     {
       title: 'Filed Returns This Month',
       value: '156',
-      subtitle: '+12% from last month',
-      icon: CheckSquare,
+      description: '+12% from last month',
+      icon: CheckCircle,
       color: 'text-green-600',
       bgColor: 'bg-green-50'
     },
     {
       title: 'Open Tickets',
       value: '5',
-      subtitle: '2 high priority',
-      icon: FileText,
+      description: '2 high priority',
+      icon: TrendingUp,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50'
     }
   ];
 
-  const quickAccessPortals = [
-    { name: 'GST Portal', url: '#' },
-    { name: 'Income Tax Portal', url: '#' },
-    { name: 'MCA Portal', url: '#' }
+  const quickAccessLinks = [
+    { name: 'GST Portal', url: '/gst-login', icon: ExternalLink },
+    { name: 'Income Tax Portal', url: '#', icon: ExternalLink },
+    { name: 'MCA Portal', url: '#', icon: ExternalLink }
   ];
 
   const recentMessages = [
@@ -80,275 +136,326 @@ const StaffDashboard = () => {
       client: 'ABC Pvt Ltd',
       message: 'GST return filing query',
       time: '2 hours ago',
-      priority: 'high',
-      status: 'unread'
+      priority: 'high'
     },
     {
       id: 2,
       client: 'XYZ Corp',
       message: 'Tax audit documentation required',
       time: '4 hours ago',
-      priority: 'medium',
-      status: 'read'
+      priority: 'medium'
     },
     {
       id: 3,
       client: 'DEF Industries',
       message: 'Annual compliance checklist',
       time: '1 day ago',
-      priority: 'low',
-      status: 'read'
+      priority: 'low'
     }
   ];
 
-  const firmAnnouncements = [
-    'New GST filing deadline extended to 25th of this month',
-    'Staff meeting scheduled for Friday 3 PM - Conference Room A',
-    'Updated audit checklist available in Documents section'
-  ];
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority.toLowerCase()) {
-      case 'high':
-        return 'bg-red-100 text-red-800';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'low':
-        return 'bg-green-100 text-green-800';
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'income-tax-quick':
+        return <IncomeTaxApp />;
+      case 'file-itr-staff':
+        return <FileITR />;
+      case 'past-itr-staff':
+        return <PastITRFilings />;
       default:
-        return 'bg-gray-100 text-gray-800';
+        return renderDashboard();
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">CA</span>
-                </div>
-                <span className="font-semibold text-gray-900">C A Aralimatti & Co</span>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <Bell className="h-5 w-5 text-gray-400" />
-                <span className="text-sm text-blue-600">Announcements</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-xs">!</span>
-                </div>
-                <span className="text-sm text-gray-600">1</span>
-              </div>
-              <div className="flex items-center space-x-2 bg-blue-100 px-3 py-1 rounded">
-                <Users className="h-4 w-4 text-blue-600" />
-                <span className="text-sm text-blue-600">Staff</span>
-              </div>
-              <Button
-                onClick={handleLogout}
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                <LogOut className="h-4 w-4" />
-                Logout
-              </Button>
-            </div>
-          </div>
+  const renderDashboard = () => (
+    <div className="space-y-6">
+      {/* Welcome Section */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Welcome back, {profile?.full_name || 'Staff Member'}!
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Here's what's happening with your clients today.
+          </p>
         </div>
-      </header>
-
-      <div className="flex">
-        {/* Sidebar */}
-        <div className="w-64 bg-white shadow-sm min-h-screen">
-          <nav className="mt-8 px-4">
-            <div className="space-y-2">
-              <Button 
-                variant={activeTab === 'dashboard' ? 'default' : 'ghost'} 
-                className="w-full justify-start"
-                onClick={() => setActiveTab('dashboard')}
-              >
-                <CheckSquare className="h-4 w-4 mr-3" />
-                Dashboard
-              </Button>
-              <Button 
-                variant={activeTab === 'tasks' ? 'default' : 'ghost'} 
-                className="w-full justify-start"
-                onClick={() => setActiveTab('tasks')}
-              >
-                <FileText className="h-4 w-4 mr-3" />
-                Tasks
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <Calendar className="h-4 w-4 mr-3" />
-                Compliance Calendar
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <FileText className="h-4 w-4 mr-3" />
-                Documents
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <Users className="h-4 w-4 mr-3" />
-                Manage
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <Settings className="h-4 w-4 mr-3" />
-                Master
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <MessageCircle className="h-4 w-4 mr-3" />
-                Messages
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <FileText className="h-4 w-4 mr-3" />
-                Reports
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <Settings className="h-4 w-4 mr-3" />
-                Settings
-              </Button>
-            </div>
-
-            <div className="mt-8">
-              <h3 className="text-sm font-medium text-gray-500 mb-3">Tax Portals</h3>
-              <div className="space-y-2">
-                <Button variant="ghost" className="w-full justify-start text-sm">
-                  <ExternalLink className="h-4 w-4 mr-3" />
-                  GST Login
-                </Button>
-                <Button variant="ghost" className="w-full justify-start text-sm">
-                  <ExternalLink className="h-4 w-4 mr-3" />
-                  Income Tax
-                </Button>
-              </div>
-            </div>
-          </nav>
-
-          <div className="absolute bottom-4 left-4 flex items-center space-x-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span className="text-sm text-gray-600">Online</span>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1 p-8">
-          {activeTab === 'dashboard' && (
-            <>
-              {/* Welcome Section */}
-              <div className="mb-8">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Welcome back, Staff!</h1>
-                    <p className="text-gray-600">Here's what's happening with your clients today.</p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm text-green-600 font-medium">All systems operational</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                {stats.map((stat, index) => {
-                  const IconComponent = stat.icon;
-                  return (
-                    <Card key={index}>
-                      <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-gray-600 mb-1">{stat.title}</p>
-                            <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                            <p className="text-xs text-gray-500">{stat.subtitle}</p>
-                          </div>
-                          <div className={`p-3 rounded-full ${stat.bgColor}`}>
-                            <IconComponent className={`h-6 w-6 ${stat.color}`} />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Quick Access */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Quick Access</CardTitle>
-                    <p className="text-sm text-gray-600">Direct links to important portals</p>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {quickAccessPortals.map((portal, index) => (
-                        <div key={index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
-                          <span className="font-medium">{portal.name}</span>
-                          <ExternalLink className="h-4 w-4 text-gray-400" />
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Recent Messages */}
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                      <CardTitle>Recent Messages</CardTitle>
-                      <p className="text-sm text-gray-600">Latest client communications</p>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {recentMessages.map((message) => (
-                        <div key={message.id} className="flex items-center justify-between p-4 border rounded-lg">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-medium text-gray-900">{message.client}</h4>
-                              <Badge className={getPriorityColor(message.priority)}>
-                                {message.priority}
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-gray-600">{message.message}</p>
-                            <p className="text-xs text-gray-500">{message.time}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Firm Announcements */}
-              <Card className="mt-8">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Bell className="h-5 w-5 text-red-500" />
-                    Firm Announcements
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {firmAnnouncements.map((announcement, index) => (
-                      <div key={index} className="flex items-start gap-3">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                        <p className="text-sm text-gray-700">{announcement}</p>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </>
-          )}
-
-          {activeTab === 'tasks' && <StaffTaskDashboard />}
-        </div>
+        <Badge variant="outline" className="text-green-600 border-green-200">
+          All systems operational
+        </Badge>
       </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {statsCards.map((stat, index) => (
+          <Card key={index} className="border border-gray-200 dark:border-gray-700">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                {stat.title}
+              </CardTitle>
+              <div className={`p-2 rounded-lg ${stat.bgColor}`}>
+                <stat.icon className={`h-4 w-4 ${stat.color}`} />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{stat.description}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Quick Access & Recent Messages */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Quick Access Links */}
+        <Card className="border border-gray-200 dark:border-gray-700">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
+              Quick Access
+            </CardTitle>
+            <CardDescription>
+              Direct links to important portals
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {quickAccessLinks.map((link, index) => (
+              <Button
+                key={index}
+                variant="outline"
+                className="w-full justify-between"
+                asChild
+              >
+                {link.url === '#' ? (
+                  <button className="flex items-center justify-between w-full">
+                    <span>{link.name}</span>
+                    <link.icon className="h-4 w-4" />
+                  </button>
+                ) : (
+                  <Link to={link.url} className="flex items-center justify-between">
+                    <span>{link.name}</span>
+                    <link.icon className="h-4 w-4" />
+                  </Link>
+                )}
+              </Button>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Recent Messages */}
+        <Card className="border border-gray-200 dark:border-gray-700">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
+              Recent Messages
+            </CardTitle>
+            <CardDescription>
+              Latest client communications
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {recentMessages.map((message) => (
+              <div key={message.id} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-gray-900 dark:text-white">{message.client}</p>
+                    <Badge 
+                      variant={message.priority === 'high' ? 'destructive' : message.priority === 'medium' ? 'default' : 'secondary'}
+                      className="text-xs"
+                    >
+                      {message.priority}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{message.message}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">{message.time}</p>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Announcements Banner */}
+      <Card className="border-l-4 border-l-blue-500 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-blue-900 dark:text-blue-100">
+            📢 Firm Announcements
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <p className="text-blue-800 dark:text-blue-200">
+              • New GST filing deadline extended to 25th of this month
+            </p>
+            <p className="text-blue-800 dark:text-blue-200">
+              • Staff meeting scheduled for Friday 3 PM - Conference Room A
+            </p>
+            <p className="text-blue-800 dark:text-blue-200">
+              • Updated audit checklist available in Documents section
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  return (
+    <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
+      <SidebarProvider defaultOpen={true}>
+        <div className="flex min-h-screen w-full bg-gray-50 dark:bg-gray-900">
+          {/* Sidebar */}
+          <Sidebar className="border-r border-gray-200 dark:border-gray-700">
+            <SidebarHeader className="p-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                  <span className="text-white text-sm font-bold">CA</span>
+                </div>
+                <span className="font-semibold text-gray-900 dark:text-white">C A Aralimatti & Co</span>
+              </div>
+            </SidebarHeader>
+            
+            <SidebarContent className="px-2">
+              <SidebarGroup>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {sidebarItems.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton 
+                          asChild
+                          isActive={activeTab === item.id}
+                          className="w-full justify-start"
+                        >
+                          {item.url === '#' ? (
+                            <button 
+                              className="flex items-center gap-3 px-3 py-2 w-full text-left"
+                              onClick={() => setActiveTab(item.id)}
+                            >
+                              <item.icon className="h-4 w-4" />
+                              <span>{item.title}</span>
+                            </button>
+                          ) : (
+                            <Link to={item.url} className="flex items-center gap-3 px-3 py-2">
+                              <item.icon className="h-4 w-4" />
+                              <span>{item.title}</span>
+                            </Link>
+                          )}
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                    
+                    {/* Income Tax with submenu */}
+                    <SidebarMenuItem>
+                      <Collapsible open={incomeTaxOpen} onOpenChange={setIncomeTaxOpen}>
+                        <CollapsibleTrigger asChild>
+                          <SidebarMenuButton className="w-full justify-start">
+                            <Calculator className="h-4 w-4" />
+                            <span>Income Tax</span>
+                            <ChevronRight className={`h-4 w-4 ml-auto transition-transform ${incomeTaxOpen ? 'rotate-90' : ''}`} />
+                          </SidebarMenuButton>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <SidebarMenuSub>
+                            {incomeTaxSubItems.map((subItem) => (
+                              <SidebarMenuSubItem key={subItem.id}>
+                                <SidebarMenuSubButton
+                                  isActive={activeTab === subItem.id}
+                                  onClick={() => setActiveTab(subItem.id)}
+                                >
+                                  <subItem.icon className="h-4 w-4" />
+                                  <span>{subItem.title}</span>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            ))}
+                          </SidebarMenuSub>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            </SidebarContent>
+
+            <SidebarFooter className="p-4">
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>Online</span>
+              </div>
+            </SidebarFooter>
+          </Sidebar>
+
+          {/* Main Content */}
+          <SidebarInset className="flex-1">
+            {/* Top Navbar */}
+            <header className="sticky top-0 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between px-4 h-16">
+                <div className="flex items-center gap-4">
+                  <SidebarTrigger />
+                  <div className="flex items-center gap-2">
+                    <Search className="h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Search clients, documents, tasks..."
+                      className="w-80 bg-gray-50 dark:bg-gray-700 border-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  {/* Announcements Banner Toggle */}
+                  <Button variant="ghost" size="sm" className="text-blue-600">
+                    <Bell className="h-4 w-4 mr-1" />
+                    Announcements
+                  </Button>
+
+                  {/* Dark Mode Toggle */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setDarkMode(!darkMode)}
+                  >
+                    {darkMode ? '☀️' : '🌙'}
+                  </Button>
+
+                  {/* Notifications */}
+                  <Button variant="ghost" size="sm" className="relative">
+                    <Bell className="h-4 w-4" />
+                    <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full text-xs"></span>
+                  </Button>
+
+                  {/* User Profile Dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="flex items-center gap-2 px-2">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src="/placeholder.svg" />
+                          <AvatarFallback>
+                            {profile?.full_name?.charAt(0) || profile?.email?.charAt(0) || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="text-left">
+                          <p className="text-sm font-medium">{profile?.full_name || 'Staff User'}</p>
+                          <p className="text-xs text-gray-500 capitalize">{profile?.role}</p>
+                        </div>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem>
+                        <Settings className="mr-2 h-4 w-4" />
+                        Profile Settings
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleLogout}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Logout
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            </header>
+
+            {/* Dashboard Content */}
+            <main className="p-6 space-y-6">
+              {renderContent()}
+            </main>
+          </SidebarInset>
+        </div>
+      </SidebarProvider>
     </div>
   );
 };

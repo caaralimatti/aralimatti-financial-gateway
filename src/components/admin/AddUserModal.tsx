@@ -16,21 +16,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Eye, EyeOff } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 
 interface AddUserModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onUserCreated: () => void;
 }
 
-const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange, onUserCreated }) => {
+const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -39,77 +36,12 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange, onUserC
     role: '',
     phone: '',
     address: '',
+    status: true,
   });
 
-  const handleSave = async () => {
-    // Validation
-    if (!formData.fullName.trim() || !formData.email.trim() || !formData.password || !formData.role) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match');
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      toast.error('Password must be at least 6 characters long');
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      toast.error('Please enter a valid email address');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      // Use the admin API to create user without affecting current session
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: formData.email,
-        password: formData.password,
-        email_confirm: true, // Auto-confirm email
-        user_metadata: {
-          full_name: formData.fullName,
-          role: formData.role,
-        }
-      });
-
-      if (authError) {
-        throw authError;
-      }
-
-      // Create profile record directly since the trigger might not work with admin.createUser
-      if (authData.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([{
-            id: authData.user.id,
-            email: formData.email,
-            full_name: formData.fullName,
-            role: formData.role as 'admin' | 'staff' | 'client'
-          }]);
-
-        if (profileError && !profileError.message.includes('duplicate key')) {
-          console.error('Profile creation error:', profileError);
-          // Don't throw here as user was created successfully
-        }
-      }
-
-      toast.success('User created successfully!');
-      onUserCreated();
-      handleCancel();
-    } catch (error: any) {
-      console.error('Error creating user:', error);
-      toast.error(error.message || 'Failed to create user');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCancel = () => {
+  const handleSave = () => {
+    console.log('Save user:', formData);
+    // Reset form and close modal
     setFormData({
       fullName: '',
       email: '',
@@ -118,6 +50,22 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange, onUserC
       role: '',
       phone: '',
       address: '',
+      status: true,
+    });
+    onOpenChange(false);
+  };
+
+  const handleCancel = () => {
+    // Reset form and close modal
+    setFormData({
+      fullName: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      role: '',
+      phone: '',
+      address: '',
+      status: true,
     });
     onOpenChange(false);
   };
@@ -218,6 +166,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange, onUserC
                   <SelectItem value="admin">Admin</SelectItem>
                   <SelectItem value="staff">Staff Member</SelectItem>
                   <SelectItem value="client">Client</SelectItem>
+                  <SelectItem value="viewer">Viewer</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -250,15 +199,29 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange, onUserC
               </div>
             </div>
           </div>
+
+          {/* Status Toggle */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Status</h3>
+            
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="status"
+                checked={formData.status}
+                onCheckedChange={(checked) => setFormData({ ...formData, status: checked })}
+              />
+              <Label htmlFor="status">Active User</Label>
+            </div>
+          </div>
         </div>
 
         {/* Footer Buttons */}
         <div className="flex justify-end gap-3 pt-4 border-t">
-          <Button variant="outline" onClick={handleCancel} disabled={loading}>
+          <Button variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={loading}>
-            {loading ? 'Creating...' : 'Save User'}
+          <Button onClick={handleSave}>
+            Save User
           </Button>
         </div>
       </DialogContent>
