@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -124,7 +125,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ open, onOpenChange, onTaskC
           ...formData,
           created_by_profile_id: profile.id,
           estimated_effort_hours: formData.estimated_effort_hours ? Number(formData.estimated_effort_hours) : null,
-          client_id: formData.client_id || null
+          client_id: formData.client_id === 'none' ? null : formData.client_id || null
         }])
         .select()
         .single();
@@ -275,7 +276,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ open, onOpenChange, onTaskC
                   <SelectValue placeholder="Select client" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {clients.map((client) => (
                     <SelectItem key={client.id} value={client.id}>
                       {client.name} ({client.file_no})
