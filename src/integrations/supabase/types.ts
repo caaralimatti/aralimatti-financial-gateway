@@ -433,6 +433,243 @@ export type Database = {
         }
         Relationships: []
       }
+      sub_tasks: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_completed: boolean
+          task_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_completed?: boolean
+          task_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_completed?: boolean
+          task_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sub_tasks_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_attachments: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          id: string
+          task_id: string
+          uploaded_by_profile_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          task_id: string
+          uploaded_by_profile_id: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          task_id?: string
+          uploaded_by_profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_attachments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_attachments_uploaded_by_profile_id_fkey"
+            columns: ["uploaded_by_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_categories: {
+        Row: {
+          created_at: string
+          created_by_profile_id: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          created_by_profile_id?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          created_by_profile_id?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_categories_created_by_profile_id_fkey"
+            columns: ["created_by_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_comments: {
+        Row: {
+          comment_text: string
+          commented_by_profile_id: string
+          created_at: string
+          id: string
+          task_id: string
+        }
+        Insert: {
+          comment_text: string
+          commented_by_profile_id: string
+          created_at?: string
+          id?: string
+          task_id: string
+        }
+        Update: {
+          comment_text?: string
+          commented_by_profile_id?: string
+          created_at?: string
+          id?: string
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_comments_commented_by_profile_id_fkey"
+            columns: ["commented_by_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_comments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          assigned_to_profile_id: string
+          category_id: string
+          client_id: string | null
+          created_at: string
+          created_by_profile_id: string
+          deadline_date: string | null
+          description: string | null
+          estimated_effort_hours: number | null
+          id: string
+          is_billable: boolean
+          priority: string
+          start_date: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to_profile_id: string
+          category_id: string
+          client_id?: string | null
+          created_at?: string
+          created_by_profile_id: string
+          deadline_date?: string | null
+          description?: string | null
+          estimated_effort_hours?: number | null
+          id?: string
+          is_billable?: boolean
+          priority: string
+          start_date?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to_profile_id?: string
+          category_id?: string
+          client_id?: string | null
+          created_at?: string
+          created_by_profile_id?: string
+          deadline_date?: string | null
+          description?: string | null
+          estimated_effort_hours?: number | null
+          id?: string
+          is_billable?: boolean
+          priority?: string
+          start_date?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_assigned_to_profile_id_fkey"
+            columns: ["assigned_to_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "task_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_created_by_profile_id_fkey"
+            columns: ["created_by_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

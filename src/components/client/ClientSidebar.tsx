@@ -13,7 +13,6 @@ import {
   SidebarMenuSubButton,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   useSidebar
 } from '@/components/ui/sidebar';
 import { 
@@ -25,7 +24,10 @@ import {
   ChevronRight,
   Eye,
   Upload,
-  History
+  History,
+  CheckSquare,
+  ListTodo,
+  Clock
 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
@@ -37,6 +39,7 @@ interface ClientSidebarProps {
 const ClientSidebar: React.FC<ClientSidebarProps> = ({ activeTab, setActiveTab }) => {
   const { state } = useSidebar();
   const [incomeTaxOpen, setIncomeTaxOpen] = React.useState(false);
+  const [tasksOpen, setTasksOpen] = React.useState(false);
 
   const sidebarItems = [
     { id: 'overview', title: 'Overview', icon: LayoutDashboard },
@@ -49,6 +52,11 @@ const ClientSidebar: React.FC<ClientSidebarProps> = ({ activeTab, setActiveTab }
     { id: 'income-tax-quick-glance', title: 'Quick Glance', icon: Eye },
     { id: 'file-itr', title: 'File ITR', icon: Upload },
     { id: 'past-itr', title: 'Past ITR Filings', icon: History },
+  ];
+
+  const taskSubItems = [
+    { id: 'my-tasks', title: 'My Tasks', icon: ListTodo },
+    { id: 'task-calendar', title: 'Task Calendar', icon: Clock },
   ];
 
   return (
@@ -99,6 +107,40 @@ const ClientSidebar: React.FC<ClientSidebarProps> = ({ activeTab, setActiveTab }
                     <CollapsibleContent>
                       <SidebarMenuSub>
                         {incomeTaxSubItems.map((subItem) => (
+                          <SidebarMenuSubItem key={subItem.id}>
+                            <SidebarMenuSubButton
+                              isActive={activeTab === subItem.id}
+                              onClick={() => setActiveTab(subItem.id)}
+                            >
+                              <subItem.icon className="h-4 w-4" />
+                              <span>{subItem.title}</span>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  )}
+                </Collapsible>
+              </SidebarMenuItem>
+
+              {/* Tasks with submenu */}
+              <SidebarMenuItem>
+                <Collapsible open={tasksOpen} onOpenChange={setTasksOpen}>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton className="w-full justify-start">
+                      <CheckSquare className="h-4 w-4" />
+                      {state === "expanded" && (
+                        <>
+                          <span>Tasks</span>
+                          <ChevronRight className={`h-4 w-4 ml-auto transition-transform ${tasksOpen ? 'rotate-90' : ''}`} />
+                        </>
+                      )}
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  {state === "expanded" && (
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {taskSubItems.map((subItem) => (
                           <SidebarMenuSubItem key={subItem.id}>
                             <SidebarMenuSubButton
                               isActive={activeTab === subItem.id}
