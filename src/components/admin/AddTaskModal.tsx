@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -76,34 +75,17 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ open, onOpenChange, onTaskC
 
   const fetchStaffUsers = async () => {
     try {
-      // Try with is_active column first, fallback if it doesn't exist
-      let query = supabase
+      const { data, error } = await supabase
         .from('profiles')
         .select('id, full_name, email')
-        .eq('role', 'staff');
-
-      // Try to add is_active filter, but handle gracefully if column doesn't exist
-      try {
-        const { data, error } = await query.eq('is_active', true).order('full_name');
-        if (error && error.message.includes('is_active')) {
-          // Fallback without is_active filter
-          const { data: fallbackData, error: fallbackError } = await supabase
-            .from('profiles')
-            .select('id, full_name, email')
-            .eq('role', 'staff')
-            .order('full_name');
-          if (fallbackError) throw fallbackError;
-          setStaffUsers(fallbackData || []);
-        } else {
-          if (error) throw error;
-          setStaffUsers(data || []);
-        }
-      } catch (dbError) {
-        console.error('Error fetching staff users:', dbError);
-        setStaffUsers([]);
-      }
+        .eq('role', 'staff')
+        .order('full_name');
+      
+      if (error) throw error;
+      setStaffUsers(data || []);
     } catch (error) {
       console.error('Error fetching staff users:', error);
+      setStaffUsers([]);
     }
   };
 
@@ -282,7 +264,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ open, onOpenChange, onTaskC
               </Select>
             </div>
 
-            {/* Assigned To - Updated to show active staff only */}
+            {/* Assigned To */}
             <div>
               <Label htmlFor="assigned_to">Assigned To *</Label>
               <Select 

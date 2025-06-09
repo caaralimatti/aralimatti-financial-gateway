@@ -39,7 +39,6 @@ interface User {
   email: string;
   full_name: string | null;
   role: 'admin' | 'staff' | 'client';
-  is_active?: boolean;
   created_at: string;
 }
 
@@ -62,64 +61,18 @@ const UserManagement: React.FC = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      // Try to fetch with is_active first, fallback if column doesn't exist
-      let query = supabase
+      const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, email, full_name, role, created_at')
         .order('created_at', { ascending: false });
 
-      const { data, error } = await query;
-
-      if (error) {
-        // If column doesn't exist, fetch without is_active and set default
-        if (error.message.includes('is_active')) {
-          const { data: fallbackData, error: fallbackError } = await supabase
-            .from('profiles')
-            .select('id, email, full_name, role, created_at')
-            .order('created_at', { ascending: false });
-          
-          if (fallbackError) throw fallbackError;
-          
-          // Set default is_active to true for all users
-          const usersWithActiveStatus = (fallbackData || []).map(user => ({
-            ...user,
-            is_active: true
-          }));
-          setUsers(usersWithActiveStatus);
-        } else {
-          throw error;
-        }
-      } else {
-        setUsers(data || []);
-      }
+      if (error) throw error;
+      setUsers(data || []);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error('Failed to fetch users');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleToggleStatus = async (userId: string, currentStatus: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ is_active: !currentStatus })
-        .eq('id', userId);
-
-      if (error) {
-        if (error.message.includes('is_active')) {
-          toast.error('User status toggle not available yet. Please wait for database update.');
-          return;
-        }
-        throw error;
-      }
-      
-      await fetchUsers();
-      toast.success(`User ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
-    } catch (error) {
-      console.error('Error toggling user status:', error);
-      toast.error('Failed to update user status');
     }
   };
 
@@ -129,16 +82,12 @@ const UserManagement: React.FC = () => {
     }
 
     try {
-      // First delete from profiles table
       const { error: profileError } = await supabase
         .from('profiles')
         .delete()
         .eq('id', userId);
 
       if (profileError) throw profileError;
-
-      // Note: In a real implementation, you might also need to handle
-      // deleting from auth.users via an edge function or admin API
       
       await fetchUsers();
       toast.success('User deleted successfully');
@@ -152,11 +101,8 @@ const UserManagement: React.FC = () => {
     const matchesSearch = user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-    const matchesStatus = statusFilter === 'all' || 
-                         (statusFilter === 'active' && (user.is_active !== false)) ||
-                         (statusFilter === 'inactive' && (user.is_active === false));
     
-    return matchesSearch && matchesRole && matchesStatus;
+    return matchesSearch && matchesRole;
   });
 
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
@@ -211,16 +157,6 @@ const UserManagement: React.FC = () => {
                 <SelectItem value="client">Client</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full lg:w-48">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
         </CardContent>
       </Card>
@@ -256,24 +192,12 @@ const UserManagement: React.FC = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={(user.is_active !== false) ? 'default' : 'secondary'}>
-                          {(user.is_active !== false) ? 'Active' : 'Inactive'}
-                        </Badge>
+                        <Badge variant="default">Active</Badge>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button variant="ghost" size="sm">
                             <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleToggleStatus(user.id, user.is_active !== false)}
-                          >
-                            {(user.is_active !== false) ? 
-                              <ToggleRight className="h-4 w-4 text-green-600" /> : 
-                              <ToggleLeft className="h-4 w-4 text-gray-400" />
-                            }
                           </Button>
                           <Button 
                             variant="ghost" 
