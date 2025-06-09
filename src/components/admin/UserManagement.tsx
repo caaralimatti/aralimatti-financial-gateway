@@ -39,7 +39,7 @@ interface User {
   email: string;
   full_name: string | null;
   role: 'admin' | 'staff' | 'client';
-  is_active: boolean;
+  is_active?: boolean;
   created_at: string;
 }
 
@@ -62,13 +62,36 @@ const UserManagement: React.FC = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      // Try to fetch with is_active first, fallback if column doesn't exist
+      let query = supabase
         .from('profiles')
-        .select('id, email, full_name, role, is_active, created_at')
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setUsers(data || []);
+      const { data, error } = await query;
+
+      if (error) {
+        // If column doesn't exist, fetch without is_active and set default
+        if (error.message.includes('is_active')) {
+          const { data: fallbackData, error: fallbackError } = await supabase
+            .from('profiles')
+            .select('id, email, full_name, role, created_at')
+            .order('created_at', { ascending: false });
+          
+          if (fallbackError) throw fallbackError;
+          
+          // Set default is_active to true for all users
+          const usersWithActiveStatus = (fallbackData || []).map(user => ({
+            ...user,
+            is_active: true
+          }));
+          setUsers(usersWithActiveStatus);
+        } else {
+          throw error;
+        }
+      } else {
+        setUsers(data || []);
+      }
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error('Failed to fetch users');
@@ -81,10 +104,16 @@ const UserManagement: React.FC = () => {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ is_active: !currentStatus } as any)
+        .update({ is_active: !currentStatus })
         .eq('id', userId);
 
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes('is_active')) {
+          toast.error('User status toggle not available yet. Please wait for database update.');
+          return;
+        }
+        throw error;
+      }
       
       await fetchUsers();
       toast.success(`User ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
@@ -124,8 +153,8 @@ const UserManagement: React.FC = () => {
                          user.email.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
     const matchesStatus = statusFilter === 'all' || 
-                         (statusFilter === 'active' && user.is_active) ||
-                         (statusFilter === 'inactive' && !user.is_active);
+                         (statusFilter === 'active' && (user.is_active !== false)) ||
+                         (statusFilter === 'inactive' && (user.is_active === false));
     
     return matchesSearch && matchesRole && matchesStatus;
   });
@@ -227,8 +256,8 @@ const UserManagement: React.FC = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={user.is_active ? 'default' : 'secondary'}>
-                          {user.is_active ? 'Active' : 'Inactive'}
+                        <Badge variant={(user.is_active !== false) ? 'default' : 'secondary'}>
+                          {(user.is_active !== false) ? 'Active' : 'Inactive'}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -239,9 +268,9 @@ const UserManagement: React.FC = () => {
                           <Button 
                             variant="ghost" 
                             size="sm"
-                            onClick={() => handleToggleStatus(user.id, user.is_active)}
+                            onClick={() => handleToggleStatus(user.id, user.is_active !== false)}
                           >
-                            {user.is_active ? 
+                            {(user.is_active !== false) ? 
                               <ToggleRight className="h-4 w-4 text-green-600" /> : 
                               <ToggleLeft className="h-4 w-4 text-gray-400" />
                             }
