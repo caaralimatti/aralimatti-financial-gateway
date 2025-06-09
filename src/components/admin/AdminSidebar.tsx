@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Sidebar, 
   SidebarContent, 
@@ -29,8 +29,14 @@ import {
   CheckSquare,
   ListTodo,
   Calendar,
-  Settings2
+  Settings2,
+  ChevronRight,
+  ChevronDown,
+  FileText,
+  Clock,
+  Target
 } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface AdminSidebarProps {
   activeTab: string;
@@ -38,33 +44,38 @@ interface AdminSidebarProps {
 }
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActiveTab }) => {
+  const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({
+    clients: false,
+    tasks: false
+  });
+
+  const toggleSection = (section: string) => {
+    setOpenSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
   const sidebarItems = [
     { id: 'dashboard', title: 'Dashboard', icon: LayoutDashboard },
     { id: 'user-management', title: 'User Management', icon: Users },
-    { 
-      id: 'clients', 
-      title: 'Clients', 
-      icon: Users,
-      subItems: [
-        { id: 'clients-add', title: 'Add', icon: Plus },
-        { id: 'clients-list', title: 'List', icon: List },
-        { id: 'clients-import', title: 'Import', icon: Upload },
-        { id: 'clients-bulk-edit', title: 'Bulk Edit', icon: Edit3 }
-      ]
-    },
-    { 
-      id: 'tasks', 
-      title: 'Tasks', 
-      icon: CheckSquare,
-      subItems: [
-        { id: 'tasks-overview', title: 'Overview', icon: LayoutDashboard },
-        { id: 'tasks-list', title: 'All Tasks', icon: ListTodo },
-        { id: 'tasks-calendar', title: 'Calendar', icon: Calendar },
-        { id: 'tasks-settings', title: 'Task Settings', icon: Settings2 }
-      ]
-    },
     { id: 'system-settings', title: 'System Settings', icon: Settings },
     { id: 'analytics', title: 'Analytics', icon: BarChart3 },
+  ];
+
+  const clientSubItems = [
+    { id: 'clients-add', title: 'Add Client', icon: Plus },
+    { id: 'clients-list', title: 'Client List', icon: List },
+    { id: 'clients-import', title: 'Import Clients', icon: Upload },
+    { id: 'clients-bulk-edit', title: 'Bulk Edit', icon: Edit3 }
+  ];
+
+  const taskSubItems = [
+    { id: 'tasks-overview', title: 'Task Overview', icon: Target },
+    { id: 'tasks-list', title: 'All Tasks', icon: ListTodo },
+    { id: 'tasks-calendar', title: 'Task Calendar', icon: Calendar },
+    { id: 'tasks-categories', title: 'Categories', icon: FileText },
+    { id: 'tasks-settings', title: 'Task Settings', icon: Settings2 }
   ];
 
   return (
@@ -86,17 +97,36 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActiveTab }) 
               {sidebarItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton 
-                    isActive={activeTab === item.id || (item.subItems && item.subItems.some(sub => activeTab === sub.id))}
-                    onClick={() => setActiveTab(item.subItems ? item.subItems[0].id : item.id)}
+                    isActive={activeTab === item.id}
+                    onClick={() => setActiveTab(item.id)}
                     className="w-full justify-start"
                   >
                     <item.icon className="h-4 w-4" />
                     <span>{item.title}</span>
                   </SidebarMenuButton>
-                  
-                  {item.subItems && (
+                </SidebarMenuItem>
+              ))}
+
+              {/* Collapsible Clients Section */}
+              <SidebarMenuItem>
+                <Collapsible 
+                  open={openSections.clients} 
+                  onOpenChange={() => toggleSection('clients')}
+                >
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton className="w-full justify-start">
+                      <Users className="h-4 w-4" />
+                      <span>Clients</span>
+                      {openSections.clients ? (
+                        <ChevronDown className="h-4 w-4 ml-auto" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 ml-auto" />
+                      )}
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
                     <SidebarMenuSub>
-                      {item.subItems.map((subItem) => (
+                      {clientSubItems.map((subItem) => (
                         <SidebarMenuSubItem key={subItem.id}>
                           <SidebarMenuSubButton
                             isActive={activeTab === subItem.id}
@@ -108,9 +138,44 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActiveTab }) 
                         </SidebarMenuSubItem>
                       ))}
                     </SidebarMenuSub>
-                  )}
-                </SidebarMenuItem>
-              ))}
+                  </CollapsibleContent>
+                </Collapsible>
+              </SidebarMenuItem>
+
+              {/* Collapsible Tasks Section */}
+              <SidebarMenuItem>
+                <Collapsible 
+                  open={openSections.tasks} 
+                  onOpenChange={() => toggleSection('tasks')}
+                >
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton className="w-full justify-start">
+                      <CheckSquare className="h-4 w-4" />
+                      <span>Task Management</span>
+                      {openSections.tasks ? (
+                        <ChevronDown className="h-4 w-4 ml-auto" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 ml-auto" />
+                      )}
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      {taskSubItems.map((subItem) => (
+                        <SidebarMenuSubItem key={subItem.id}>
+                          <SidebarMenuSubButton
+                            isActive={activeTab === subItem.id}
+                            onClick={() => setActiveTab(subItem.id)}
+                          >
+                            <subItem.icon className="h-4 w-4" />
+                            <span>{subItem.title}</span>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </Collapsible>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

@@ -15,6 +15,7 @@ import ClientBulkEdit from '@/components/admin/ClientBulkEdit';
 import AdminTaskOverview from '@/components/admin/AdminTaskOverview';
 import AdminTasksList from '@/components/admin/AdminTasksList';
 import TaskCalendar from '@/components/client/TaskCalendar';
+import TaskCategoryManagement from '@/components/admin/TaskCategoryManagement';
 import SmartSearchBar from '@/components/admin/SmartSearchBar';
 
 const AdminDashboard = () => {
@@ -56,6 +57,8 @@ const AdminDashboard = () => {
         return <AdminTasksList />;
       case 'tasks-calendar':
         return <TaskCalendar />;
+      case 'tasks-categories':
+        return <TaskCategoryManagement />;
       case 'tasks-settings':
         return (
           <div className="text-center py-12">

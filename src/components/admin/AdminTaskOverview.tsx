@@ -1,13 +1,14 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Plus, Users, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useTasks } from '@/hooks/useTasks';
+import AddTaskModal from './AddTaskModal';
 
 const AdminTaskOverview = () => {
-  const { tasks, loading } = useTasks();
+  const { tasks, loading, refetch } = useTasks();
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const taskStats = {
     total: tasks.length,
@@ -38,7 +39,7 @@ const AdminTaskOverview = () => {
             Monitor and manage all tasks across the organization
           </p>
         </div>
-        <Button className="bg-primary hover:bg-primary/90">
+        <Button onClick={() => setShowAddModal(true)} className="bg-primary hover:bg-primary/90">
           <Plus className="h-4 w-4 mr-2" />
           Create Task
         </Button>
@@ -150,6 +151,13 @@ const AdminTaskOverview = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Add Task Modal */}
+      <AddTaskModal
+        open={showAddModal}
+        onOpenChange={setShowAddModal}
+        onTaskCreated={refetch}
+      />
     </div>
   );
 };

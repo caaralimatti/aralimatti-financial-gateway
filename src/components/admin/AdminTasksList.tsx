@@ -1,55 +1,52 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Clock, User, Search, Filter } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Search, Filter, Calendar, Clock, User, Building2 } from 'lucide-react';
 import { useTasks } from '@/hooks/useTasks';
+import AddTaskModal from './AddTaskModal';
 
 const AdminTasksList = () => {
-  const { tasks, loading } = useTasks();
-  const [searchQuery, setSearchQuery] = useState('');
+  const { tasks, loading, refetch } = useTasks();
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
 
   const filteredTasks = tasks.filter(task => {
-    const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         task.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         task.assigned_to?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         task.client?.name?.toLowerCase().includes(searchQuery.toLowerCase());
-    
+    const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         task.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
     const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter;
     
     return matchesSearch && matchesStatus && matchesPriority;
   });
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'to_do': return 'bg-blue-100 text-blue-800';
-      case 'in_progress': return 'bg-yellow-100 text-yellow-800';
-      case 'pending_approval': return 'bg-purple-100 text-purple-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'on_hold': return 'bg-orange-100 text-orange-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-orange-100 text-orange-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'high': return 'bg-red-100 text-red-800 border-red-200';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'low': return 'bg-green-100 text-green-800 border-green-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'No deadline';
-    return new Date(dateString).toLocaleDateString();
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'bg-green-100 text-green-800 border-green-200';
+      case 'in_progress': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'pending_approval': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'on_hold': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const formatStatus = (status: string) => {
+    return status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
   if (loading) {
@@ -65,39 +62,38 @@ const AdminTasksList = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">All Tasks</h2>
-        <p className="text-gray-600 dark:text-gray-400">
-          Manage and monitor all tasks across the organization
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">All Tasks</h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            Manage and monitor all tasks across the organization
+          </p>
+        </div>
+        <Button onClick={() => setShowAddModal(true)} className="bg-primary hover:bg-primary/90">
+          <Plus className="h-4 w-4 mr-2" />
+          Create Task
+        </Button>
       </div>
 
       {/* Filters */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filters
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search tasks, assignees, clients..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search tasks..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
             </div>
-            
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="to_do">To Do</SelectItem>
                 <SelectItem value="in_progress">In Progress</SelectItem>
                 <SelectItem value="pending_approval">Pending Approval</SelectItem>
@@ -106,88 +102,136 @@ const AdminTasksList = () => {
                 <SelectItem value="cancelled">Cancelled</SelectItem>
               </SelectContent>
             </Select>
-
             <Select value={priorityFilter} onValueChange={setPriorityFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="Filter by priority" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Priority</SelectItem>
+                <SelectItem value="all">All Priorities</SelectItem>
                 <SelectItem value="high">High</SelectItem>
                 <SelectItem value="medium">Medium</SelectItem>
                 <SelectItem value="low">Low</SelectItem>
               </SelectContent>
             </Select>
+            <Button variant="outline" onClick={() => {
+              setSearchTerm('');
+              setStatusFilter('all');
+              setPriorityFilter('all');
+            }}>
+              Clear Filters
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Tasks List */}
-      <div className="space-y-4">
-        {filteredTasks.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <div className="text-gray-400 text-lg mb-2">No tasks found</div>
-              <div className="text-gray-500 text-sm">
-                Try adjusting your search criteria or create a new task.
+      {/* Tasks Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        {filteredTasks.map((task) => (
+          <Card key={task.id} className="hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <CardTitle className="text-lg line-clamp-2">{task.title}</CardTitle>
+                <div className="flex flex-col gap-1">
+                  <Badge className={getPriorityColor(task.priority)}>
+                    {task.priority}
+                  </Badge>
+                  <Badge variant="outline" className={getStatusColor(task.status)}>
+                    {formatStatus(task.status)}
+                  </Badge>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {task.description && (
+                <p className="text-sm text-gray-600 line-clamp-2">{task.description}</p>
+              )}
+              
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <User className="h-4 w-4" />
+                  <span>Assigned to: {task.assigned_to?.full_name || task.assigned_to?.email}</span>
+                </div>
+                
+                {task.client && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Building2 className="h-4 w-4" />
+                    <span>Client: {task.client.name}</span>
+                  </div>
+                )}
+                
+                {task.deadline_date && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Calendar className="h-4 w-4" />
+                    <span>Due: {new Date(task.deadline_date).toLocaleDateString()}</span>
+                  </div>
+                )}
+                
+                {task.estimated_effort_hours && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Clock className="h-4 w-4" />
+                    <span>Estimated: {task.estimated_effort_hours}h</span>
+                  </div>
+                )}
+              </div>
+
+              {task.sub_tasks && task.sub_tasks.length > 0 && (
+                <div className="pt-2 border-t">
+                  <div className="text-sm text-gray-600">
+                    Sub-tasks: {task.sub_tasks.filter(st => st.is_completed).length}/{task.sub_tasks.length} completed
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                    <div 
+                      className="bg-primary h-2 rounded-full transition-all" 
+                      style={{
+                        width: `${(task.sub_tasks.filter(st => st.is_completed).length / task.sub_tasks.length) * 100}%`
+                      }}
+                    ></div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-between items-center pt-3 border-t">
+                <div className="text-xs text-gray-500">
+                  Created: {new Date(task.created_at).toLocaleDateString()}
+                </div>
+                <Button variant="outline" size="sm">
+                  View Details
+                </Button>
               </div>
             </CardContent>
           </Card>
-        ) : (
-          filteredTasks.map((task) => (
-            <Card key={task.id} className="border transition-all duration-200 hover:shadow-lg">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-semibold text-lg">{task.title}</h3>
-                      <Badge className={`text-xs ${getStatusColor(task.status)}`}>
-                        {task.status.replace('_', ' ').toUpperCase()}
-                      </Badge>
-                      <Badge className={`text-xs ${getPriorityColor(task.priority)}`}>
-                        {task.priority.toUpperCase()}
-                      </Badge>
-                    </div>
-                    
-                    {task.description && (
-                      <p className="text-gray-600 mb-3 line-clamp-2">{task.description}</p>
-                    )}
-                    
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <User className="h-4 w-4" />
-                        <span>{task.assigned_to?.full_name || task.assigned_to?.email}</span>
-                      </div>
-                      
-                      {task.client && (
-                        <div className="flex items-center gap-1">
-                          <span>Client: {task.client.name}</span>
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        <span>Due: {formatDate(task.deadline_date)}</span>
-                      </div>
-                      
-                      {task.estimated_effort_hours && (
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
-                          <span>{task.estimated_effort_hours}h</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <Button variant="outline" size="sm">
-                    View Details
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
+        ))}
       </div>
+
+      {filteredTasks.length === 0 && (
+        <Card>
+          <CardContent className="text-center py-12">
+            <Plus className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {tasks.length === 0 ? 'No tasks yet' : 'No tasks match your filters'}
+            </h3>
+            <p className="text-gray-600 mb-4">
+              {tasks.length === 0 
+                ? 'Create your first task to get started with task management' 
+                : 'Try adjusting your search criteria or filters'
+              }
+            </p>
+            {tasks.length === 0 && (
+              <Button onClick={() => setShowAddModal(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create First Task
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Add Task Modal */}
+      <AddTaskModal
+        open={showAddModal}
+        onOpenChange={setShowAddModal}
+        onTaskCreated={refetch}
+      />
     </div>
   );
 };
