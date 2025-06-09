@@ -66,15 +66,14 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange, onUserC
 
     setLoading(true);
     try {
-      // Create user in Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // Use the admin API to create user without affecting current session
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email: formData.email,
         password: formData.password,
-        options: {
-          data: {
-            full_name: formData.fullName,
-            role: formData.role,
-          }
+        email_confirm: true, // Auto-confirm email
+        user_metadata: {
+          full_name: formData.fullName,
+          role: formData.role,
         }
       });
 
@@ -82,7 +81,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange, onUserC
         throw authError;
       }
 
-      // Create profile record
+      // Create profile record directly since the trigger might not work with admin.createUser
       if (authData.user) {
         const { error: profileError } = await supabase
           .from('profiles')
@@ -93,8 +92,9 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange, onUserC
             role: formData.role as 'admin' | 'staff' | 'client'
           }]);
 
-        if (profileError) {
-          throw profileError;
+        if (profileError && !profileError.message.includes('duplicate key')) {
+          console.error('Profile creation error:', profileError);
+          // Don't throw here as user was created successfully
         }
       }
 
