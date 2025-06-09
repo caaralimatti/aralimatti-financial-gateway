@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/sidebar';
 import ClientSidebar from '@/components/client/ClientSidebar';
 import GSTHeader from '@/components/gst/GSTHeader';
-import DocumentCard from '@/components/DocumentCard';
+import DocumentListCard from '@/components/client/DocumentListCard';
 import GSTRegistration from '@/pages/GSTRegistration';
 import IncomeTaxQuickGlance from '@/components/client/IncomeTaxQuickGlance';
 import FileITR from '@/components/client/FileITR';
@@ -43,19 +43,19 @@ const ClientDashboard = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <DocumentCard
+              <DocumentListCard
                 title="GST Returns"
                 description="View and download your GST return files"
                 fileCount={12}
                 lastUpdated="2024-03-15"
               />
-              <DocumentCard
+              <DocumentListCard
                 title="Income Tax Returns"
                 description="Access your ITR documents and filings"
                 fileCount={8}
                 lastUpdated="2024-03-10"
               />
-              <DocumentCard
+              <DocumentListCard
                 title="Audit Reports"
                 description="Download audit reports and related documents"
                 fileCount={5}
@@ -70,37 +70,37 @@ const ClientDashboard = () => {
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Documents</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <DocumentCard
+              <DocumentListCard
                 title="GST Returns"
                 description="View and download your GST return files"
                 fileCount={12}
                 lastUpdated="2024-03-15"
               />
-              <DocumentCard
+              <DocumentListCard
                 title="Income Tax Returns"
                 description="Access your ITR documents and filings"
                 fileCount={8}
                 lastUpdated="2024-03-10"
               />
-              <DocumentCard
+              <DocumentListCard
                 title="Audit Reports"
                 description="Download audit reports and related documents"
                 fileCount={5}
                 lastUpdated="2024-03-08"
               />
-              <DocumentCard
+              <DocumentListCard
                 title="Compliance Documents"
                 description="ROC filings and compliance certificates"
                 fileCount={15}
                 lastUpdated="2024-03-12"
               />
-              <DocumentCard
+              <DocumentListCard
                 title="Financial Statements"
                 description="Balance sheet, P&L and other financial documents"
                 fileCount={6}
                 lastUpdated="2024-03-05"
               />
-              <DocumentCard
+              <DocumentListCard
                 title="Tax Certificates"
                 description="TDS certificates and other tax documents"
                 fileCount={20}

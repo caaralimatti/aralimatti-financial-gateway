@@ -7,7 +7,7 @@ export interface Task {
   id: string;
   title: string;
   description: string | null;
-  category: string;
+  category_id: string;
   priority: 'high' | 'medium' | 'low';
   status: 'to_do' | 'in_progress' | 'pending_approval' | 'completed' | 'on_hold' | 'cancelled';
   assigned_to_profile_id: string;
@@ -125,8 +125,18 @@ export const useTasks = () => {
       const { data, error } = await supabase
         .from('tasks')
         .insert([{
-          ...taskData,
-          created_by_profile_id: profile?.id
+          title: taskData.title,
+          description: taskData.description,
+          category_id: taskData.category_id,
+          priority: taskData.priority,
+          status: taskData.status || 'to_do',
+          assigned_to_profile_id: taskData.assigned_to_profile_id,
+          created_by_profile_id: profile?.id,
+          start_date: taskData.start_date,
+          deadline_date: taskData.deadline_date,
+          estimated_effort_hours: taskData.estimated_effort_hours,
+          client_id: taskData.client_id,
+          is_billable: taskData.is_billable || false
         }])
         .select()
         .single();
@@ -145,9 +155,24 @@ export const useTasks = () => {
 
   const updateTask = async (taskId: string, updates: Partial<Task>) => {
     try {
+      const updateData: any = {};
+      
+      // Only include fields that exist in the database table
+      if (updates.title !== undefined) updateData.title = updates.title;
+      if (updates.description !== undefined) updateData.description = updates.description;
+      if (updates.category_id !== undefined) updateData.category_id = updates.category_id;
+      if (updates.priority !== undefined) updateData.priority = updates.priority;
+      if (updates.status !== undefined) updateData.status = updates.status;
+      if (updates.assigned_to_profile_id !== undefined) updateData.assigned_to_profile_id = updates.assigned_to_profile_id;
+      if (updates.start_date !== undefined) updateData.start_date = updates.start_date;
+      if (updates.deadline_date !== undefined) updateData.deadline_date = updates.deadline_date;
+      if (updates.estimated_effort_hours !== undefined) updateData.estimated_effort_hours = updates.estimated_effort_hours;
+      if (updates.client_id !== undefined) updateData.client_id = updates.client_id;
+      if (updates.is_billable !== undefined) updateData.is_billable = updates.is_billable;
+
       const { data, error } = await supabase
         .from('tasks')
-        .update(updates)
+        .update(updateData)
         .eq('id', taskId)
         .select()
         .single();
