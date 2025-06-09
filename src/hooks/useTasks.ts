@@ -94,7 +94,14 @@ export const useTasks = () => {
         throw tasksError;
       }
 
-      setTasks(tasksData || []);
+      // Transform the data to match our Task interface
+      const transformedTasks: Task[] = (tasksData || []).map((task: any) => ({
+        ...task,
+        priority: task.priority as 'high' | 'medium' | 'low',
+        status: task.status as 'to_do' | 'in_progress' | 'pending_approval' | 'completed' | 'on_hold' | 'cancelled'
+      }));
+
+      setTasks(transformedTasks);
     } catch (err) {
       console.error('Error fetching tasks:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch tasks');
