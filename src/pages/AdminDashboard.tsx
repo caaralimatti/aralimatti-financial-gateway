@@ -12,6 +12,9 @@ import UserManagement from '@/components/admin/UserManagement';
 import ClientManagement from '@/components/admin/ClientManagement';
 import ClientImport from '@/components/admin/ClientImport';
 import ClientBulkEdit from '@/components/admin/ClientBulkEdit';
+import AdminTaskOverview from '@/components/admin/AdminTaskOverview';
+import AdminTasksList from '@/components/admin/AdminTasksList';
+import TaskCalendar from '@/components/client/TaskCalendar';
 import SmartSearchBar from '@/components/admin/SmartSearchBar';
 
 const AdminDashboard = () => {
@@ -47,6 +50,19 @@ const AdminDashboard = () => {
         return <ClientImport />;
       case 'clients-bulk-edit':
         return <ClientBulkEdit />;
+      case 'tasks-overview':
+        return <AdminTaskOverview />;
+      case 'tasks-list':
+        return <AdminTasksList />;
+      case 'tasks-calendar':
+        return <TaskCalendar />;
+      case 'tasks-settings':
+        return (
+          <div className="text-center py-12">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Task Settings</h2>
+            <p className="text-gray-600">Task configuration settings coming soon...</p>
+          </div>
+        );
       case 'system-settings':
         return (
           <div className="text-center py-12">

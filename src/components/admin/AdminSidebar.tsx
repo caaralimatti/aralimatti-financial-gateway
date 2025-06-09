@@ -25,7 +25,11 @@ import {
   Plus,
   List,
   Upload,
-  Edit3
+  Edit3,
+  CheckSquare,
+  ListTodo,
+  Calendar,
+  Settings2
 } from 'lucide-react';
 
 interface AdminSidebarProps {
@@ -46,6 +50,17 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActiveTab }) 
         { id: 'clients-list', title: 'List', icon: List },
         { id: 'clients-import', title: 'Import', icon: Upload },
         { id: 'clients-bulk-edit', title: 'Bulk Edit', icon: Edit3 }
+      ]
+    },
+    { 
+      id: 'tasks', 
+      title: 'Tasks', 
+      icon: CheckSquare,
+      subItems: [
+        { id: 'tasks-overview', title: 'Overview', icon: LayoutDashboard },
+        { id: 'tasks-list', title: 'All Tasks', icon: ListTodo },
+        { id: 'tasks-calendar', title: 'Calendar', icon: Calendar },
+        { id: 'tasks-settings', title: 'Task Settings', icon: Settings2 }
       ]
     },
     { id: 'system-settings', title: 'System Settings', icon: Settings },
@@ -72,7 +87,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActiveTab }) 
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton 
                     isActive={activeTab === item.id || (item.subItems && item.subItems.some(sub => activeTab === sub.id))}
-                    onClick={() => setActiveTab(item.subItems ? item.subItems[1].id : item.id)}
+                    onClick={() => setActiveTab(item.subItems ? item.subItems[0].id : item.id)}
                     className="w-full justify-start"
                   >
                     <item.icon className="h-4 w-4" />
