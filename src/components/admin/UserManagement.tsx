@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,43 +29,121 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 import AddUserModal from './AddUserModal';
 
+interface User {
+  id: string;
+  email: string;
+  full_name: string | null;
+  role: 'admin' | 'staff' | 'client';
+  is_active: boolean;
+  created_at: string;
+}
+
 const UserManagement: React.FC = () => {
+  const { profile } = useAuth();
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
 
-  // Simulated user data
-  const users = [
-    { id: 1, name: 'John Doe', email: 'john@example.com', role: 'Admin', status: 'Active' },
-    { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'Staff', status: 'Active' },
-    { id: 3, name: 'Bob Johnson', email: 'bob@example.com', role: 'Client', status: 'Inactive' },
-    { id: 4, name: 'Alice Brown', email: 'alice@example.com', role: 'Staff', status: 'Active' },
-    { id: 5, name: 'Charlie Wilson', email: 'charlie@example.com', role: 'Client', status: 'Active' },
-  ];
-
   const itemsPerPage = 10;
-  const totalPages = Math.ceil(users.length / itemsPerPage);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setUsers(data || []);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      toast.error('Failed to fetch users');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleStatus = async (userId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_active: !currentStatus })
+        .eq('id', userId);
+
+      if (error) throw error;
+      
+      await fetchUsers();
+      toast.success(`User ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
+    } catch (error) {
+      console.error('Error toggling user status:', error);
+      toast.error('Failed to update user status');
+    }
+  };
+
+  const handleDeleteUser = async (userId: string, userEmail: string) => {
+    if (!confirm(`Are you sure you want to delete user "${userEmail}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      // First delete from profiles table
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId);
+
+      if (profileError) throw profileError;
+
+      // Note: In a real implementation, you might also need to handle
+      // deleting from auth.users via an edge function or admin API
+      
+      await fetchUsers();
+      toast.success('User deleted successfully');
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast.error('Failed to delete user');
+    }
+  };
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch = user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesRole = roleFilter === 'all' || user.role.toLowerCase() === roleFilter;
-    const matchesStatus = statusFilter === 'all' || user.status.toLowerCase() === statusFilter;
+    const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+    const matchesStatus = statusFilter === 'all' || 
+                         (statusFilter === 'active' && user.is_active) ||
+                         (statusFilter === 'inactive' && !user.is_active);
     
     return matchesSearch && matchesRole && matchesStatus;
   });
 
-  const handleToggleStatus = (userId: number) => {
-    console.log('Toggle status for user:', userId);
-  };
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedUsers = filteredUsers.slice(startIndex, startIndex + itemsPerPage);
 
-  const handleDeleteUser = (userId: number) => {
-    console.log('Delete user:', userId);
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading users...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -136,19 +214,21 @@ const UserManagement: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.length > 0 ? (
-                  filteredUsers.map((user) => (
+                {paginatedUsers.length > 0 ? (
+                  paginatedUsers.map((user) => (
                     <TableRow key={user.id}>
-                      <TableCell className="font-medium">{user.name}</TableCell>
+                      <TableCell className="font-medium">
+                        {user.full_name || 'N/A'}
+                      </TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
-                        <Badge variant={user.role === 'Admin' ? 'default' : 'secondary'}>
-                          {user.role}
+                        <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                          {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={user.status === 'Active' ? 'default' : 'secondary'}>
-                          {user.status}
+                        <Badge variant={user.is_active ? 'default' : 'secondary'}>
+                          {user.is_active ? 'Active' : 'Inactive'}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -159,9 +239,9 @@ const UserManagement: React.FC = () => {
                           <Button 
                             variant="ghost" 
                             size="sm"
-                            onClick={() => handleToggleStatus(user.id)}
+                            onClick={() => handleToggleStatus(user.id, user.is_active)}
                           >
-                            {user.status === 'Active' ? 
+                            {user.is_active ? 
                               <ToggleRight className="h-4 w-4 text-green-600" /> : 
                               <ToggleLeft className="h-4 w-4 text-gray-400" />
                             }
@@ -169,7 +249,7 @@ const UserManagement: React.FC = () => {
                           <Button 
                             variant="ghost" 
                             size="sm"
-                            onClick={() => handleDeleteUser(user.id)}
+                            onClick={() => handleDeleteUser(user.id, user.email)}
                           >
                             <Trash2 className="h-4 w-4 text-red-600" />
                           </Button>
@@ -192,7 +272,7 @@ const UserManagement: React.FC = () => {
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-6">
               <p className="text-sm text-gray-700">
-                Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredUsers.length)} of {filteredUsers.length} results
+                Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredUsers.length)} of {filteredUsers.length} results
               </p>
               <div className="flex items-center gap-2">
                 <Button 
@@ -224,7 +304,8 @@ const UserManagement: React.FC = () => {
 
       <AddUserModal 
         open={showAddUserModal} 
-        onOpenChange={setShowAddUserModal} 
+        onOpenChange={setShowAddUserModal}
+        onUserCreated={fetchUsers}
       />
     </div>
   );

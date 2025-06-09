@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -63,7 +62,9 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ open, onOpenChange, onTaskC
       const { data, error } = await supabase
         .from('profiles')
         .select('id, full_name, email')
-        .eq('role', 'staff');
+        .eq('role', 'staff')
+        .eq('is_active', true)
+        .order('full_name');
       
       if (error) throw error;
       setStaffUsers(data || []);
@@ -245,7 +246,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ open, onOpenChange, onTaskC
               </Select>
             </div>
 
-            {/* Assigned To */}
+            {/* Assigned To - Updated to show active staff only */}
             <div>
               <Label htmlFor="assigned_to">Assigned To *</Label>
               <Select 

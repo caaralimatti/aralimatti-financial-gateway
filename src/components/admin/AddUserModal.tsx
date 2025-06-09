@@ -19,15 +19,19 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Eye, EyeOff } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface AddUserModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onUserCreated: () => void;
 }
 
-const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange }) => {
+const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange, onUserCreated }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -39,24 +43,76 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange }) => {
     status: true,
   });
 
-  const handleSave = () => {
-    console.log('Save user:', formData);
-    // Reset form and close modal
-    setFormData({
-      fullName: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-      role: '',
-      phone: '',
-      address: '',
-      status: true,
-    });
-    onOpenChange(false);
+  const handleSave = async () => {
+    // Validation
+    if (!formData.fullName.trim() || !formData.email.trim() || !formData.password || !formData.role) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      toast.error('Password must be at least 6 characters long');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Create user in Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
+            role: formData.role,
+          }
+        }
+      });
+
+      if (authError) {
+        throw authError;
+      }
+
+      // Create profile record
+      if (authData.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([{
+            id: authData.user.id,
+            email: formData.email,
+            full_name: formData.fullName,
+            role: formData.role as 'admin' | 'staff' | 'client',
+            is_active: formData.status
+          }]);
+
+        if (profileError) {
+          throw profileError;
+        }
+      }
+
+      toast.success('User created successfully!');
+      onUserCreated();
+      handleCancel();
+    } catch (error: any) {
+      console.error('Error creating user:', error);
+      toast.error(error.message || 'Failed to create user');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancel = () => {
-    // Reset form and close modal
     setFormData({
       fullName: '',
       email: '',
@@ -166,7 +222,6 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange }) => {
                   <SelectItem value="admin">Admin</SelectItem>
                   <SelectItem value="staff">Staff Member</SelectItem>
                   <SelectItem value="client">Client</SelectItem>
-                  <SelectItem value="viewer">Viewer</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -217,11 +272,11 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange }) => {
 
         {/* Footer Buttons */}
         <div className="flex justify-end gap-3 pt-4 border-t">
-          <Button variant="outline" onClick={handleCancel}>
+          <Button variant="outline" onClick={handleCancel} disabled={loading}>
             Cancel
           </Button>
-          <Button onClick={handleSave}>
-            Save User
+          <Button onClick={handleSave} disabled={loading}>
+            {loading ? 'Creating...' : 'Save User'}
           </Button>
         </div>
       </DialogContent>
