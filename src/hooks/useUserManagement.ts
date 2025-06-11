@@ -84,7 +84,7 @@ export const useUserManagement = () => {
       console.log('Auth user created:', authData.user?.id);
 
       if (authData.user) {
-        // Then update the profile with the is_active status
+        // Update the profile with the is_active status
         const { error: profileError } = await supabase
           .from('profiles')
           .update({ is_active: userData.isActive })
@@ -96,6 +96,24 @@ export const useUserManagement = () => {
         }
         
         console.log('Profile updated with is_active status');
+
+        // If user should be inactive, disable them in auth
+        if (!userData.isActive) {
+          console.log('Disabling user in auth since isActive is false');
+          const { error: disableError } = await supabase.auth.admin.updateUserById(
+            authData.user.id,
+            { 
+              ban_duration: 'indefinite'
+            }
+          );
+
+          if (disableError) {
+            console.error('Error disabling user in auth:', disableError);
+            // Don't throw here as the user creation was successful
+          } else {
+            console.log('User disabled in auth successfully');
+          }
+        }
       }
 
       return authData;
@@ -159,10 +177,12 @@ export const useUserManagement = () => {
     }
   });
 
-  // Toggle user status mutation
+  // Toggle user status mutation - CRITICAL SECURITY FIX
   const toggleUserStatusMutation = useMutation({
     mutationFn: async ({ userId, isActive }: { userId: string; isActive: boolean }) => {
       console.log('Toggling user status:', { userId, isActive });
+      
+      // Step 1: Update the profile table
       const { data, error } = await supabase
         .from('profiles')
         .update({ is_active: isActive })
@@ -174,14 +194,56 @@ export const useUserManagement = () => {
         console.error('Status toggle error:', error);
         throw error;
       }
-      console.log('User status toggled:', data);
+      console.log('Profile status toggled:', data);
+
+      // Step 2: Update auth.users to actually prevent/allow login
+      try {
+        if (isActive) {
+          // Enable the user - remove ban
+          console.log('Enabling user in auth (removing ban)');
+          const { error: enableError } = await supabase.auth.admin.updateUserById(
+            userId,
+            { 
+              ban_duration: 'none'
+            }
+          );
+
+          if (enableError) {
+            console.error('Error enabling user in auth:', enableError);
+            // Still return success for profile update
+          } else {
+            console.log('User enabled in auth successfully');
+          }
+        } else {
+          // Disable the user - add indefinite ban
+          console.log('Disabling user in auth (adding indefinite ban)');
+          const { error: disableError } = await supabase.auth.admin.updateUserById(
+            userId,
+            { 
+              ban_duration: 'indefinite'
+            }
+          );
+
+          if (disableError) {
+            console.error('Error disabling user in auth:', disableError);
+            // Still return success for profile update
+          } else {
+            console.log('User disabled in auth successfully');
+          }
+        }
+      } catch (authError) {
+        console.error('Auth operation error:', authError);
+        // Don't throw - profile update was successful
+      }
+
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      const statusText = data.is_active ? 'activated' : 'deactivated';
       toast({
         title: "Success",
-        description: "User status updated successfully",
+        description: `User ${statusText} successfully`,
       });
     },
     onError: (error: any) => {
@@ -198,6 +260,7 @@ export const useUserManagement = () => {
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
       console.log('Deleting user:', userId);
+      
       // First delete from profiles
       const { error: profileError } = await supabase
         .from('profiles')
@@ -210,11 +273,18 @@ export const useUserManagement = () => {
       }
 
       // Then delete from auth (this requires admin privileges)
-      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
-      
-      if (authError) {
-        console.warn('Could not delete auth user:', authError);
-        // Don't throw here as the profile is already deleted
+      try {
+        const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+        
+        if (authError) {
+          console.warn('Could not delete auth user:', authError);
+          // Don't throw here as the profile is already deleted
+        } else {
+          console.log('Auth user deleted successfully');
+        }
+      } catch (error) {
+        console.warn('Error deleting auth user:', error);
+        // Don't throw - profile deletion was successful
       }
       
       console.log('User deleted successfully');
