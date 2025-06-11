@@ -10,7 +10,7 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import UserTableRow from './UserTableRow';
-import { UserProfile } from '@/hooks/useUserManagement';
+import { UserProfile } from '@/types/userManagement';
 
 interface UserManagementTableProps {
   users: UserProfile[];

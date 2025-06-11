@@ -17,7 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { UserProfile, useUserManagement } from '@/hooks/useUserManagement';
+import { UserProfile } from '@/types/userManagement';
+import { useUserManagement } from '@/hooks/useUserManagement';
 
 interface EditUserModalProps {
   open: boolean;

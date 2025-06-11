@@ -10,7 +10,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { UserProfile, useUserManagement } from '@/hooks/useUserManagement';
+import { UserProfile } from '@/types/userManagement';
+import { useUserManagement } from '@/hooks/useUserManagement';
 
 interface DeleteUserModalProps {
   open: boolean;

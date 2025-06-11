@@ -8,7 +8,8 @@ import {
   Edit, 
   Trash2
 } from 'lucide-react';
-import { UserProfile, useUserManagement } from '@/hooks/useUserManagement';
+import { UserProfile } from '@/types/userManagement';
+import { useUserManagement } from '@/hooks/useUserManagement';
 
 interface UserTableRowProps {
   user: UserProfile;
