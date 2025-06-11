@@ -8,9 +8,10 @@ import AddClientModal from './AddClientModal';
 interface AdminManagementCardsProps {
   showAddClientModal: boolean;
   setShowAddClientModal: (show: boolean) => void;
+  setActiveTab: (tab: string) => void;
 }
 
-const AdminManagementCards = ({ showAddClientModal, setShowAddClientModal }: AdminManagementCardsProps) => {
+const AdminManagementCards = ({ showAddClientModal, setShowAddClientModal, setActiveTab }: AdminManagementCardsProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <Card className="hover:shadow-lg transition-shadow">
@@ -24,7 +25,7 @@ const AdminManagementCards = ({ showAddClientModal, setShowAddClientModal }: Adm
               <p className="text-sm text-gray-600">Manage all users and roles</p>
             </div>
           </div>
-          <Button className="w-full">
+          <Button className="w-full" onClick={() => setActiveTab('user-management')}>
             Manage Users
           </Button>
         </CardContent>
@@ -41,7 +42,7 @@ const AdminManagementCards = ({ showAddClientModal, setShowAddClientModal }: Adm
               <p className="text-sm text-gray-600">Configure system preferences</p>
             </div>
           </div>
-          <Button className="w-full" variant="outline">
+          <Button className="w-full" variant="outline" onClick={() => setActiveTab('system-settings')}>
             System Settings
           </Button>
         </CardContent>
@@ -58,7 +59,7 @@ const AdminManagementCards = ({ showAddClientModal, setShowAddClientModal }: Adm
               <p className="text-sm text-gray-600">View system analytics</p>
             </div>
           </div>
-          <Button className="w-full" variant="outline">
+          <Button className="w-full" variant="outline" onClick={() => setActiveTab('analytics')}>
             View Analytics
           </Button>
         </CardContent>

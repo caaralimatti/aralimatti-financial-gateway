@@ -90,6 +90,7 @@ const AdminDashboard = () => {
             <AdminManagementCards 
               showAddClientModal={showAddClientModal}
               setShowAddClientModal={setShowAddClientModal}
+              setActiveTab={setActiveTab}
             />
 
             {/* Recent Admin Activity */}

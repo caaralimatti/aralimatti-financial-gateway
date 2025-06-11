@@ -12,6 +12,7 @@ import RoleAssignmentForm from './forms/RoleAssignmentForm';
 import ContactInformationForm from './forms/ContactInformationForm';
 import StatusToggleForm from './forms/StatusToggleForm';
 import { useUserManagement } from '@/hooks/useUserManagement';
+import { useToast } from '@/hooks/use-toast';
 
 interface AddUserModalProps {
   open: boolean;
@@ -20,6 +21,7 @@ interface AddUserModalProps {
 
 const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange }) => {
   const { createUser, isCreating } = useUserManagement();
+  const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -33,51 +35,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange }) => {
     status: true,
   });
 
-  const handleSave = async () => {
-    // Basic validation
-    if (!formData.fullName || !formData.email || !formData.password || !formData.role) {
-      alert('Please fill in all required fields');
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match');
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      alert('Password must be at least 6 characters long');
-      return;
-    }
-
-    try {
-      await createUser({
-        email: formData.email,
-        password: formData.password,
-        fullName: formData.fullName,
-        role: formData.role,
-        isActive: formData.status,
-      });
-
-      // Reset form and close modal
-      setFormData({
-        fullName: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
-        role: 'client',
-        phone: '',
-        address: '',
-        status: true,
-      });
-      onOpenChange(false);
-    } catch (error) {
-      console.error('Error creating user:', error);
-    }
-  };
-
-  const handleCancel = () => {
-    // Reset form and close modal
+  const resetForm = () => {
     setFormData({
       fullName: '',
       email: '',
@@ -88,6 +46,81 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange }) => {
       address: '',
       status: true,
     });
+    setShowPassword(false);
+    setShowConfirmPassword(false);
+  };
+
+  const handleSave = async () => {
+    // Basic validation
+    if (!formData.fullName || !formData.email || !formData.password || !formData.role) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Validation Error", 
+        description: "Passwords do not match",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      toast({
+        title: "Validation Error",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      console.log('Creating user with data:', {
+        email: formData.email,
+        fullName: formData.fullName,
+        role: formData.role,
+        isActive: formData.status,
+      });
+
+      await createUser({
+        email: formData.email,
+        password: formData.password,
+        fullName: formData.fullName,
+        role: formData.role,
+        isActive: formData.status,
+      });
+
+      console.log('User created successfully, closing modal');
+      
+      // Reset form and close modal on success
+      resetForm();
+      onOpenChange(false);
+      
+      // Success toast will be shown by the hook
+    } catch (error) {
+      console.error('Error creating user:', error);
+      // Error toast will be shown by the hook
+    }
+  };
+
+  const handleCancel = () => {
+    resetForm();
     onOpenChange(false);
   };
 
@@ -138,7 +171,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange }) => {
 
         {/* Footer Buttons */}
         <div className="flex justify-end gap-3 pt-4 border-t">
-          <Button variant="outline" onClick={handleCancel}>
+          <Button variant="outline" onClick={handleCancel} disabled={isCreating}>
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={isCreating}>

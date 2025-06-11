@@ -43,12 +43,17 @@ export const useUserManagement = () => {
   } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
+      console.log('Fetching users...');
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching users:', error);
+        throw error;
+      }
+      console.log('Fetched users:', data);
       return data as UserProfile[];
     },
     enabled: profile?.role === 'admin'
@@ -57,6 +62,8 @@ export const useUserManagement = () => {
   // Create user mutation
   const createUserMutation = useMutation({
     mutationFn: async (userData: CreateUserData) => {
+      console.log('Creating user mutation started with:', userData);
+      
       // First create the auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email,
@@ -69,7 +76,12 @@ export const useUserManagement = () => {
         },
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        console.error('Auth signup error:', authError);
+        throw authError;
+      }
+
+      console.log('Auth user created:', authData.user?.id);
 
       if (authData.user) {
         // Then update the profile with the is_active status
@@ -78,12 +90,18 @@ export const useUserManagement = () => {
           .update({ is_active: userData.isActive })
           .eq('id', authData.user.id);
 
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error('Profile update error:', profileError);
+          throw profileError;
+        }
+        
+        console.log('Profile updated with is_active status');
       }
 
       return authData;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('User creation successful:', data.user?.id);
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast({
         title: "Success",
@@ -91,7 +109,7 @@ export const useUserManagement = () => {
       });
     },
     onError: (error: any) => {
-      console.error('Error creating user:', error);
+      console.error('Error in user creation mutation:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to create user. Please try again.",
@@ -103,6 +121,7 @@ export const useUserManagement = () => {
   // Update user mutation
   const updateUserMutation = useMutation({
     mutationFn: async (userData: UpdateUserData) => {
+      console.log('Updating user:', userData);
       const updateData: any = {};
       
       if (userData.fullName !== undefined) updateData.full_name = userData.fullName;
@@ -116,7 +135,11 @@ export const useUserManagement = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Profile update error:', error);
+        throw error;
+      }
+      console.log('User updated successfully:', data);
       return data;
     },
     onSuccess: () => {
@@ -139,6 +162,7 @@ export const useUserManagement = () => {
   // Toggle user status mutation
   const toggleUserStatusMutation = useMutation({
     mutationFn: async ({ userId, isActive }: { userId: string; isActive: boolean }) => {
+      console.log('Toggling user status:', { userId, isActive });
       const { data, error } = await supabase
         .from('profiles')
         .update({ is_active: isActive })
@@ -146,7 +170,11 @@ export const useUserManagement = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Status toggle error:', error);
+        throw error;
+      }
+      console.log('User status toggled:', data);
       return data;
     },
     onSuccess: () => {
@@ -169,13 +197,17 @@ export const useUserManagement = () => {
   // Delete user mutation
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
+      console.log('Deleting user:', userId);
       // First delete from profiles
       const { error: profileError } = await supabase
         .from('profiles')
         .delete()
         .eq('id', userId);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Profile deletion error:', profileError);
+        throw profileError;
+      }
 
       // Then delete from auth (this requires admin privileges)
       const { error: authError } = await supabase.auth.admin.deleteUser(userId);
@@ -184,6 +216,8 @@ export const useUserManagement = () => {
         console.warn('Could not delete auth user:', authError);
         // Don't throw here as the profile is already deleted
       }
+      
+      console.log('User deleted successfully');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
@@ -205,11 +239,16 @@ export const useUserManagement = () => {
   // Send password reset email
   const sendPasswordResetMutation = useMutation({
     mutationFn: async (email: string) => {
+      console.log('Sending password reset email to:', email);
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Password reset error:', error);
+        throw error;
+      }
+      console.log('Password reset email sent');
     },
     onSuccess: () => {
       toast({
