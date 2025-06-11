@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { CreateUserData } from '@/types/userManagement';
 
 export const authService = {
   async validateUserAccess(userId: string) {
@@ -36,6 +37,82 @@ export const authService = {
     } catch (error) {
       console.error('🔥 Error in validateUserAccess:', error);
       return { isValid: false, reason: 'Validation failed' };
+    }
+  },
+
+  async createAuthUser(userData: CreateUserData) {
+    console.log('🔥 Creating auth user:', userData.email);
+    
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: userData.email,
+        password: userData.password,
+        options: {
+          data: {
+            full_name: userData.fullName,
+            role: userData.role,
+          },
+        },
+      });
+
+      if (error) {
+        console.error('🔥 Error creating auth user:', error);
+        throw error;
+      }
+
+      console.log('🔥 Auth user created successfully:', data.user?.id);
+      return data;
+    } catch (error) {
+      console.error('🔥 Error in createAuthUser:', error);
+      throw error;
+    }
+  },
+
+  async toggleUserAuthStatus(userId: string, isActive: boolean) {
+    console.log('🔥 Toggling user auth status:', { userId, isActive });
+    
+    try {
+      // Note: In production, this would require admin privileges
+      // For now, we'll just log the action as the actual auth user status
+      // is controlled by the is_active field in the profiles table
+      console.log('🔥 Auth status toggle logged for user:', userId);
+    } catch (error) {
+      console.error('🔥 Error toggling auth status:', error);
+      throw error;
+    }
+  },
+
+  async deleteAuthUser(userId: string) {
+    console.log('🔥 Deleting auth user:', userId);
+    
+    try {
+      // Note: In production, this would require admin privileges
+      // For now, we'll just log the action as the actual user deletion
+      // is handled by the profile deletion with cascade
+      console.log('🔥 Auth user deletion logged for:', userId);
+    } catch (error) {
+      console.error('🔥 Error deleting auth user:', error);
+      throw error;
+    }
+  },
+
+  async sendPasswordResetEmail(email: string) {
+    console.log('🔥 Sending password reset email to:', email);
+    
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        console.error('🔥 Error sending password reset email:', error);
+        throw error;
+      }
+
+      console.log('🔥 Password reset email sent successfully');
+    } catch (error) {
+      console.error('🔥 Error in sendPasswordResetEmail:', error);
+      throw error;
     }
   }
 };

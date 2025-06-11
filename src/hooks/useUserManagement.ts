@@ -24,9 +24,12 @@ export const useUserManagement = () => {
 
   // Create user mutation
   const createUserMutation = useMutation({
-    mutationFn: authService.createAuthUser,
+    mutationFn: async (userData: CreateUserData) => {
+      const result = await authService.createAuthUser(userData);
+      console.log('User creation successful:', result.user?.id);
+      return result;
+    },
     onSuccess: (data) => {
-      console.log('User creation successful:', data.user?.id);
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast({
         title: "Success",
@@ -145,11 +148,11 @@ export const useUserManagement = () => {
     users,
     isLoading,
     error,
-    createUser: createUserMutation.mutateAsync,
-    updateUser: updateUserMutation.mutateAsync,
-    toggleUserStatus: toggleUserStatusMutation.mutateAsync,
-    deleteUser: deleteUserMutation.mutateAsync,
-    sendPasswordReset: sendPasswordResetMutation.mutateAsync,
+    createUser: createUserMutation.mutate,
+    updateUser: updateUserMutation.mutate,
+    toggleUserStatus: toggleUserStatusMutation.mutate,
+    deleteUser: deleteUserMutation.mutate,
+    sendPasswordReset: sendPasswordResetMutation.mutate,
     isCreating: createUserMutation.isPending,
     isUpdating: updateUserMutation.isPending,
     isToggling: toggleUserStatusMutation.isPending,
