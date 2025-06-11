@@ -7,7 +7,7 @@ export const useProfileManager = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const currentUserId = useRef<string | null>(null);
   const profileCache = useRef<Profile | null>(null);
-  const isFetching = useRef(false); // Prevent concurrent fetches
+  const isFetching = useRef(false);
 
   const fetchProfile = useCallback(async (userId: string) => {
     // Skip if we already have this user's profile cached
@@ -27,6 +27,7 @@ export const useProfileManager = () => {
       isFetching.current = true;
       console.log('🔥 Fetching profile for user:', userId);
       
+      // Use select with explicit JSON response format
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -40,7 +41,7 @@ export const useProfileManager = () => {
         return;
       }
       
-      console.log('🔥 Profile fetched:', data);
+      console.log('🔥 Profile fetched successfully:', data);
       setProfile(data);
       profileCache.current = data;
       currentUserId.current = userId;
