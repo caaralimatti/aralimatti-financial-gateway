@@ -47,17 +47,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const currentUserId = useRef<string | null>(null);
   const profileCache = useRef<Profile | null>(null);
   const isInitialized = useRef(false);
+  const subscriptionRef = useRef<any>(null);
 
   const fetchProfile = useCallback(async (userId: string) => {
     // Skip if we already have this user's profile cached
     if (currentUserId.current === userId && profileCache.current) {
-      console.log('Using cached profile for user:', userId);
+      console.log('🔥 Using cached profile for user:', userId);
       setProfile(profileCache.current);
       return;
     }
 
     try {
-      console.log('Fetching profile for user:', userId);
+      console.log('🔥 Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -65,25 +66,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .maybeSingle();
 
       if (error) {
-        console.error('Error fetching profile:', error);
+        console.error('🔥 Error fetching profile:', error);
         setProfile(null);
         profileCache.current = null;
         return;
       }
       
-      console.log('Profile fetched:', data);
+      console.log('🔥 Profile fetched:', data);
       setProfile(data);
       profileCache.current = data;
       currentUserId.current = userId;
     } catch (error) {
-      console.error('Error in fetchProfile:', error);
+      console.error('🔥 Error in fetchProfile:', error);
       setProfile(null);
       profileCache.current = null;
     }
   }, []);
 
   const validateUserSession = useCallback(async (newSession: Session | null) => {
+    console.log('🔥 validateUserSession called with session:', newSession?.user?.id);
+    
     if (!newSession?.user) {
+      console.log('🔥 No session/user, clearing state');
       setUser(null);
       setProfile(null);
       profileCache.current = null;
@@ -93,6 +97,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Only update user if it's actually different
     if (!user || user.id !== newSession.user.id) {
+      console.log('🔥 Setting new user:', newSession.user.id);
       setUser(newSession.user);
     }
     
@@ -100,13 +105,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user, fetchProfile]);
 
   useEffect(() => {
+    // Prevent multiple initializations
+    if (isInitialized.current) {
+      console.log('🔥 AuthContext already initialized, skipping');
+      return;
+    }
+
     let mounted = true;
+    console.log('🔥 Setting up auth state listener (ONCE)...');
     
-    console.log('🚀 Setting up auth state listener...');
-    
+    // Clean up any existing subscription
+    if (subscriptionRef.current) {
+      console.log('🔥 Cleaning up existing subscription');
+      subscriptionRef.current.unsubscribe();
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        // CRITICAL DEBUGGING - Log everything at the start
         console.log('🔥 Auth State Change Event:', event);
         console.log('🔥 Session Object:', session);
         console.log('🔥 Current URL:', window.location.href);
@@ -118,7 +133,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
         
-        // TEMPORARY ISOLATION TEST - Comment out all logic except basic state updates
         try {
           console.log('🔥 Updating session state...');
           setSession(session);
@@ -140,45 +154,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             currentUserId.current = null;
           }
           
-          if (isInitialized.current) {
-            console.log('🔥 Setting loading to false...');
-            setLoading(false);
-          }
+          console.log('🔥 Setting loading to false...');
+          setLoading(false);
         } catch (error) {
           console.error('🔥 ERROR in auth state change handler:', error);
-          // Do NOT call window.location.reload() or any navigation here
+          setLoading(false);
         }
         
         console.log('🔥 Auth state change handler completed');
       }
     );
 
-    // Check for existing session only once on mount
-    if (!isInitialized.current) {
-      console.log('🔥 Checking initial session...');
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (!mounted) return;
-        
-        console.log('🔥 Initial session check:', session?.user?.id);
-        setSession(session);
-        if (session?.user) {
-          validateUserSession(session);
-        }
+    subscriptionRef.current = subscription;
+
+    // Check for existing session only once
+    console.log('🔥 Checking initial session...');
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
+      
+      console.log('🔥 Initial session check:', session?.user?.id);
+      setSession(session);
+      if (session?.user) {
+        validateUserSession(session);
+      } else {
         setLoading(false);
-        isInitialized.current = true;
-      }).catch((error) => {
-        console.error('🔥 ERROR in initial session check:', error);
-        setLoading(false);
-        isInitialized.current = true;
-      });
-    }
+      }
+    }).catch((error) => {
+      console.error('🔥 ERROR in initial session check:', error);
+      setLoading(false);
+    });
+
+    isInitialized.current = true;
 
     return () => {
       console.log('🔥 Cleaning up auth state listener...');
       mounted = false;
-      subscription.unsubscribe();
+      if (subscriptionRef.current) {
+        subscriptionRef.current.unsubscribe();
+        subscriptionRef.current = null;
+      }
     };
-  }, []); // Intentionally empty dependency array
+  }, []); // Keep empty dependency array but ensure single initialization
 
   const signIn = useCallback(async (email: string, password: string) => {
     console.log('🔥 Attempting to sign in with:', email);
