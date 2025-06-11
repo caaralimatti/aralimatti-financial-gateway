@@ -16,21 +16,21 @@ export const useAuthGuard = () => {
     const validateUserAccess = async () => {
       if (!user || isValidating.current) return;
 
-      // Debounce validation - only run once every 15 minutes
+      // Debounce validation - only run once every 30 minutes
       const now = Date.now();
-      if (now - lastValidationTime.current < 900000) { // 15 minutes
+      if (now - lastValidationTime.current < 1800000) { // 30 minutes
         return;
       }
 
       isValidating.current = true;
       lastValidationTime.current = now;
-      console.log('Auth guard: Validating user access for:', user.id);
+      console.log('🔥 Auth guard: Validating user access for:', user.id);
       
       try {
         const validation = await authService.validateUserAccess(user.id);
         
         if (!validation.isValid) {
-          console.log('Auth guard: User access invalid:', validation.reason);
+          console.log('🔥 Auth guard: User access invalid:', validation.reason);
           
           // Only show toast once per session
           if (!hasShownToast.current) {
@@ -42,15 +42,16 @@ export const useAuthGuard = () => {
             hasShownToast.current = true;
           }
 
-          // Sign out the user
+          // Sign out the user - DO NOT use window.location methods
+          console.log('🔥 Auth guard: Signing out user due to invalid access');
           await signOut();
         } else {
-          console.log('Auth guard: User access validated successfully');
+          console.log('🔥 Auth guard: User access validated successfully');
           // Reset the toast flag if user becomes valid again
           hasShownToast.current = false;
         }
       } catch (error) {
-        console.error('Auth guard: Error during validation:', error);
+        console.error('🔥 Auth guard: Error during validation:', error);
         
         // Only show error toast once
         if (!hasShownToast.current) {
@@ -62,6 +63,7 @@ export const useAuthGuard = () => {
           hasShownToast.current = true;
         }
 
+        console.log('🔥 Auth guard: Signing out user due to validation error');
         await signOut();
       } finally {
         isValidating.current = false;
@@ -70,13 +72,19 @@ export const useAuthGuard = () => {
 
     // Only run validation if user exists
     if (user) {
-      // Run validation immediately on mount
+      console.log('🔥 Auth guard: Setting up validation for user:', user.id);
+      
+      // Run validation immediately on mount (with debounce)
       validateUserAccess();
       
-      // Set up interval for periodic validation (every 30 minutes - much less aggressive)
-      intervalRef.current = setInterval(validateUserAccess, 1800000); // 30 minutes
+      // Set up interval for periodic validation (every 45 minutes - even less aggressive)
+      intervalRef.current = setInterval(() => {
+        console.log('🔥 Auth guard: Periodic validation triggered');
+        validateUserAccess();
+      }, 2700000); // 45 minutes
       
       return () => {
+        console.log('🔥 Auth guard: Cleaning up interval');
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
           intervalRef.current = null;
@@ -87,6 +95,7 @@ export const useAuthGuard = () => {
 
     // Reset state when user logs out
     return () => {
+      console.log('🔥 Auth guard: User logged out, cleaning up');
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;

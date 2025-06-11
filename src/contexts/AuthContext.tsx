@@ -102,132 +102,179 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let mounted = true;
     
-    console.log('Setting up auth state listener...');
+    console.log('🚀 Setting up auth state listener...');
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (!mounted) return;
+        // CRITICAL DEBUGGING - Log everything at the start
+        console.log('🔥 Auth State Change Event:', event);
+        console.log('🔥 Session Object:', session);
+        console.log('🔥 Current URL:', window.location.href);
+        console.log('🔥 Mounted state:', mounted);
+        console.log('🔥 User ID from session:', session?.user?.id);
         
-        console.log('Auth state changed:', event, session?.user?.id);
-        
-        // Update session immediately
-        setSession(session);
-        
-        if (session?.user) {
-          // Use setTimeout to prevent potential auth callback issues
-          setTimeout(() => {
-            if (mounted) {
-              validateUserSession(session);
-            }
-          }, 0);
-        } else {
-          setUser(null);
-          setProfile(null);
-          profileCache.current = null;
-          currentUserId.current = null;
+        if (!mounted) {
+          console.log('🔥 Component unmounted, skipping auth state change');
+          return;
         }
         
-        if (isInitialized.current) {
-          setLoading(false);
+        // TEMPORARY ISOLATION TEST - Comment out all logic except basic state updates
+        try {
+          console.log('🔥 Updating session state...');
+          setSession(session);
+          
+          if (session?.user) {
+            console.log('🔥 Session exists, validating user...');
+            // Use setTimeout to prevent potential auth callback issues
+            setTimeout(() => {
+              if (mounted) {
+                console.log('🔥 Calling validateUserSession...');
+                validateUserSession(session);
+              }
+            }, 0);
+          } else {
+            console.log('🔥 No session, clearing user state...');
+            setUser(null);
+            setProfile(null);
+            profileCache.current = null;
+            currentUserId.current = null;
+          }
+          
+          if (isInitialized.current) {
+            console.log('🔥 Setting loading to false...');
+            setLoading(false);
+          }
+        } catch (error) {
+          console.error('🔥 ERROR in auth state change handler:', error);
+          // Do NOT call window.location.reload() or any navigation here
         }
+        
+        console.log('🔥 Auth state change handler completed');
       }
     );
 
     // Check for existing session only once on mount
     if (!isInitialized.current) {
+      console.log('🔥 Checking initial session...');
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (!mounted) return;
         
-        console.log('Initial session check:', session?.user?.id);
+        console.log('🔥 Initial session check:', session?.user?.id);
         setSession(session);
         if (session?.user) {
           validateUserSession(session);
         }
         setLoading(false);
         isInitialized.current = true;
+      }).catch((error) => {
+        console.error('🔥 ERROR in initial session check:', error);
+        setLoading(false);
+        isInitialized.current = true;
       });
     }
 
     return () => {
+      console.log('🔥 Cleaning up auth state listener...');
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []); // Remove validateUserSession from dependencies to prevent re-initialization
+  }, []); // Intentionally empty dependency array
 
   const signIn = useCallback(async (email: string, password: string) => {
-    console.log('Attempting to sign in with:', email);
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    console.log('🔥 Attempting to sign in with:', email);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) {
-      console.error('Sign in error:', error);
+      if (error) {
+        console.error('🔥 Sign in error:', error);
+        throw error;
+      }
+
+      // Simplified validation after successful sign in
+      if (data.user) {
+        console.log('🔥 Sign in successful, validating user access...');
+        const validation = await authService.validateUserAccess(data.user.id);
+        
+        if (!validation.isValid) {
+          console.log('🔥 User access denied after sign in:', validation.reason);
+          await supabase.auth.signOut();
+          throw new Error(validation.reason || 'Account is inactive');
+        }
+      }
+
+      console.log('🔥 Sign in completed successfully');
+    } catch (error) {
+      console.error('🔥 Sign in process failed:', error);
       throw error;
     }
-
-    // Simplified validation after successful sign in
-    if (data.user) {
-      const validation = await authService.validateUserAccess(data.user.id);
-      
-      if (!validation.isValid) {
-        console.log('User access denied after sign in:', validation.reason);
-        await supabase.auth.signOut();
-        throw new Error(validation.reason || 'Account is inactive');
-      }
-    }
-
-    console.log('Sign in successful');
   }, []);
 
   const signUp = useCallback(async (email: string, password: string, fullName: string, role: UserRole = 'client') => {
-    console.log('Attempting to sign up with:', { email, fullName, role });
+    console.log('🔥 Attempting to sign up with:', { email, fullName, role });
     
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-          role: role,
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            role: role,
+          },
         },
-      },
-    });
+      });
 
-    if (error) {
-      console.error('Sign up error:', error);
+      if (error) {
+        console.error('🔥 Sign up error:', error);
+        throw error;
+      }
+
+      console.log('🔥 Sign up successful:', data);
+    } catch (error) {
+      console.error('🔥 Sign up process failed:', error);
       throw error;
     }
-
-    console.log('Sign up successful:', data);
   }, []);
 
   const signOut = useCallback(async () => {
-    console.log('Signing out...');
+    console.log('🔥 Signing out...');
     
-    // Clear cache immediately
-    profileCache.current = null;
-    currentUserId.current = null;
-    
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('Sign out error:', error);
+    try {
+      // Clear cache immediately
+      profileCache.current = null;
+      currentUserId.current = null;
+      
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('🔥 Sign out error:', error);
+        throw error;
+      }
+      console.log('🔥 Sign out successful');
+    } catch (error) {
+      console.error('🔥 Sign out process failed:', error);
       throw error;
     }
-    console.log('Sign out successful');
   }, []);
 
   const resetPassword = useCallback(async (email: string) => {
-    console.log('Resetting password for:', email);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
+    console.log('🔥 Resetting password for:', email);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
 
-    if (error) {
-      console.error('Reset password error:', error);
+      if (error) {
+        console.error('🔥 Reset password error:', error);
+        throw error;
+      }
+      console.log('🔥 Reset password email sent');
+    } catch (error) {
+      console.error('🔥 Reset password process failed:', error);
       throw error;
     }
-    console.log('Reset password email sent');
   }, []);
 
   // Memoize the context value with stable references
