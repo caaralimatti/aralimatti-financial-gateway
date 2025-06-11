@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { authService } from '@/services/authService';
 
 type UserRole = 'client' | 'staff' | 'admin';
 
@@ -10,6 +11,7 @@ interface Profile {
   email: string;
   full_name: string | null;
   role: UserRole;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -64,6 +66,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const validateUserSession = async (newSession: Session | null) => {
+    if (!newSession?.user) {
+      setUser(null);
+      setProfile(null);
+      return;
+    }
+
+    // First set the user and fetch profile
+    setUser(newSession.user);
+    await fetchProfile(newSession.user.id);
+
+    // Then validate access
+    try {
+      const validation = await authService.validateUserAccess(newSession.user.id);
+      
+      if (!validation.isValid) {
+        console.log('User session invalid during auth state change:', validation.reason);
+        
+        // Sign out the user silently
+        await supabase.auth.signOut();
+        setUser(null);
+        setProfile(null);
+        setSession(null);
+        return;
+      }
+    } catch (error) {
+      console.error('Error validating user session:', error);
+    }
+  };
+
   useEffect(() => {
     console.log('Setting up auth state listener...');
     
@@ -71,14 +103,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.id);
         setSession(session);
-        setUser(session?.user ?? null);
         
         if (session?.user) {
           // Use setTimeout to avoid potential deadlocks in auth callbacks
           setTimeout(() => {
-            fetchProfile(session.user.id);
+            validateUserSession(session);
           }, 0);
         } else {
+          setUser(null);
           setProfile(null);
         }
         setLoading(false);
@@ -89,9 +121,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('Initial session check:', session?.user?.id);
       setSession(session);
-      setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
+        validateUserSession(session);
       } else {
         setLoading(false);
       }
@@ -102,7 +133,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     console.log('Attempting to sign in with:', email);
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -111,6 +142,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Sign in error:', error);
       throw error;
     }
+
+    // Additional validation after successful sign in
+    if (data.user) {
+      const validation = await authService.validateUserAccess(data.user.id);
+      
+      if (!validation.isValid) {
+        console.log('User access denied after sign in:', validation.reason);
+        await supabase.auth.signOut();
+        throw new Error(validation.reason || 'Account is inactive');
+      }
+    }
+
     console.log('Sign in successful');
   };
 

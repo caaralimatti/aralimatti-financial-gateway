@@ -19,7 +19,7 @@ export const userService = {
   },
 
   async updateUserProfile(userData: { id: string; fullName?: string; role?: 'admin' | 'staff' | 'client'; isActive?: boolean }) {
-    console.log('Updating user:', userData);
+    console.log('Updating user profile:', userData);
     const updateData: any = {};
     
     if (userData.fullName !== undefined) updateData.full_name = userData.fullName;
@@ -37,7 +37,7 @@ export const userService = {
       console.error('Profile update error:', error);
       throw error;
     }
-    console.log('User updated successfully:', data);
+    console.log('User profile updated successfully:', data);
     return data;
   },
 

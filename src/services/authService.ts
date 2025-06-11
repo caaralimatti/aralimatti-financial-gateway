@@ -53,18 +53,34 @@ export const authService = {
     
     try {
       if (isActive) {
-        // Enable the user - remove ban
-        console.log('Enabling user in auth (removing ban)');
-        const { error: enableError } = await supabase.auth.admin.updateUserById(
+        // Enable the user - remove ban and clear disabled until
+        console.log('Enabling user in auth');
+        
+        // Try multiple approaches to ensure the user is enabled
+        const { error: enableError1 } = await supabase.auth.admin.updateUserById(
           userId,
           { 
-            ban_duration: 'none'
+            ban_duration: 'none',
+            user_metadata: { disabled: false }
           }
         );
 
-        if (enableError) {
-          console.error('Error enabling user in auth:', enableError);
-        } else {
+        // Also try updating with disabled_until set to null
+        const { error: enableError2 } = await supabase.auth.admin.updateUserById(
+          userId,
+          { 
+            disabled_until: null
+          }
+        );
+
+        if (enableError1) {
+          console.error('Error enabling user (method 1):', enableError1);
+        }
+        if (enableError2) {
+          console.error('Error enabling user (method 2):', enableError2);
+        }
+
+        if (!enableError1 || !enableError2) {
           console.log('User enabled in auth successfully');
         }
       } else {
@@ -77,18 +93,39 @@ export const authService = {
   },
 
   async disableUser(userId: string) {
-    console.log('Disabling user in auth since isActive is false');
-    const { error: disableError } = await supabase.auth.admin.updateUserById(
-      userId,
-      { 
-        ban_duration: 'indefinite'
-      }
-    );
+    console.log('Disabling user in auth');
+    
+    try {
+      // Try multiple approaches to ensure the user is disabled
+      const { error: disableError1 } = await supabase.auth.admin.updateUserById(
+        userId,
+        { 
+          ban_duration: 'indefinite'
+        }
+      );
 
-    if (disableError) {
-      console.error('Error disabling user in auth:', disableError);
-    } else {
-      console.log('User disabled in auth successfully');
+      // Set disabled_until to far future date
+      const farFutureDate = new Date('2099-12-31T23:59:59.999Z').toISOString();
+      const { error: disableError2 } = await supabase.auth.admin.updateUserById(
+        userId,
+        { 
+          disabled_until: farFutureDate,
+          user_metadata: { disabled: true }
+        }
+      );
+
+      if (disableError1) {
+        console.error('Error disabling user (method 1):', disableError1);
+      }
+      if (disableError2) {
+        console.error('Error disabling user (method 2):', disableError2);
+      }
+
+      if (!disableError1 || !disableError2) {
+        console.log('User disabled in auth successfully');
+      }
+    } catch (error) {
+      console.error('Error disabling user:', error);
     }
   },
 
@@ -118,5 +155,57 @@ export const authService = {
       throw error;
     }
     console.log('Password reset email sent');
+  },
+
+  async validateUserAccess(userId: string): Promise<{ isValid: boolean; reason?: string }> {
+    console.log('Validating user access for:', userId);
+    
+    try {
+      // Check profile is_active status
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('is_active')
+        .eq('id', userId)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+        return { isValid: false, reason: 'Profile not found' };
+      }
+
+      if (!profile.is_active) {
+        console.log('User is marked as inactive in profile');
+        return { isValid: false, reason: 'Account is inactive' };
+      }
+
+      // Check auth user status
+      const { data: { user }, error: userError } = await supabase.auth.admin.getUserById(userId);
+      
+      if (userError) {
+        console.error('Error fetching auth user:', userError);
+        return { isValid: false, reason: 'User not found in auth' };
+      }
+
+      // Check if user is disabled in auth
+      if (user?.disabled_until) {
+        const disabledUntil = new Date(user.disabled_until);
+        const now = new Date();
+        if (disabledUntil > now) {
+          console.log('User is disabled until:', disabledUntil);
+          return { isValid: false, reason: 'Account is temporarily disabled' };
+        }
+      }
+
+      // Check user metadata for disabled flag
+      if (user?.user_metadata?.disabled === true) {
+        console.log('User is marked as disabled in metadata');
+        return { isValid: false, reason: 'Account is disabled' };
+      }
+
+      return { isValid: true };
+    } catch (error) {
+      console.error('Error validating user access:', error);
+      return { isValid: false, reason: 'Validation error' };
+    }
   }
 };

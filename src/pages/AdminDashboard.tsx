@@ -1,6 +1,6 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { Button } from '@/components/ui/button';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { LogOut } from 'lucide-react';
@@ -22,6 +22,9 @@ const AdminDashboard = () => {
   const { profile, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showAddClientModal, setShowAddClientModal] = useState(false);
+
+  // Use auth guard for continuous validation
+  useAuthGuard();
 
   const handleLogout = async () => {
     try {

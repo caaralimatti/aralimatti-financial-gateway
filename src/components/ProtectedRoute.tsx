@@ -2,6 +2,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAuthGuard } from '@/hooks/useAuthGuard';
 
 type UserRole = 'client' | 'staff' | 'admin';
 
@@ -17,6 +18,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   redirectTo = '/auth' 
 }) => {
   const { user, profile, loading } = useAuth();
+  
+  // Use the auth guard to continuously validate user access
+  useAuthGuard();
 
   if (loading) {
     return (
@@ -28,6 +32,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   if (!user || !profile) {
     return <Navigate to={redirectTo} replace />;
+  }
+
+  // Check if profile is active
+  if (!profile.is_active) {
+    return <Navigate to="/auth" replace />;
   }
 
   if (allowedRoles.length > 0 && !allowedRoles.includes(profile.role)) {
