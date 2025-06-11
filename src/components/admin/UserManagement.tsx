@@ -7,7 +7,8 @@ import UserManagementHeader from './UserManagementHeader';
 import UserManagementFilters from './UserManagementFilters';
 import UserManagementTable from './UserManagementTable';
 import UserManagementPagination from './UserManagementPagination';
-import { useUserManagement, UserProfile } from '@/hooks/useUserManagement';
+import { useUserManagement } from '@/hooks/useUserManagement';
+import { UserProfile } from '@/types/userManagement';
 
 const UserManagement: React.FC = () => {
   const { users, isLoading, error } = useUserManagement();
