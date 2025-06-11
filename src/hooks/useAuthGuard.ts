@@ -9,12 +9,20 @@ export const useAuthGuard = () => {
   const { toast } = useToast();
   const hasShownToast = useRef(false);
   const isValidating = useRef(false);
+  const lastValidationTime = useRef(0);
 
   useEffect(() => {
     const validateUserAccess = async () => {
       if (!user || isValidating.current) return;
 
+      // Debounce validation - only run once every 5 minutes
+      const now = Date.now();
+      if (now - lastValidationTime.current < 300000) { // 5 minutes
+        return;
+      }
+
       isValidating.current = true;
+      lastValidationTime.current = now;
       console.log('Auth guard: Validating user access for:', user.id);
       
       try {
@@ -64,8 +72,8 @@ export const useAuthGuard = () => {
       // Run validation immediately on mount
       validateUserAccess();
       
-      // Set up interval for periodic validation (every 5 minutes instead of 30 seconds)
-      const interval = setInterval(validateUserAccess, 300000); // 5 minutes
+      // Set up interval for periodic validation (every 10 minutes instead of 30 seconds)
+      const interval = setInterval(validateUserAccess, 600000); // 10 minutes
       
       return () => {
         clearInterval(interval);

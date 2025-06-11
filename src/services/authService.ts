@@ -131,7 +131,7 @@ export const authService = {
     console.log('Validating user access for:', userId);
     
     try {
-      // Check profile is_active status first (most reliable check)
+      // Only check profile is_active status (no admin API calls)
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('is_active')
@@ -148,15 +148,8 @@ export const authService = {
         return { isValid: false, reason: 'Account is inactive' };
       }
 
-      // Additional check: Try to fetch auth user to verify account exists and is accessible
-      const { data: { user }, error: userError } = await supabase.auth.admin.getUserById(userId);
-      
-      if (userError || !user) {
-        console.error('Error fetching auth user:', userError);
-        return { isValid: false, reason: 'User not found in auth system' };
-      }
-
-      // If we get here, the user is active and accessible
+      // Profile exists and is active - validation successful
+      console.log('User access validation successful');
       return { isValid: true };
     } catch (error) {
       console.error('Error validating user access:', error);

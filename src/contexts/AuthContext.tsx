@@ -77,14 +77,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(newSession.user);
     await fetchProfile(newSession.user.id);
 
-    // Then validate access (but don't show toast here - let useAuthGuard handle it)
+    // Then validate access using the simplified validation (no admin API calls)
     try {
       const validation = await authService.validateUserAccess(newSession.user.id);
       
       if (!validation.isValid) {
         console.log('User session invalid during auth state change:', validation.reason);
         
-        // Sign out the user silently
+        // Sign out the user silently (no toast here - let useAuthGuard handle it)
         await supabase.auth.signOut();
         setUser(null);
         setProfile(null);
@@ -93,6 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error) {
       console.error('Error validating user session:', error);
+      // Don't sign out on validation errors during auth state change
     }
   }, [fetchProfile]);
 
@@ -143,7 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw error;
     }
 
-    // Additional validation after successful sign in
+    // Simplified validation after successful sign in
     if (data.user) {
       const validation = await authService.validateUserAccess(data.user.id);
       
