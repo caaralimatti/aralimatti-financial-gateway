@@ -27,12 +27,13 @@ export const useProfileManager = () => {
       isFetching.current = true;
       console.log('🔥 Fetching profile for user:', userId);
       
-      // Use select with explicit JSON response format
+      // Use select without .maybeSingle() to avoid the problematic Accept header
+      // Instead, we'll handle the array response and take the first item
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .maybeSingle();
+        .limit(1);
 
       if (error) {
         console.error('🔥 Error fetching profile:', error);
@@ -41,9 +42,12 @@ export const useProfileManager = () => {
         return;
       }
       
-      console.log('🔥 Profile fetched successfully:', data);
-      setProfile(data);
-      profileCache.current = data;
+      // Handle the array response - take first item or null if empty
+      const profileData = data && data.length > 0 ? data[0] : null;
+      
+      console.log('🔥 Profile fetched successfully:', profileData);
+      setProfile(profileData);
+      profileCache.current = profileData;
       currentUserId.current = userId;
     } catch (error) {
       console.error('🔥 Error in fetchProfile:', error);
