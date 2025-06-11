@@ -131,7 +131,7 @@ export const authService = {
     console.log('Validating user access for:', userId);
     
     try {
-      // Check profile is_active status
+      // Check profile is_active status first (most reliable check)
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('is_active')
@@ -148,24 +148,15 @@ export const authService = {
         return { isValid: false, reason: 'Account is inactive' };
       }
 
-      // Check auth user status using the admin API
+      // Additional check: Try to fetch auth user to verify account exists and is accessible
       const { data: { user }, error: userError } = await supabase.auth.admin.getUserById(userId);
       
-      if (userError) {
+      if (userError || !user) {
         console.error('Error fetching auth user:', userError);
-        return { isValid: false, reason: 'User not found in auth' };
+        return { isValid: false, reason: 'User not found in auth system' };
       }
 
-      // Check if user is banned
-      if (user?.banned_until) {
-        const bannedUntil = new Date(user.banned_until);
-        const now = new Date();
-        if (bannedUntil > now) {
-          console.log('User is banned until:', bannedUntil);
-          return { isValid: false, reason: 'Account is temporarily disabled' };
-        }
-      }
-
+      // If we get here, the user is active and accessible
       return { isValid: true };
     } catch (error) {
       console.error('Error validating user access:', error);
