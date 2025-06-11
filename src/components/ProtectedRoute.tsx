@@ -19,7 +19,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = memo(({
 }) => {
   const { user, profile, loading } = useAuth();
   
-  // Use the auth guard to continuously validate user access
+  // Use the auth guard to continuously validate user access (but much less aggressively now)
   useAuthGuard();
 
   if (loading) {

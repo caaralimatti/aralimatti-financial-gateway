@@ -10,14 +10,15 @@ export const useAuthGuard = () => {
   const hasShownToast = useRef(false);
   const isValidating = useRef(false);
   const lastValidationTime = useRef(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const validateUserAccess = async () => {
       if (!user || isValidating.current) return;
 
-      // Debounce validation - only run once every 5 minutes
+      // Debounce validation - only run once every 15 minutes
       const now = Date.now();
-      if (now - lastValidationTime.current < 300000) { // 5 minutes
+      if (now - lastValidationTime.current < 900000) { // 15 minutes
         return;
       }
 
@@ -72,13 +73,26 @@ export const useAuthGuard = () => {
       // Run validation immediately on mount
       validateUserAccess();
       
-      // Set up interval for periodic validation (every 10 minutes instead of 30 seconds)
-      const interval = setInterval(validateUserAccess, 600000); // 10 minutes
+      // Set up interval for periodic validation (every 30 minutes - much less aggressive)
+      intervalRef.current = setInterval(validateUserAccess, 1800000); // 30 minutes
       
       return () => {
-        clearInterval(interval);
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
         isValidating.current = false;
       };
     }
+
+    // Reset state when user logs out
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      isValidating.current = false;
+      hasShownToast.current = false;
+    };
   }, [user?.id, signOut, toast]); // Only depend on user ID, not the entire user object
 };

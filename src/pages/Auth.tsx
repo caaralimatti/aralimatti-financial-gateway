@@ -81,7 +81,7 @@ const Auth = () => {
       } else if (isLogin) {
         console.log('Attempting login for:', email);
         await signIn(email, password);
-        // Don't show "Welcome back!" toast here - let the dashboard handle it
+        // Don't show "Welcome back!" toast here - let WelcomeToast component handle it
       } else {
         console.log('Attempting signup for:', email, 'with role:', userRole);
         await signUp(email, password, fullName, userRole);

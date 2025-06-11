@@ -77,24 +77,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(newSession.user);
     await fetchProfile(newSession.user.id);
 
-    // Then validate access using the simplified validation (no admin API calls)
-    try {
-      const validation = await authService.validateUserAccess(newSession.user.id);
-      
-      if (!validation.isValid) {
-        console.log('User session invalid during auth state change:', validation.reason);
-        
-        // Sign out the user silently (no toast here - let useAuthGuard handle it)
-        await supabase.auth.signOut();
-        setUser(null);
-        setProfile(null);
-        setSession(null);
-        return;
-      }
-    } catch (error) {
-      console.error('Error validating user session:', error);
-      // Don't sign out on validation errors during auth state change
-    }
+    // Simplified validation - only check during sign in, not during auth state changes
+    // This prevents excessive validation calls that cause re-renders
   }, [fetchProfile]);
 
   useEffect(() => {
