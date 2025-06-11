@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { authService } from '@/services/authService';
@@ -43,7 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string) => {
     try {
       console.log('Fetching profile for user:', userId);
       const { data, error } = await supabase
@@ -64,9 +64,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Error in fetchProfile:', error);
       setProfile(null);
     }
-  };
+  }, []);
 
-  const validateUserSession = async (newSession: Session | null) => {
+  const validateUserSession = useCallback(async (newSession: Session | null) => {
     if (!newSession?.user) {
       setUser(null);
       setProfile(null);
@@ -77,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(newSession.user);
     await fetchProfile(newSession.user.id);
 
-    // Then validate access
+    // Then validate access (but don't show toast here - let useAuthGuard handle it)
     try {
       const validation = await authService.validateUserAccess(newSession.user.id);
       
@@ -94,7 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Error validating user session:', error);
     }
-  };
+  }, [fetchProfile]);
 
   useEffect(() => {
     console.log('Setting up auth state listener...');
@@ -129,9 +129,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [validateUserSession]);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = useCallback(async (email: string, password: string) => {
     console.log('Attempting to sign in with:', email);
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -155,9 +155,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     console.log('Sign in successful');
-  };
+  }, []);
 
-  const signUp = async (email: string, password: string, fullName: string, role: UserRole = 'client') => {
+  const signUp = useCallback(async (email: string, password: string, fullName: string, role: UserRole = 'client') => {
     console.log('Attempting to sign up with:', { email, fullName, role });
     
     const { data, error } = await supabase.auth.signUp({
@@ -177,9 +177,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     console.log('Sign up successful:', data);
-  };
+  }, []);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     console.log('Signing out...');
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -187,9 +187,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw error;
     }
     console.log('Sign out successful');
-  };
+  }, []);
 
-  const resetPassword = async (email: string) => {
+  const resetPassword = useCallback(async (email: string) => {
     console.log('Resetting password for:', email);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
@@ -200,9 +200,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw error;
     }
     console.log('Reset password email sent');
-  };
+  }, []);
 
-  const value = {
+  // Memoize the context value to prevent unnecessary re-renders
+  const value = useMemo(() => ({
     user,
     profile,
     session,
@@ -211,7 +212,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     signOut,
     resetPassword,
-  };
+  }), [user, profile, session, loading, signIn, signUp, signOut, resetPassword]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

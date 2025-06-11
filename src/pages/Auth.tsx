@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -32,7 +32,7 @@ const Auth = () => {
   } catch (error) {
     console.error('Auth context not available:', error);
     // Redirect to home if auth context is not available
-    React.useEffect(() => {
+    useEffect(() => {
       navigate('/');
     }, [navigate]);
     
@@ -46,7 +46,8 @@ const Auth = () => {
     );
   }
 
-  React.useEffect(() => {
+  // Optimize navigation effect to prevent excessive re-renders
+  useEffect(() => {
     if (profile) {
       console.log('User authenticated with role:', profile.role);
       // Redirect based on user role
@@ -63,9 +64,9 @@ const Auth = () => {
           break;
       }
     }
-  }, [profile, navigate]);
+  }, [profile?.role, navigate]); // Only depend on the role, not the entire profile object
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
@@ -80,10 +81,7 @@ const Auth = () => {
       } else if (isLogin) {
         console.log('Attempting login for:', email);
         await signIn(email, password);
-        toast({
-          title: "Welcome back!",
-          description: "You have been successfully logged in.",
-        });
+        // Don't show "Welcome back!" toast here - let the dashboard handle it
       } else {
         console.log('Attempting signup for:', email, 'with role:', userRole);
         await signUp(email, password, fullName, userRole);
@@ -102,7 +100,7 @@ const Auth = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [email, password, fullName, userRole, showForgotPassword, isLogin, signIn, signUp, resetPassword, toast]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5 flex items-center justify-center px-4">
@@ -274,8 +272,6 @@ const Auth = () => {
                   type="button"
                   onClick={() => setShowForgotPassword(false)}
                   className="text-primary hover:underline font-medium"
-                >
-                  Back to Sign In
                 </button>
               </div>
             )}
