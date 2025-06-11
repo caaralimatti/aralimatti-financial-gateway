@@ -28,24 +28,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isInitialized = useRef(false);
   const subscriptionRef = useRef<any>(null);
 
-  const validateUserSession = useCallback(async (newSession: Session | null) => {
-    console.log('🔥 validateUserSession called with session:', newSession?.user?.id);
-    
-    if (!newSession?.user) {
-      console.log('🔥 No session/user, clearing state');
+  // Remove the validateUserSession function that was causing recursion
+  // Instead, just fetch profile when user changes
+  const handleUserChange = useCallback(async (newUser: User | null) => {
+    if (newUser && (!user || user.id !== newUser.id)) {
+      console.log('🔥 New user detected, fetching profile:', newUser.id);
+      setUser(newUser);
+      // Use setTimeout to prevent blocking the auth callback
+      setTimeout(() => {
+        fetchProfile(newUser.id);
+      }, 0);
+    } else if (!newUser) {
+      console.log('🔥 No user, clearing state');
       setUser(null);
       clearProfile();
-      return;
     }
-
-    // Only update user if it's actually different
-    if (!user || user.id !== newSession.user.id) {
-      console.log('🔥 Setting new user:', newSession.user.id);
-      setUser(newSession.user);
-    }
-    
-    await fetchProfile(newSession.user.id);
-  }, [user, fetchProfile, clearProfile]);
+  }, [user?.id, fetchProfile, clearProfile]); // Only depend on user ID
 
   useEffect(() => {
     // Prevent multiple initializations
@@ -64,12 +62,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('🔥 Auth State Change Event:', event);
         console.log('🔥 Session Object:', session);
-        console.log('🔥 Current URL:', window.location.href);
-        console.log('🔥 Mounted state:', mounted);
-        console.log('🔥 User ID from session:', session?.user?.id);
         
         if (!mounted) {
           console.log('🔥 Component unmounted, skipping auth state change');
@@ -77,32 +72,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         
         try {
-          console.log('🔥 Updating session state...');
+          // Update session state
           setSession(session);
           
+          // Handle user change with deferred profile fetching
           if (session?.user) {
-            console.log('🔥 Session exists, validating user...');
-            // Use setTimeout to prevent potential auth callback issues
-            setTimeout(() => {
-              if (mounted) {
-                console.log('🔥 Calling validateUserSession...');
-                validateUserSession(session);
-              }
-            }, 0);
+            handleUserChange(session.user);
           } else {
-            console.log('🔥 No session, clearing user state...');
-            setUser(null);
-            clearProfile();
+            handleUserChange(null);
           }
           
-          console.log('🔥 Setting loading to false...');
           setLoading(false);
         } catch (error) {
           console.error('🔥 ERROR in auth state change handler:', error);
           setLoading(false);
         }
-        
-        console.log('🔥 Auth state change handler completed');
       }
     );
 
@@ -116,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('🔥 Initial session check:', session?.user?.id);
       setSession(session);
       if (session?.user) {
-        validateUserSession(session);
+        handleUserChange(session.user);
       } else {
         setLoading(false);
       }
@@ -135,7 +119,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         subscriptionRef.current = null;
       }
     };
-  }, []); // Keep empty dependency array but ensure single initialization
+  }, []); // Empty dependency array to prevent re-initialization
 
   // Wrap auth operations with profile cache clearing
   const signOut = useCallback(async () => {
