@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { authService } from '@/services/authService';
@@ -42,8 +42,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Use refs to track state and prevent unnecessary fetches
+  const currentUserId = useRef<string | null>(null);
+  const profileCache = useRef<Profile | null>(null);
+  const isInitialized = useRef(false);
 
   const fetchProfile = useCallback(async (userId: string) => {
+    // Skip if we already have this user's profile cached
+    if (currentUserId.current === userId && profileCache.current) {
+      console.log('Using cached profile for user:', userId);
+      setProfile(profileCache.current);
+      return;
+    }
+
     try {
       console.log('Fetching profile for user:', userId);
       const { data, error } = await supabase
@@ -55,14 +67,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) {
         console.error('Error fetching profile:', error);
         setProfile(null);
+        profileCache.current = null;
         return;
       }
       
       console.log('Profile fetched:', data);
       setProfile(data);
+      profileCache.current = data;
+      currentUserId.current = userId;
     } catch (error) {
       console.error('Error in fetchProfile:', error);
       setProfile(null);
+      profileCache.current = null;
     }
   }, []);
 
@@ -70,51 +86,73 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!newSession?.user) {
       setUser(null);
       setProfile(null);
+      profileCache.current = null;
+      currentUserId.current = null;
       return;
     }
 
-    // First set the user and fetch profile
-    setUser(newSession.user);
+    // Only update user if it's actually different
+    if (!user || user.id !== newSession.user.id) {
+      setUser(newSession.user);
+    }
+    
     await fetchProfile(newSession.user.id);
-
-    // Simplified validation - only check during sign in, not during auth state changes
-    // This prevents excessive validation calls that cause re-renders
-  }, [fetchProfile]);
+  }, [user, fetchProfile]);
 
   useEffect(() => {
+    let mounted = true;
+    
     console.log('Setting up auth state listener...');
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
+        
         console.log('Auth state changed:', event, session?.user?.id);
+        
+        // Update session immediately
         setSession(session);
         
         if (session?.user) {
-          // Use setTimeout to avoid potential deadlocks in auth callbacks
+          // Use setTimeout to prevent potential auth callback issues
           setTimeout(() => {
-            validateUserSession(session);
+            if (mounted) {
+              validateUserSession(session);
+            }
           }, 0);
         } else {
           setUser(null);
           setProfile(null);
+          profileCache.current = null;
+          currentUserId.current = null;
         }
-        setLoading(false);
+        
+        if (isInitialized.current) {
+          setLoading(false);
+        }
       }
     );
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session check:', session?.user?.id);
-      setSession(session);
-      if (session?.user) {
-        validateUserSession(session);
-      } else {
+    // Check for existing session only once on mount
+    if (!isInitialized.current) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (!mounted) return;
+        
+        console.log('Initial session check:', session?.user?.id);
+        setSession(session);
+        if (session?.user) {
+          validateUserSession(session);
+        }
         setLoading(false);
-      }
-    });
+        isInitialized.current = true;
+      });
+    }
 
-    return () => subscription.unsubscribe();
-  }, [validateUserSession]);
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []); // Remove validateUserSession from dependencies to prevent re-initialization
 
   const signIn = useCallback(async (email: string, password: string) => {
     console.log('Attempting to sign in with:', email);
@@ -166,6 +204,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = useCallback(async () => {
     console.log('Signing out...');
+    
+    // Clear cache immediately
+    profileCache.current = null;
+    currentUserId.current = null;
+    
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error('Sign out error:', error);
@@ -187,7 +230,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('Reset password email sent');
   }, []);
 
-  // Memoize the context value to prevent unnecessary re-renders
+  // Memoize the context value with stable references
   const value = useMemo(() => ({
     user,
     profile,
