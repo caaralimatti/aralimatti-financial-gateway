@@ -272,6 +272,8 @@ const Auth = () => {
                   type="button"
                   onClick={() => setShowForgotPassword(false)}
                   className="text-primary hover:underline font-medium"
+                >
+                  Back to Login
                 </button>
               </div>
             )}
