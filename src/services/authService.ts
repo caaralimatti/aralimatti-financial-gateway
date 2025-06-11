@@ -53,34 +53,19 @@ export const authService = {
     
     try {
       if (isActive) {
-        // Enable the user - remove ban and clear disabled until
+        // Enable the user - use ban_duration: 'none'
         console.log('Enabling user in auth');
         
-        // Try multiple approaches to ensure the user is enabled
-        const { error: enableError1 } = await supabase.auth.admin.updateUserById(
+        const { error: enableError } = await supabase.auth.admin.updateUserById(
           userId,
           { 
-            ban_duration: 'none',
-            user_metadata: { disabled: false }
+            ban_duration: 'none'
           }
         );
 
-        // Also try updating with disabled_until set to null
-        const { error: enableError2 } = await supabase.auth.admin.updateUserById(
-          userId,
-          { 
-            disabled_until: null
-          }
-        );
-
-        if (enableError1) {
-          console.error('Error enabling user (method 1):', enableError1);
-        }
-        if (enableError2) {
-          console.error('Error enabling user (method 2):', enableError2);
-        }
-
-        if (!enableError1 || !enableError2) {
+        if (enableError) {
+          console.error('Error enabling user:', enableError);
+        } else {
           console.log('User enabled in auth successfully');
         }
       } else {
@@ -96,32 +81,17 @@ export const authService = {
     console.log('Disabling user in auth');
     
     try {
-      // Try multiple approaches to ensure the user is disabled
-      const { error: disableError1 } = await supabase.auth.admin.updateUserById(
+      // Disable the user using ban_duration
+      const { error: disableError } = await supabase.auth.admin.updateUserById(
         userId,
         { 
           ban_duration: 'indefinite'
         }
       );
 
-      // Set disabled_until to far future date
-      const farFutureDate = new Date('2099-12-31T23:59:59.999Z').toISOString();
-      const { error: disableError2 } = await supabase.auth.admin.updateUserById(
-        userId,
-        { 
-          disabled_until: farFutureDate,
-          user_metadata: { disabled: true }
-        }
-      );
-
-      if (disableError1) {
-        console.error('Error disabling user (method 1):', disableError1);
-      }
-      if (disableError2) {
-        console.error('Error disabling user (method 2):', disableError2);
-      }
-
-      if (!disableError1 || !disableError2) {
+      if (disableError) {
+        console.error('Error disabling user:', disableError);
+      } else {
         console.log('User disabled in auth successfully');
       }
     } catch (error) {
@@ -178,7 +148,7 @@ export const authService = {
         return { isValid: false, reason: 'Account is inactive' };
       }
 
-      // Check auth user status
+      // Check auth user status using the admin API
       const { data: { user }, error: userError } = await supabase.auth.admin.getUserById(userId);
       
       if (userError) {
@@ -186,20 +156,14 @@ export const authService = {
         return { isValid: false, reason: 'User not found in auth' };
       }
 
-      // Check if user is disabled in auth
-      if (user?.disabled_until) {
-        const disabledUntil = new Date(user.disabled_until);
+      // Check if user is banned
+      if (user?.banned_until) {
+        const bannedUntil = new Date(user.banned_until);
         const now = new Date();
-        if (disabledUntil > now) {
-          console.log('User is disabled until:', disabledUntil);
+        if (bannedUntil > now) {
+          console.log('User is banned until:', bannedUntil);
           return { isValid: false, reason: 'Account is temporarily disabled' };
         }
-      }
-
-      // Check user metadata for disabled flag
-      if (user?.user_metadata?.disabled === true) {
-        console.log('User is marked as disabled in metadata');
-        return { isValid: false, reason: 'Account is disabled' };
       }
 
       return { isValid: true };

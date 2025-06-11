@@ -18,9 +18,33 @@ const Auth = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [userRole, setUserRole] = useState<'client' | 'staff' | 'admin'>('client');
 
-  const { signIn, signUp, resetPassword, profile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Get auth functions - handle case where context might not be available
+  let signIn, signUp, resetPassword, profile;
+  try {
+    const authContext = useAuth();
+    signIn = authContext.signIn;
+    signUp = authContext.signUp;
+    resetPassword = authContext.resetPassword;
+    profile = authContext.profile;
+  } catch (error) {
+    console.error('Auth context not available:', error);
+    // Redirect to home if auth context is not available
+    React.useEffect(() => {
+      navigate('/');
+    }, [navigate]);
+    
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5 flex items-center justify-center px-4">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-neutral-700 mb-2">Loading...</h2>
+          <p className="text-neutral-600">Please wait while we set up authentication.</p>
+        </div>
+      </div>
+    );
+  }
 
   React.useEffect(() => {
     if (profile) {
