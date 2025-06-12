@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Calendar, Clock, User, AlertTriangle, MessageSquare, Paperclip } from 'lucide-react';
-import { useTasks, Task } from '@/hooks/useTasks';
+import { useTasks } from '@/hooks/useTasks';
+import { Task } from '@/types/task';
 import { useAuth } from '@/contexts/AuthContext';
 
 const MyTasks = () => {
