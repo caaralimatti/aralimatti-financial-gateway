@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -63,13 +62,10 @@ export const useUserManagement = () => {
       const currentUser = users.find(u => u.id === userData.id);
       const changedFields: any = {};
       
-      // Track changes for enhanced logging
+      // Track changes for enhanced logging (only for supported fields)
       if (currentUser) {
         if (userData.fullName !== undefined && userData.fullName !== currentUser.full_name) {
           changedFields.full_name = { old: currentUser.full_name, new: userData.fullName };
-        }
-        if (userData.email !== undefined && userData.email !== currentUser.email) {
-          changedFields.email = { old: currentUser.email, new: userData.email };
         }
         if (userData.role !== undefined && userData.role !== currentUser.role) {
           changedFields.role = { old: currentUser.role, new: userData.role };
