@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Sidebar, 
@@ -33,9 +34,13 @@ import {
   ChevronDown,
   FileText,
   Target,
-  Award
+  Award,
+  Megaphone,
+  LogOut
 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AdminSidebarProps {
   activeTab: string;
@@ -44,6 +49,7 @@ interface AdminSidebarProps {
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActiveTab }) => {
   const { state } = useSidebar();
+  const { signOut } = useAuth();
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({
     clients: false,
     tasks: false
@@ -56,9 +62,18 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActiveTab }) 
     }));
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
   const sidebarItems = [
     { id: 'dashboard', title: 'Dashboard', icon: LayoutDashboard },
     { id: 'user-management', title: 'User Management', icon: Users },
+    { id: 'announcements', title: 'Announcements', icon: Megaphone },
     { id: 'dsc-management', title: 'DSC Management', icon: Award },
     { id: 'system-settings', title: 'System Settings', icon: Settings },
     { id: 'analytics', title: 'Analytics', icon: BarChart3 },
@@ -198,9 +213,33 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActiveTab }) 
       </SidebarContent>
 
       <SidebarFooter className="p-4">
-        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-          <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-          {state === 'expanded' && <span className="truncate">System Online</span>}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+            {state === 'expanded' && <span className="truncate">System Online</span>}
+          </div>
+          {state === 'expanded' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
+          )}
+          {state === 'collapsed' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              className="w-full justify-center text-red-600 hover:text-red-700 hover:bg-red-50"
+              title="Logout"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </SidebarFooter>
     </Sidebar>

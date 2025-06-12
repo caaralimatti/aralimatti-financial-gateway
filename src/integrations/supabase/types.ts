@@ -47,6 +47,42 @@ export type Database = {
           },
         ]
       }
+      announcements: {
+        Row: {
+          content: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          priority: string
+          published_at: string
+          target_audience: string
+          title: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          priority?: string
+          published_at?: string
+          target_audience?: string
+          title: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          priority?: string
+          published_at?: string
+          target_audience?: string
+          title?: string
+        }
+        Relationships: []
+      }
       client_attachments: {
         Row: {
           client_id: string

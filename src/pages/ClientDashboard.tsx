@@ -6,6 +6,7 @@ import DocumentListCard from '@/components/client/DocumentListCard';
 import MyTasks from '@/components/client/MyTasks';
 import TaskCalendar from '@/components/client/TaskCalendar';
 import ClientDSCManagement from '@/components/client/ClientDSCManagement';
+import ClientAnnouncements from '@/components/client/ClientAnnouncements';
 import { useAuth } from '@/contexts/AuthContext';
 
 const ClientDashboard = () => {
@@ -49,6 +50,7 @@ const ClientDashboard = () => {
               />
               <MyTasks />
             </div>
+            <ClientAnnouncements />
           </div>
         );
     }

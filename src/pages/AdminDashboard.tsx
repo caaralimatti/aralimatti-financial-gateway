@@ -5,6 +5,7 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import UserManagement from '@/components/admin/UserManagement';
 import SystemSettings from '@/components/admin/SystemSettings';
 import DSCManagement from '@/components/admin/DSCManagement';
+import AnnouncementsManagement from '@/components/admin/AnnouncementsManagement';
 import AdminDashboardStats from '@/components/admin/AdminDashboardStats';
 import AdminRecentActivity from '@/components/admin/AdminRecentActivity';
 import AdminManagementCards from '@/components/admin/AdminManagementCards';
@@ -21,6 +22,8 @@ const AdminDashboard = () => {
     switch (activeTab) {
       case 'user-management':
         return <UserManagement />;
+      case 'announcements':
+        return <AnnouncementsManagement />;
       case 'dsc-management':
         return <DSCManagement />;
       case 'system-settings':
