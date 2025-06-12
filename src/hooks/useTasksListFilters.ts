@@ -1,15 +1,6 @@
 
 import { useMemo } from 'react';
-
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  client: string;
-  status: string;
-  priority: string;
-  category: string;
-}
+import { Task } from '@/types/task';
 
 interface Filters {
   status: string;
@@ -23,12 +14,12 @@ export const useTasksListFilters = (tasks: Task[], filters: Filters, searchQuery
   const filteredTasks = useMemo(() => {
     return tasks.filter(task => {
       const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           task.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           task.client.toLowerCase().includes(searchQuery.toLowerCase());
+                           (task.description && task.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                           (task.client?.name && task.client.name.toLowerCase().includes(searchQuery.toLowerCase()));
       
       const matchesStatus = filters.status === 'all' || task.status === filters.status;
       const matchesPriority = filters.priority === 'all' || task.priority === filters.priority;
-      const matchesCategory = filters.category === 'all' || task.category === filters.category;
+      const matchesCategory = filters.category === 'all' || task.task_categories?.name === filters.category;
       
       return matchesSearch && matchesStatus && matchesPriority && matchesCategory;
     });

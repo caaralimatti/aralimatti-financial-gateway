@@ -1,27 +1,7 @@
 
 import React from 'react';
+import { Task } from '@/types/task';
 import TaskCard from './TaskCard';
-
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  status: string;
-  priority: string;
-  assignedBy: string;
-  assignedTo: string;
-  startDate: string;
-  endDate: string;
-  deadline: string;
-  isBillable: boolean;
-  loggedHours: number;
-  estimatedHours: number;
-  client: string;
-  subTasks: Array<{ id: number; title: string; completed: boolean }>;
-  comments: number;
-  attachments: number;
-}
 
 interface TasksListGridProps {
   tasks: Task[];
