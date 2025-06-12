@@ -33,13 +33,19 @@ const AdminDashboard = () => {
   // Log admin login activity
   useEffect(() => {
     if (profile) {
-      logActivity('login', `Admin ${profile.full_name || profile.email} logged in`);
+      logActivity({
+        activity_type: 'login',
+        description: `Admin ${profile.full_name || profile.email} logged in`
+      });
     }
   }, [profile, logActivity]);
 
   const handleLogout = async () => {
     try {
-      logActivity('logout', `Admin ${profile?.full_name || profile?.email} logged out`);
+      logActivity({
+        activity_type: 'logout',
+        description: `Admin ${profile?.full_name || profile?.email} logged out`
+      });
       await signOut();
     } catch (error) {
       console.error('Error signing out:', error);

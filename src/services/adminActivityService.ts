@@ -7,7 +7,7 @@ export interface AdminActivity {
   activity_type: string;
   description: string;
   timestamp: string;
-  ip_address?: string;
+  ip_address?: string | null;
   metadata?: any;
   profiles?: {
     full_name?: string;
@@ -72,6 +72,10 @@ export const adminActivityService = {
       throw error;
     }
 
-    return data || [];
+    return (data || []).map(item => ({
+      ...item,
+      ip_address: item.ip_address || null,
+      metadata: item.metadata ? JSON.parse(item.metadata as string) : null
+    }));
   }
 };

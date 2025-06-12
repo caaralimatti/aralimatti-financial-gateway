@@ -29,7 +29,11 @@ const SystemSettings = () => {
 
   const handleUpdateSetting = async (key: string, value: any) => {
     await updateSetting({ key, value });
-    logActivity('settings_changed', `Updated setting: ${key}`, { key, value });
+    logActivity({
+      activity_type: 'settings_changed',
+      description: `Updated setting: ${key}`,
+      metadata: { key, value }
+    });
   };
 
   const handleLocalChange = (key: string, value: any) => {
