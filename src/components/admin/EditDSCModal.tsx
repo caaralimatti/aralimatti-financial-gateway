@@ -41,7 +41,8 @@ const EditDSCModal: React.FC<EditDSCModalProps> = ({ open, onOpenChange, dsc }) 
         valid_until: format(new Date(dsc.valid_until), "yyyy-MM-dd'T'HH:mm"),
         storage_location: dsc.storage_location || '',
         pin: dsc.pin || '',
-        contact_person_id: dsc.contact_person_id || '',
+        contact_person_phone: dsc.contact_person_phone || '',
+        contact_person_name: dsc.contact_person_name || '',
         status: dsc.status,
         received_date: format(new Date(dsc.received_date), "yyyy-MM-dd'T'HH:mm"),
         given_date: dsc.given_date ? format(new Date(dsc.given_date), "yyyy-MM-dd'T'HH:mm") : '',
@@ -76,67 +77,60 @@ const EditDSCModal: React.FC<EditDSCModalProps> = ({ open, onOpenChange, dsc }) 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <input type="hidden" {...register('id')} />
           
+          <div className="space-y-2">
+            <Label htmlFor="certificate_holder_profile_id">Certificate Holder *</Label>
+            <Select 
+              value={dsc.certificate_holder_profile_id}
+              onValueChange={(value) => setValue('certificate_holder_profile_id', value)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {users.map((user) => (
+                  <SelectItem key={user.id} value={user.id}>
+                    {user.full_name || user.email} ({user.role})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="certificate_holder_profile_id">Certificate Holder *</Label>
-              <Select 
-                value={dsc.certificate_holder_profile_id}
-                onValueChange={(value) => setValue('certificate_holder_profile_id', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {users.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.full_name || user.email} ({user.role})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="contact_person_name">Contact Person Name</Label>
+              <Input
+                id="contact_person_name"
+                {...register('contact_person_name')}
+                placeholder="Enter contact person name"
+              />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="contact_person_id">Contact Person</Label>
-              <Select 
-                value={dsc.contact_person_id || ''}
-                onValueChange={(value) => setValue('contact_person_id', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select contact person" />
-                </SelectTrigger>
-                <SelectContent>
-                  {users.filter(user => user.role === 'staff' || user.role === 'admin').map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.full_name || user.email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="contact_person_phone">Contact Person Phone</Label>
+              <Input
+                id="contact_person_phone"
+                {...register('contact_person_phone')}
+                placeholder="Enter contact phone number"
+              />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="serial_number">Serial Number *</Label>
+              <Label htmlFor="serial_number">Serial Number</Label>
               <Input
                 id="serial_number"
-                {...register('serial_number', { required: 'Serial number is required' })}
+                {...register('serial_number')}
               />
-              {errors.serial_number && (
-                <p className="text-sm text-red-600">{errors.serial_number.message}</p>
-              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="issuing_authority">Issuing Authority *</Label>
+              <Label htmlFor="issuing_authority">Issuing Authority</Label>
               <Input
                 id="issuing_authority"
-                {...register('issuing_authority', { required: 'Issuing authority is required' })}
+                {...register('issuing_authority')}
               />
-              {errors.issuing_authority && (
-                <p className="text-sm text-red-600">{errors.issuing_authority.message}</p>
-              )}
             </div>
           </div>
 
