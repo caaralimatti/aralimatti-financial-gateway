@@ -19,7 +19,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = memo(({
   redirectTo = '/auth' 
 }) => {
   const { user, profile, loading } = useAuth();
-  const { isPortalActive, isLoading: portalLoading } = usePortalStatus();
+  const { isPortalActive, isLoading: portalLoading, error: portalError } = usePortalStatus();
   
   console.log('🔥 ProtectedRoute render - User:', user?.id, 'Profile:', profile?.id, 'Loading:', loading);
   
@@ -47,7 +47,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = memo(({
   }
 
   // Check portal maintenance mode for non-admin users
-  if (!isPortalActive && profile.role !== 'admin') {
+  // If there's an error fetching portal status, assume portal is active to avoid blocking users
+  if (!portalError && isPortalActive === false && profile.role !== 'admin') {
     console.log('🔥 ProtectedRoute: Portal in maintenance mode, redirecting non-admin user');
     return <Navigate to="/maintenance" replace />;
   }

@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { systemSettingsService } from '@/services/systemSettingsService';
 
 export const usePortalStatus = () => {
-  const { data: isPortalActive, isLoading } = useQuery({
+  const { data: isPortalActive, isLoading, error } = useQuery({
     queryKey: ['portal-status'],
     queryFn: async () => {
       try {
@@ -16,10 +16,12 @@ export const usePortalStatus = () => {
       }
     },
     refetchInterval: 30000, // Check every 30 seconds
+    retry: 1, // Only retry once on failure
   });
 
   return {
     isPortalActive: isPortalActive ?? true, // Default to true
-    isLoading
+    isLoading: isLoading || false,
+    error
   };
 };

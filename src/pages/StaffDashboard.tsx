@@ -37,7 +37,6 @@ import {
   HelpCircle, 
   Settings, 
   LogIn,
-  Bell,
   Search,
   LogOut,
   ExternalLink,
@@ -54,6 +53,7 @@ import {
 import IncomeTaxApp from '@/components/client/IncomeTaxApp';
 import FileITR from '@/components/client/FileITR';
 import PastITRFilings from '@/components/client/PastITRFilings';
+import NotificationDropdown from '@/components/staff/NotificationDropdown';
 
 const StaffDashboard = () => {
   const { profile, signOut } = useAuth();
@@ -399,8 +399,7 @@ const StaffDashboard = () => {
                 <div className="flex items-center gap-4">
                   {/* Announcements Banner Toggle */}
                   <Button variant="ghost" size="sm" className="text-blue-600">
-                    <Bell className="h-4 w-4 mr-1" />
-                    Announcements
+                    📢 Announcements
                   </Button>
 
                   {/* Dark Mode Toggle */}
@@ -412,11 +411,8 @@ const StaffDashboard = () => {
                     {darkMode ? '☀️' : '🌙'}
                   </Button>
 
-                  {/* Notifications */}
-                  <Button variant="ghost" size="sm" className="relative">
-                    <Bell className="h-4 w-4" />
-                    <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full text-xs"></span>
-                  </Button>
+                  {/* Notifications with Last Login */}
+                  <NotificationDropdown />
 
                   {/* User Profile Dropdown */}
                   <DropdownMenu>

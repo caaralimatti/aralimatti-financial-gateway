@@ -78,14 +78,31 @@ export const useAuthForm = () => {
       } else {
         console.log('Attempting login for:', email);
         await signIn(email, password);
-        // Don't show "Welcome back!" toast here - let WelcomeToast component handle it
+        // Success toast will be handled by WelcomeToast component
+        console.log('Login successful');
       }
     } catch (error: any) {
       console.error('Auth error:', error);
+      
+      // Handle specific authentication errors
+      let errorMessage = "An error occurred. Please try again.";
+      
+      if (error.message?.includes('Invalid login credentials')) {
+        errorMessage = "Invalid email or password. Please check your credentials and try again.";
+      } else if (error.message?.includes('Account is inactive')) {
+        errorMessage = "Your account is currently inactive. Please contact your administrator.";
+      } else if (error.message?.includes('Email not confirmed')) {
+        errorMessage = "Please check your email and confirm your account before logging in.";
+      } else if (error.message?.includes('Too many requests')) {
+        errorMessage = "Too many login attempts. Please wait a moment and try again.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         variant: "destructive",
-        title: "Error",
-        description: error.message || "An error occurred. Please try again.",
+        title: "Login Failed",
+        description: errorMessage,
       });
     } finally {
       setLoading(false);
