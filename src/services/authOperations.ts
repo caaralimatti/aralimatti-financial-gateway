@@ -27,6 +27,10 @@ export const authOperations = {
           await supabase.auth.signOut();
           throw new Error(validation.reason || 'Account is inactive');
         }
+
+        // Update last login timestamp
+        console.log('🔥 Updating last login timestamp for user:', data.user.id);
+        await authService.updateLastLoginTimestamp(data.user.id);
       }
 
       console.log('🔥 Sign in completed successfully');

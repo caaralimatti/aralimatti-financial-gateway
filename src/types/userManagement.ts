@@ -2,11 +2,12 @@
 export interface UserProfile {
   id: string;
   email: string;
-  full_name: string | null;
+  full_name?: string;
   role: 'admin' | 'staff' | 'client';
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  last_login_at?: string;
 }
 
 export interface CreateUserData {
@@ -14,7 +15,6 @@ export interface CreateUserData {
   password: string;
   fullName: string;
   role: 'admin' | 'staff' | 'client';
-  isActive: boolean;
 }
 
 export interface UpdateUserData {
