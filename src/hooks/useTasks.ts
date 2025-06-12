@@ -198,6 +198,42 @@ export const useTasks = () => {
 
   const deleteTask = async (taskId: string) => {
     try {
+      console.log('🔥 Deleting task:', taskId);
+      
+      // First delete related sub-tasks
+      const { error: subTaskError } = await supabase
+        .from('sub_tasks')
+        .delete()
+        .eq('task_id', taskId);
+
+      if (subTaskError) {
+        console.error('Error deleting sub-tasks:', subTaskError);
+        throw subTaskError;
+      }
+
+      // Delete task comments
+      const { error: commentsError } = await supabase
+        .from('task_comments')
+        .delete()
+        .eq('task_id', taskId);
+
+      if (commentsError) {
+        console.error('Error deleting task comments:', commentsError);
+        throw commentsError;
+      }
+
+      // Delete task attachments
+      const { error: attachmentsError } = await supabase
+        .from('task_attachments')
+        .delete()
+        .eq('task_id', taskId);
+
+      if (attachmentsError) {
+        console.error('Error deleting task attachments:', attachmentsError);
+        throw attachmentsError;
+      }
+
+      // Finally delete the main task
       const { error } = await supabase
         .from('tasks')
         .delete()
@@ -207,6 +243,7 @@ export const useTasks = () => {
         throw error;
       }
 
+      console.log('🔥 Task deleted successfully');
       await fetchTasks();
     } catch (err) {
       console.error('Error deleting task:', err);

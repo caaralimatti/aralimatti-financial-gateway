@@ -16,6 +16,14 @@ const PortalStatusSettings: React.FC<PortalStatusSettingsProps> = ({
   handleLocalChange,
   handleUpdateSetting
 }) => {
+  const isPortalActive = localSettings.is_portal_active ?? true;
+
+  const handleToggleChange = async (checked: boolean) => {
+    console.log('🔥 Portal toggle change:', { checked, currentState: isPortalActive });
+    handleLocalChange('is_portal_active', checked);
+    await handleUpdateSetting('is_portal_active', checked);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -33,14 +41,14 @@ const PortalStatusSettings: React.FC<PortalStatusSettingsProps> = ({
             <p className="text-xs text-gray-500 mt-1">
               When disabled, only admin users can access the portal
             </p>
+            <p className="text-xs text-blue-600 mt-1">
+              Current status: {isPortalActive ? 'Portal Active' : 'Maintenance Mode'}
+            </p>
           </div>
           <Switch
             id="is_portal_active"
-            checked={localSettings.is_portal_active || false}
-            onCheckedChange={(checked) => {
-              handleLocalChange('is_portal_active', checked);
-              handleUpdateSetting('is_portal_active', checked);
-            }}
+            checked={isPortalActive}
+            onCheckedChange={handleToggleChange}
           />
         </div>
       </CardContent>

@@ -5,16 +5,19 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Filter, Calendar, Clock, User, Building2 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Plus, Search, Filter, Calendar, Clock, User, Building2, Trash2 } from 'lucide-react';
 import { useTasks } from '@/hooks/useTasks';
+import { toast } from 'sonner';
 import AddTaskModal from './AddTaskModal';
 
 const AdminTasksList = () => {
-  const { tasks, loading, refetch } = useTasks();
+  const { tasks, loading, refetch, deleteTask } = useTasks();
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
 
   const filteredTasks = tasks.filter(task => {
     const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -24,6 +27,19 @@ const AdminTasksList = () => {
     
     return matchesSearch && matchesStatus && matchesPriority;
   });
+
+  const handleDeleteTask = async (taskId: string, taskTitle: string) => {
+    setDeleteLoading(taskId);
+    try {
+      await deleteTask(taskId);
+      toast.success(`Task "${taskTitle}" deleted successfully`);
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      toast.error('Failed to delete task');
+    } finally {
+      setDeleteLoading(null);
+    }
+  };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -194,9 +210,44 @@ const AdminTasksList = () => {
                 <div className="text-xs text-gray-500">
                   Created: {new Date(task.created_at).toLocaleDateString()}
                 </div>
-                <Button variant="outline" size="sm">
-                  View Details
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm">
+                    View Details
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        disabled={deleteLoading === task.id}
+                      >
+                        {deleteLoading === task.id ? (
+                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600"></div>
+                        ) : (
+                          <Trash2 className="h-3 w-3" />
+                        )}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Task</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete the task "{task.title}"? This action cannot be undone and will also delete all related sub-tasks, comments, and attachments.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDeleteTask(task.id, task.title)}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Delete Task
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </div>
             </CardContent>
           </Card>
