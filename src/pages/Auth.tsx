@@ -1,37 +1,25 @@
 
-import React, { useState, useCallback, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import React from 'react';
+import { useAuthForm } from '@/hooks/useAuthForm';
+import AuthHeader from '@/components/auth/AuthHeader';
+import AuthForm from '@/components/auth/AuthForm';
 
 const Auth = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    showPassword,
+    setShowPassword,
+    loading,
+    showForgotPassword,
+    setShowForgotPassword,
+    handleSubmit,
+    isContextUnavailable
+  } = useAuthForm();
 
-  const navigate = useNavigate();
-  const { toast } = useToast();
-
-  // Get auth functions - handle case where context might not be available
-  let signIn, resetPassword, profile;
-  try {
-    const authContext = useAuth();
-    signIn = authContext.signIn;
-    resetPassword = authContext.resetPassword;
-    profile = authContext.profile;
-  } catch (error) {
-    console.error('Auth context not available:', error);
-    // Redirect to home if auth context is not available
-    useEffect(() => {
-      navigate('/');
-    }, [navigate]);
-    
+  if (isContextUnavailable) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5 flex items-center justify-center px-4">
         <div className="text-center">
@@ -42,171 +30,22 @@ const Auth = () => {
     );
   }
 
-  // Optimize navigation effect to prevent excessive re-renders
-  useEffect(() => {
-    if (profile) {
-      console.log('User authenticated with role:', profile.role);
-      // Redirect based on user role
-      switch (profile.role) {
-        case 'admin':
-          navigate('/admin-dashboard');
-          break;
-        case 'staff':
-          navigate('/staff-dashboard');
-          break;
-        case 'client':
-        default:
-          navigate('/client-dashboard');
-          break;
-      }
-    }
-  }, [profile?.role, navigate]); // Only depend on the role, not the entire profile object
-
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      if (showForgotPassword) {
-        await resetPassword(email);
-        toast({
-          title: "Password reset email sent",
-          description: "Check your email for the reset link.",
-        });
-        setShowForgotPassword(false);
-      } else {
-        console.log('Attempting login for:', email);
-        await signIn(email, password);
-        // Don't show "Welcome back!" toast here - let WelcomeToast component handle it
-      }
-    } catch (error: any) {
-      console.error('Auth error:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "An error occurred. Please try again.",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [email, password, showForgotPassword, signIn, resetPassword, toast]);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5 flex items-center justify-center px-4">
       <div className="max-w-md w-full">
-        {/* Back to Home */}
-        <Link
-          to="/"
-          className="inline-flex items-center text-sm text-neutral-600 hover:text-primary mb-8 transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Home
-        </Link>
-
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-neutral-900 mb-2">
-            C A Aralimatti & Co
-          </h1>
-          <h2 className="text-xl font-semibold text-neutral-700 mb-2">
-            {showForgotPassword ? 'Reset Password' : 'Welcome Back'}
-          </h2>
-          <p className="text-neutral-600">
-            {showForgotPassword 
-              ? 'Enter your email to receive a password reset link'
-              : 'Sign in to access your dashboard'
-            }
-          </p>
-        </div>
-
-        {/* Auth Form */}
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email Field */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-neutral-700 mb-2">
-                Email Address
-              </label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="Enter your email"
-                className="w-full"
-              />
-            </div>
-
-            {/* Password Field (hidden for forgot password) */}
-            {!showForgotPassword && (
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-neutral-700 mb-2">
-                  Password
-                </label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    placeholder="Enter your password"
-                    className="w-full pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-neutral-400" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-neutral-400" />
-                    )}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full"
-            >
-              {loading ? 'Please wait...' : 
-                showForgotPassword ? 'Send Reset Link' : 'Sign In'
-              }
-            </Button>
-
-            {/* Forgot Password Link */}
-            {!showForgotPassword && (
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={() => setShowForgotPassword(true)}
-                  className="text-sm text-primary hover:underline"
-                >
-                  Forgot your password?
-                </button>
-              </div>
-            )}
-
-            {/* Back to Login */}
-            {showForgotPassword && (
-              <div className="text-center pt-4 border-t">
-                <button
-                  type="button"
-                  onClick={() => setShowForgotPassword(false)}
-                  className="text-primary hover:underline font-medium"
-                >
-                  Back to Login
-                </button>
-              </div>
-            )}
-          </form>
-        </div>
+        <AuthHeader showForgotPassword={showForgotPassword} />
+        <AuthForm
+          email={email}
+          setEmail={setEmail}
+          password={password}
+          setPassword={setPassword}
+          showPassword={showPassword}
+          setShowPassword={setShowPassword}
+          loading={loading}
+          showForgotPassword={showForgotPassword}
+          setShowForgotPassword={setShowForgotPassword}
+          onSubmit={handleSubmit}
+        />
       </div>
     </div>
   );
