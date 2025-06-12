@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { userService } from '@/services/userService';
 import { authService } from '@/services/authService';
+import { adminActivityService } from '@/services/adminActivityService';
 import { CreateUserData, UpdateUserData } from '@/types/userManagement';
 
 export const useUserManagement = () => {
@@ -27,10 +28,19 @@ export const useUserManagement = () => {
     mutationFn: async (userData: CreateUserData) => {
       const result = await authService.createAuthUser(userData);
       console.log('User creation successful:', result.user?.id);
+      
+      // Log the activity
+      await adminActivityService.logActivity(
+        'user_added',
+        `Created new ${userData.role} user: ${userData.email}`,
+        { email: userData.email, role: userData.role }
+      );
+      
       return result;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-activities'] });
       toast({
         title: "Success",
         description: "User created successfully",
@@ -48,9 +58,21 @@ export const useUserManagement = () => {
 
   // Update user mutation
   const updateUserMutation = useMutation({
-    mutationFn: userService.updateUserProfile,
+    mutationFn: async (userData: UpdateUserData) => {
+      const result = await userService.updateUserProfile(userData);
+      
+      // Log the activity
+      await adminActivityService.logActivity(
+        'user_updated',
+        `Updated user profile: ${userData.id}`,
+        { userId: userData.id }
+      );
+      
+      return result;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-activities'] });
       toast({
         title: "Success",
         description: "User updated successfully",
@@ -77,10 +99,18 @@ export const useUserManagement = () => {
       // Step 2: Update auth.users to actually prevent/allow login
       await authService.toggleUserAuthStatus(userId, isActive);
 
+      // Log the activity
+      await adminActivityService.logActivity(
+        'user_status_changed',
+        `${isActive ? 'Activated' : 'Deactivated'} user: ${userId}`,
+        { userId, isActive }
+      );
+
       return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-activities'] });
       const statusText = data.is_active ? 'activated' : 'deactivated';
       toast({
         title: "Success",
@@ -106,10 +136,18 @@ export const useUserManagement = () => {
       // Then delete from auth (this requires admin privileges)
       await authService.deleteAuthUser(userId);
       
+      // Log the activity
+      await adminActivityService.logActivity(
+        'user_deleted',
+        `Deleted user: ${userId}`,
+        { userId }
+      );
+      
       console.log('User deleted successfully');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-activities'] });
       toast({
         title: "Success",
         description: "User deleted successfully",
@@ -127,8 +165,18 @@ export const useUserManagement = () => {
 
   // Send password reset email
   const sendPasswordResetMutation = useMutation({
-    mutationFn: authService.sendPasswordResetEmail,
+    mutationFn: async (email: string) => {
+      await authService.sendPasswordResetEmail(email);
+      
+      // Log the activity
+      await adminActivityService.logActivity(
+        'password_reset_sent',
+        `Sent password reset email to: ${email}`,
+        { email }
+      );
+    },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-activities'] });
       toast({
         title: "Success",
         description: "Password reset email sent successfully",

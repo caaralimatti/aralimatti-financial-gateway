@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { Button } from '@/components/ui/button';
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { LogOut } from 'lucide-react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminDashboardStats from '@/components/admin/AdminDashboardStats';
@@ -16,18 +17,29 @@ import AdminTaskOverview from '@/components/admin/AdminTaskOverview';
 import AdminTasksList from '@/components/admin/AdminTasksList';
 import TaskCalendar from '@/components/client/TaskCalendar';
 import TaskCategoryManagement from '@/components/admin/TaskCategoryManagement';
+import SystemSettings from '@/components/admin/SystemSettings';
 import SmartSearchBar from '@/components/admin/SmartSearchBar';
+import { useAdminActivity } from '@/hooks/useAdminActivity';
 
 const AdminDashboard = () => {
   const { profile, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showAddClientModal, setShowAddClientModal] = useState(false);
+  const { logActivity } = useAdminActivity();
 
   // Use auth guard for continuous validation
   useAuthGuard();
 
+  // Log admin login activity
+  useEffect(() => {
+    if (profile) {
+      logActivity('login', `Admin ${profile.full_name || profile.email} logged in`);
+    }
+  }, [profile, logActivity]);
+
   const handleLogout = async () => {
     try {
+      logActivity('logout', `Admin ${profile?.full_name || profile?.email} logged out`);
       await signOut();
     } catch (error) {
       console.error('Error signing out:', error);
@@ -70,12 +82,7 @@ const AdminDashboard = () => {
           </div>
         );
       case 'system-settings':
-        return (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">System Settings</h2>
-            <p className="text-gray-600">System settings functionality coming soon...</p>
-          </div>
-        );
+        return <SystemSettings />;
       case 'analytics':
         return (
           <div className="text-center py-12">
@@ -111,14 +118,15 @@ const AdminDashboard = () => {
         <SidebarInset className="flex-1">
           <div className="min-h-screen bg-gray-50">
             {/* Header */}
-            <header className="bg-white shadow-sm border-b">
+            <header className="bg-white shadow-sm border-b sticky top-0 z-10">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
-                  <div className="flex-1 max-w-2xl">
+                  <div className="flex items-center gap-4 flex-1 max-w-2xl">
+                    <SidebarTrigger className="md:hidden" />
                     <SmartSearchBar onQuickAdd={handleQuickAdd} />
                   </div>
                   <div className="flex items-center gap-4">
-                    <div className="text-right">
+                    <div className="text-right hidden sm:block">
                       <h1 className="text-lg font-semibold text-gray-900">
                         Admin Dashboard
                       </h1>
@@ -133,7 +141,7 @@ const AdminDashboard = () => {
                       className="flex items-center gap-2"
                     >
                       <LogOut className="h-4 w-4" />
-                      Logout
+                      <span className="hidden sm:inline">Logout</span>
                     </Button>
                   </div>
                 </div>

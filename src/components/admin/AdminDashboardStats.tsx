@@ -2,9 +2,16 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Users, BarChart3, Shield, Settings } from 'lucide-react';
+import { useAdminStats } from '@/hooks/useAdminStats';
 import WelcomeToast from '@/components/WelcomeToast';
 
 const AdminDashboardStats = () => {
+  const { stats, isLoading, error } = useAdminStats();
+
+  if (error) {
+    console.error('Error loading admin stats:', error);
+  }
+
   return (
     <>
       <WelcomeToast />
@@ -17,7 +24,13 @@ const AdminDashboardStats = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Users</p>
-                <p className="text-2xl font-bold text-gray-900">0</p>
+                {isLoading ? (
+                  <div className="w-8 h-6 bg-gray-200 animate-pulse rounded"></div>
+                ) : (
+                  <p className="text-2xl font-bold text-gray-900">
+                    {stats?.totalUsers || 0}
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>
@@ -31,7 +44,13 @@ const AdminDashboardStats = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Active Clients</p>
-                <p className="text-2xl font-bold text-gray-900">0</p>
+                {isLoading ? (
+                  <div className="w-8 h-6 bg-gray-200 animate-pulse rounded"></div>
+                ) : (
+                  <p className="text-2xl font-bold text-gray-900">
+                    {stats?.activeClients || 0}
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>
@@ -45,7 +64,13 @@ const AdminDashboardStats = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Staff Members</p>
-                <p className="text-2xl font-bold text-gray-900">0</p>
+                {isLoading ? (
+                  <div className="w-8 h-6 bg-gray-200 animate-pulse rounded"></div>
+                ) : (
+                  <p className="text-2xl font-bold text-gray-900">
+                    {stats?.staffMembers || 0}
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>

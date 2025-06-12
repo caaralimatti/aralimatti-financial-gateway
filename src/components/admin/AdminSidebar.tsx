@@ -13,12 +13,12 @@ import {
   SidebarGroupLabel,
   SidebarMenuSub,
   SidebarMenuSubItem,
-  SidebarMenuSubButton
+  SidebarMenuSubButton,
+  useSidebar
 } from '@/components/ui/sidebar';
 import { 
   LayoutDashboard, 
   Users, 
-  UserPlus, 
   Settings, 
   BarChart3, 
   Shield,
@@ -33,7 +33,6 @@ import {
   ChevronRight,
   ChevronDown,
   FileText,
-  Clock,
   Target
 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -44,6 +43,7 @@ interface AdminSidebarProps {
 }
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActiveTab }) => {
+  const { state } = useSidebar();
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({
     clients: false,
     tasks: false
@@ -79,13 +79,17 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActiveTab }) 
   ];
 
   return (
-    <Sidebar className="border-r border-gray-200 dark:border-gray-700">
+    <Sidebar className="border-r border-gray-200 dark:border-gray-700" collapsible="icon">
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
             <Shield className="text-white text-sm font-bold h-4 w-4" />
           </div>
-          <span className="font-semibold text-gray-900 dark:text-white">Admin Portal</span>
+          {state === 'expanded' && (
+            <span className="font-semibold text-gray-900 dark:text-white whitespace-nowrap">
+              Admin Portal
+            </span>
+          )}
         </div>
       </SidebarHeader>
       
@@ -100,9 +104,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActiveTab }) 
                     isActive={activeTab === item.id}
                     onClick={() => setActiveTab(item.id)}
                     className="w-full justify-start"
+                    tooltip={state === 'collapsed' ? item.title : undefined}
                   >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.title}</span>
+                    <item.icon className="h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -110,17 +115,22 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActiveTab }) 
               {/* Collapsible Clients Section */}
               <SidebarMenuItem>
                 <Collapsible 
-                  open={openSections.clients} 
+                  open={openSections.clients && state === 'expanded'} 
                   onOpenChange={() => toggleSection('clients')}
                 >
                   <CollapsibleTrigger asChild>
-                    <SidebarMenuButton className="w-full justify-start">
-                      <Users className="h-4 w-4" />
-                      <span>Clients</span>
-                      {openSections.clients ? (
-                        <ChevronDown className="h-4 w-4 ml-auto" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4 ml-auto" />
+                    <SidebarMenuButton 
+                      className="w-full justify-start"
+                      tooltip={state === 'collapsed' ? 'Clients' : undefined}
+                    >
+                      <Users className="h-4 w-4 flex-shrink-0" />
+                      <span className="truncate">Clients</span>
+                      {state === 'expanded' && (
+                        openSections.clients ? (
+                          <ChevronDown className="h-4 w-4 ml-auto flex-shrink-0" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4 ml-auto flex-shrink-0" />
+                        )
                       )}
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
@@ -132,8 +142,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActiveTab }) 
                             isActive={activeTab === subItem.id}
                             onClick={() => setActiveTab(subItem.id)}
                           >
-                            <subItem.icon className="h-4 w-4" />
-                            <span>{subItem.title}</span>
+                            <subItem.icon className="h-4 w-4 flex-shrink-0" />
+                            <span className="truncate">{subItem.title}</span>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
                       ))}
@@ -145,17 +155,22 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActiveTab }) 
               {/* Collapsible Tasks Section */}
               <SidebarMenuItem>
                 <Collapsible 
-                  open={openSections.tasks} 
+                  open={openSections.tasks && state === 'expanded'} 
                   onOpenChange={() => toggleSection('tasks')}
                 >
                   <CollapsibleTrigger asChild>
-                    <SidebarMenuButton className="w-full justify-start">
-                      <CheckSquare className="h-4 w-4" />
-                      <span>Task Management</span>
-                      {openSections.tasks ? (
-                        <ChevronDown className="h-4 w-4 ml-auto" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4 ml-auto" />
+                    <SidebarMenuButton 
+                      className="w-full justify-start"
+                      tooltip={state === 'collapsed' ? 'Task Management' : undefined}
+                    >
+                      <CheckSquare className="h-4 w-4 flex-shrink-0" />
+                      <span className="truncate">Task Management</span>
+                      {state === 'expanded' && (
+                        openSections.tasks ? (
+                          <ChevronDown className="h-4 w-4 ml-auto flex-shrink-0" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4 ml-auto flex-shrink-0" />
+                        )
                       )}
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
@@ -167,8 +182,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActiveTab }) 
                             isActive={activeTab === subItem.id}
                             onClick={() => setActiveTab(subItem.id)}
                           >
-                            <subItem.icon className="h-4 w-4" />
-                            <span>{subItem.title}</span>
+                            <subItem.icon className="h-4 w-4 flex-shrink-0" />
+                            <span className="truncate">{subItem.title}</span>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
                       ))}
@@ -183,8 +198,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActiveTab }) 
 
       <SidebarFooter className="p-4">
         <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-          <span>System Online</span>
+          <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+          {state === 'expanded' && <span className="truncate">System Online</span>}
         </div>
       </SidebarFooter>
     </Sidebar>
