@@ -9,24 +9,20 @@ import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [userRole, setUserRole] = useState<'client' | 'staff' | 'admin'>('client');
 
   const navigate = useNavigate();
   const { toast } = useToast();
 
   // Get auth functions - handle case where context might not be available
-  let signIn, signUp, resetPassword, profile;
+  let signIn, resetPassword, profile;
   try {
     const authContext = useAuth();
     signIn = authContext.signIn;
-    signUp = authContext.signUp;
     resetPassword = authContext.resetPassword;
     profile = authContext.profile;
   } catch (error) {
@@ -78,17 +74,10 @@ const Auth = () => {
           description: "Check your email for the reset link.",
         });
         setShowForgotPassword(false);
-      } else if (isLogin) {
+      } else {
         console.log('Attempting login for:', email);
         await signIn(email, password);
         // Don't show "Welcome back!" toast here - let WelcomeToast component handle it
-      } else {
-        console.log('Attempting signup for:', email, 'with role:', userRole);
-        await signUp(email, password, fullName, userRole);
-        toast({
-          title: "Account created!",
-          description: `Account created successfully with ${userRole} role.`,
-        });
       }
     } catch (error: any) {
       console.error('Auth error:', error);
@@ -100,7 +89,7 @@ const Auth = () => {
     } finally {
       setLoading(false);
     }
-  }, [email, password, fullName, userRole, showForgotPassword, isLogin, signIn, signUp, resetPassword, toast]);
+  }, [email, password, showForgotPassword, signIn, resetPassword, toast]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5 flex items-center justify-center px-4">
@@ -120,19 +109,12 @@ const Auth = () => {
             C A Aralimatti & Co
           </h1>
           <h2 className="text-xl font-semibold text-neutral-700 mb-2">
-            {showForgotPassword 
-              ? 'Reset Password' 
-              : isLogin 
-                ? 'Welcome Back' 
-                : 'Create Account'
-            }
+            {showForgotPassword ? 'Reset Password' : 'Welcome Back'}
           </h2>
           <p className="text-neutral-600">
             {showForgotPassword 
               ? 'Enter your email to receive a password reset link'
-              : isLogin 
-                ? 'Sign in to access your dashboard' 
-                : 'Join our platform today'
+              : 'Sign in to access your dashboard'
             }
           </p>
         </div>
@@ -187,43 +169,6 @@ const Auth = () => {
               </div>
             )}
 
-            {/* Full Name Field (only for signup) */}
-            {!isLogin && !showForgotPassword && (
-              <div>
-                <label htmlFor="fullName" className="block text-sm font-medium text-neutral-700 mb-2">
-                  Full Name
-                </label>
-                <Input
-                  id="fullName"
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  required
-                  placeholder="Enter your full name"
-                  className="w-full"
-                />
-              </div>
-            )}
-
-            {/* Role Selection (only for signup) */}
-            {!isLogin && !showForgotPassword && (
-              <div>
-                <label htmlFor="role" className="block text-sm font-medium text-neutral-700 mb-2">
-                  Account Type
-                </label>
-                <select
-                  id="role"
-                  value={userRole}
-                  onChange={(e) => setUserRole(e.target.value as 'client' | 'staff' | 'admin')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
-                >
-                  <option value="client">Client</option>
-                  <option value="staff">Staff</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-            )}
-
             {/* Submit Button */}
             <Button
               type="submit"
@@ -231,13 +176,12 @@ const Auth = () => {
               className="w-full"
             >
               {loading ? 'Please wait...' : 
-                showForgotPassword ? 'Send Reset Link' :
-                isLogin ? 'Sign In' : 'Create Account'
+                showForgotPassword ? 'Send Reset Link' : 'Sign In'
               }
             </Button>
 
             {/* Forgot Password Link */}
-            {isLogin && !showForgotPassword && (
+            {!showForgotPassword && (
               <div className="text-center">
                 <button
                   type="button"
@@ -245,22 +189,6 @@ const Auth = () => {
                   className="text-sm text-primary hover:underline"
                 >
                   Forgot your password?
-                </button>
-              </div>
-            )}
-
-            {/* Toggle Between Login/Signup */}
-            {!showForgotPassword && (
-              <div className="text-center pt-4 border-t">
-                <p className="text-sm text-neutral-600">
-                  {isLogin ? "Don't have an account?" : "Already have an account?"}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setIsLogin(!isLogin)}
-                  className="text-primary hover:underline font-medium"
-                >
-                  {isLogin ? 'Create Account' : 'Sign In'}
                 </button>
               </div>
             )}
@@ -279,16 +207,6 @@ const Auth = () => {
             )}
           </form>
         </div>
-
-        {/* Quick Admin Setup */}
-        {!isLogin && !showForgotPassword && (
-          <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-700">
-              <strong>Quick Admin Setup:</strong> To create the admin user you requested, 
-              select "Admin" from Account Type, use email "admin" and password "123456".
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );

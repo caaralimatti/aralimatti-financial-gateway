@@ -3,6 +3,7 @@ import React, { memo } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
+import { usePortalStatus } from '@/hooks/usePortalStatus';
 
 type UserRole = 'client' | 'staff' | 'admin';
 
@@ -18,13 +19,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = memo(({
   redirectTo = '/auth' 
 }) => {
   const { user, profile, loading } = useAuth();
+  const { isPortalActive, isLoading: portalLoading } = usePortalStatus();
   
   console.log('🔥 ProtectedRoute render - User:', user?.id, 'Profile:', profile?.id, 'Loading:', loading);
   
   // Use the auth guard to continuously validate user access (but much less aggressively now)
   useAuthGuard();
 
-  if (loading) {
+  if (loading || portalLoading) {
     console.log('🔥 ProtectedRoute: Still loading...');
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -42,6 +44,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = memo(({
   if (!profile.is_active) {
     console.log('🔥 ProtectedRoute: Profile inactive, redirecting to auth');
     return <Navigate to="/auth" replace />;
+  }
+
+  // Check portal maintenance mode for non-admin users
+  if (!isPortalActive && profile.role !== 'admin') {
+    console.log('🔥 ProtectedRoute: Portal in maintenance mode, redirecting non-admin user');
+    return <Navigate to="/maintenance" replace />;
   }
 
   if (allowedRoles.length > 0 && !allowedRoles.includes(profile.role)) {

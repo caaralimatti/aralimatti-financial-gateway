@@ -15,6 +15,7 @@ const AdminRecentActivity = () => {
       case 'user_added':
         return <UserPlus className="h-4 w-4 text-green-600" />;
       case 'user_updated':
+      case 'user_status_changed':
         return <Edit className="h-4 w-4 text-orange-600" />;
       case 'settings_changed':
         return <Settings className="h-4 w-4 text-purple-600" />;
@@ -30,12 +31,34 @@ const AdminRecentActivity = () => {
       case 'user_added':
         return 'bg-green-100';
       case 'user_updated':
+      case 'user_status_changed':
         return 'bg-orange-100';
       case 'settings_changed':
         return 'bg-purple-100';
       default:
         return 'bg-gray-100';
     }
+  };
+
+  const formatActivityDescription = (activity: any) => {
+    const { description, metadata, activity_type } = activity;
+    
+    // Enhanced formatting for settings changes
+    if (activity_type === 'settings_changed' && metadata?.settingKey) {
+      const { settingKey, oldValue, newValue } = metadata;
+      return `Updated setting: ${settingKey} from '${oldValue}' to '${newValue}'`;
+    }
+    
+    // Enhanced formatting for user updates
+    if ((activity_type === 'user_updated' || activity_type === 'user_status_changed') && metadata?.changedFields) {
+      const { changedFields } = metadata;
+      const changes = Object.entries(changedFields).map(([field, values]: [string, any]) => {
+        return `${field}: ${values.old} → ${values.new}`;
+      }).join(', ');
+      return `${description} (${changes})`;
+    }
+    
+    return description;
   };
 
   if (isLoading) {
@@ -109,7 +132,9 @@ const AdminRecentActivity = () => {
                     {getActivityIcon(activity.activity_type)}
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">{activity.description}</p>
+                    <p className="font-medium text-gray-900">
+                      {formatActivityDescription(activity)}
+                    </p>
                     <p className="text-sm text-gray-600">
                       by {activity.profiles?.full_name || activity.profiles?.email || 'Unknown User'}
                     </p>

@@ -59,13 +59,36 @@ export const useUserManagement = () => {
   // Update user mutation
   const updateUserMutation = useMutation({
     mutationFn: async (userData: UpdateUserData) => {
+      // Get current user data for comparison
+      const currentUser = users.find(u => u.id === userData.id);
+      const changedFields: any = {};
+      
+      // Track changes for enhanced logging
+      if (currentUser) {
+        if (userData.fullName !== undefined && userData.fullName !== currentUser.full_name) {
+          changedFields.full_name = { old: currentUser.full_name, new: userData.fullName };
+        }
+        if (userData.email !== undefined && userData.email !== currentUser.email) {
+          changedFields.email = { old: currentUser.email, new: userData.email };
+        }
+        if (userData.role !== undefined && userData.role !== currentUser.role) {
+          changedFields.role = { old: currentUser.role, new: userData.role };
+        }
+        if (userData.isActive !== undefined && userData.isActive !== currentUser.is_active) {
+          changedFields.is_active = { old: currentUser.is_active, new: userData.isActive };
+        }
+      }
+      
       const result = await userService.updateUserProfile(userData);
       
-      // Log the activity
+      // Log the activity with enhanced metadata
       await adminActivityService.logActivity(
         'user_updated',
         `Updated user profile: ${userData.id}`,
-        { userId: userData.id }
+        { 
+          userId: userData.id,
+          changedFields: Object.keys(changedFields).length > 0 ? changedFields : undefined
+        }
       );
       
       return result;
@@ -93,17 +116,27 @@ export const useUserManagement = () => {
     mutationFn: async ({ userId, isActive }: { userId: string; isActive: boolean }) => {
       console.log('Toggling user status:', { userId, isActive });
       
+      // Get current user data for enhanced logging
+      const currentUser = users.find(u => u.id === userId);
+      const changedFields = {
+        is_active: { old: currentUser?.is_active, new: isActive }
+      };
+      
       // Step 1: Update the profile table
       const data = await userService.updateUserProfile({ id: userId, isActive });
 
       // Step 2: Update auth.users to actually prevent/allow login
       await authService.toggleUserAuthStatus(userId, isActive);
 
-      // Log the activity
+      // Log the activity with enhanced metadata
       await adminActivityService.logActivity(
         'user_status_changed',
         `${isActive ? 'Activated' : 'Deactivated'} user: ${userId}`,
-        { userId, isActive }
+        { 
+          userId, 
+          isActive,
+          changedFields
+        }
       );
 
       return data;

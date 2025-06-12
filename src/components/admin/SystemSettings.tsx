@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { Settings, Save, Mail, Shield, User, CheckSquare } from 'lucide-react';
+import { Settings, Save, Mail, Shield, User, CheckSquare, Power } from 'lucide-react';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { useAdminActivity } from '@/hooks/useAdminActivity';
 
@@ -28,11 +28,12 @@ const SystemSettings = () => {
   }, [settings]);
 
   const handleUpdateSetting = async (key: string, value: any) => {
+    const oldValue = getSettingValue(key);
     await updateSetting({ key, value });
     logActivity({
       activity_type: 'settings_changed',
       description: `Updated setting: ${key}`,
-      metadata: { key, value }
+      metadata: { settingKey: key, oldValue, newValue: value }
     });
   };
 
@@ -54,6 +55,36 @@ const SystemSettings = () => {
         <Settings className="h-6 w-6" />
         <h1 className="text-2xl font-bold text-gray-900">System Settings</h1>
       </div>
+
+      {/* Portal Status Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Power className="h-5 w-5" />
+            Portal Status
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div>
+              <Label htmlFor="is_portal_active" className="text-sm font-medium">
+                Enable Client/Staff Portal
+              </Label>
+              <p className="text-xs text-gray-500 mt-1">
+                When disabled, only admin users can access the portal
+              </p>
+            </div>
+            <Switch
+              id="is_portal_active"
+              checked={localSettings.is_portal_active || false}
+              onCheckedChange={(checked) => {
+                handleLocalChange('is_portal_active', checked);
+                handleUpdateSetting('is_portal_active', checked);
+              }}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* General Settings */}
       <Card>
