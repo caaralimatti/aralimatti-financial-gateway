@@ -59,7 +59,7 @@ export const adminActivityService = {
       .from('admin_activity_log')
       .select(`
         *,
-        profiles!admin_activity_log_user_id_fkey (
+        profiles (
           full_name,
           email
         )
@@ -74,7 +74,7 @@ export const adminActivityService = {
 
     return (data || []).map(item => ({
       ...item,
-      ip_address: item.ip_address || null,
+      ip_address: item.ip_address as string | null,
       metadata: item.metadata ? JSON.parse(item.metadata as string) : null
     }));
   }
