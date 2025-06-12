@@ -15,7 +15,14 @@ const ClientDashboard = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'documents':
-        return <DocumentListCard />;
+        return (
+          <DocumentListCard 
+            title="My Documents"
+            description="Access your important documents and files"
+            fileCount={0}
+            lastUpdated="2024-01-01"
+          />
+        );
       case 'tasks':
         return <MyTasks />;
       case 'calendar':
@@ -34,7 +41,12 @@ const ClientDashboard = () => {
           <div className="space-y-6">
             <h1 className="text-3xl font-bold">Welcome back, {profile?.full_name || 'Client'}!</h1>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <DocumentListCard />
+              <DocumentListCard 
+                title="Recent Documents"
+                description="Your recently uploaded or modified documents"
+                fileCount={0}
+                lastUpdated="2024-01-01"
+              />
               <MyTasks />
             </div>
           </div>

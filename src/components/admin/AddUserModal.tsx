@@ -164,8 +164,8 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange }) => {
           />
 
           <StatusToggleForm
-            status={formData.status}
-            onStatusChange={(status) => handleFormDataChange({ status })}
+            isActive={formData.status}
+            onIsActiveChange={(status) => handleFormDataChange({ status })}
           />
         </div>
 
