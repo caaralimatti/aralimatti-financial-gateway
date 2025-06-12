@@ -1,11 +1,19 @@
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Calendar, Clock, User, Building2, Trash2 } from 'lucide-react';
+import { MoreVertical, Trash2, Calendar, User, CheckCircle } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Task } from '@/types/task';
+import { format } from 'date-fns';
+import { useTasks } from '@/hooks/useTasks';
+import { toast } from 'sonner';
 
 interface AdminTaskCardProps {
   task: Task;
@@ -13,138 +21,115 @@ interface AdminTaskCardProps {
   deleteLoading: string | null;
 }
 
-const AdminTaskCard = ({ task, onDelete, deleteLoading }: AdminTaskCardProps) => {
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800 border-red-200';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'low': return 'bg-green-100 text-green-800 border-green-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
+const AdminTaskCard: React.FC<AdminTaskCardProps> = ({ task, onDelete, deleteLoading }) => {
+  const { updateTask } = useTasks();
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800 border-green-200';
-      case 'in_progress': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'pending_approval': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'on_hold': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'in_progress': return 'bg-yellow-100 text-yellow-800';
+      case 'pending_approval': return 'bg-purple-100 text-purple-800';
+      case 'on_hold': return 'bg-orange-100 text-orange-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      default: return 'bg-blue-100 text-blue-800';
     }
   };
 
-  const formatStatus = (status: string) => {
-    return status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'bg-red-100 text-red-800';
+      case 'medium': return 'bg-orange-100 text-orange-800';
+      case 'low': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const handleMarkAsCompleted = async () => {
+    setUpdatingStatus(true);
+    try {
+      await updateTask(task.id, { status: 'completed' });
+      toast.success('Task marked as completed');
+    } catch (error) {
+      console.error('Error updating task:', error);
+      toast.error('Failed to update task');
+    } finally {
+      setUpdatingStatus(false);
+    }
   };
 
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
-          <CardTitle className="text-lg line-clamp-2">{task.title}</CardTitle>
-          <div className="flex flex-col gap-1">
-            <Badge className={getPriorityColor(task.priority)}>
-              {task.priority}
-            </Badge>
-            <Badge variant="outline" className={getStatusColor(task.status)}>
-              {formatStatus(task.status)}
-            </Badge>
+          <div className="space-y-2">
+            <h3 className="font-medium text-gray-900 line-clamp-2">{task.title}</h3>
+            <div className="flex gap-2">
+              <Badge className={`text-xs ${getStatusColor(task.status)}`}>
+                {task.status.replace('_', ' ').toUpperCase()}
+              </Badge>
+              <Badge className={`text-xs ${getPriorityColor(task.priority)}`}>
+                {task.priority.toUpperCase()}
+              </Badge>
+            </div>
           </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {task.status !== 'completed' && (
+                <DropdownMenuItem onClick={handleMarkAsCompleted} disabled={updatingStatus}>
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  {updatingStatus ? 'Updating...' : 'Mark as Completed'}
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem 
+                onClick={() => onDelete(task.id, task.title)}
+                className="text-red-600"
+                disabled={deleteLoading === task.id}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {deleteLoading === task.id ? 'Deleting...' : 'Delete Task'}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+
+      <CardContent className="pt-0 space-y-3">
         {task.description && (
           <p className="text-sm text-gray-600 line-clamp-2">{task.description}</p>
         )}
-        
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+
+        <div className="space-y-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2">
             <User className="h-4 w-4" />
-            <span>Assigned to: {task.assigned_to?.full_name || task.assigned_to?.email}</span>
+            <span>Assigned to: {task.assigned_to?.full_name || task.assigned_to?.email || 'Unassigned'}</span>
           </div>
           
-          {task.client && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Building2 className="h-4 w-4" />
-              <span>Client: {task.client.name}</span>
+          {task.client?.name && (
+            <div className="flex items-center gap-2">
+              <span className="font-medium">Client:</span>
+              <span>{task.client.name}</span>
             </div>
           )}
-          
+
           {task.deadline_date && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
-              <span>Due: {new Date(task.deadline_date).toLocaleDateString()}</span>
-            </div>
-          )}
-          
-          {task.estimated_effort_hours && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Clock className="h-4 w-4" />
-              <span>Estimated: {task.estimated_effort_hours}h</span>
+              <span>Due: {format(new Date(task.deadline_date), 'MMM dd, yyyy')}</span>
             </div>
           )}
         </div>
 
-        {task.sub_tasks && task.sub_tasks.length > 0 && (
-          <div className="pt-2 border-t">
-            <div className="text-sm text-gray-600">
-              Sub-tasks: {task.sub_tasks.filter(st => st.is_completed).length}/{task.sub_tasks.length} completed
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-              <div 
-                className="bg-primary h-2 rounded-full transition-all" 
-                style={{
-                  width: `${(task.sub_tasks.filter(st => st.is_completed).length / task.sub_tasks.length) * 100}%`
-                }}
-              ></div>
-            </div>
-          </div>
+        {task.task_categories?.name && (
+          <Badge variant="outline" className="text-xs">
+            {task.task_categories.name}
+          </Badge>
         )}
-
-        <div className="flex justify-between items-center pt-3 border-t">
-          <div className="text-xs text-gray-500">
-            Created: {new Date(task.created_at).toLocaleDateString()}
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm">
-              View Details
-            </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                  disabled={deleteLoading === task.id}
-                >
-                  {deleteLoading === task.id ? (
-                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600"></div>
-                  ) : (
-                    <Trash2 className="h-3 w-3" />
-                  )}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Task</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to delete the task "{task.title}"? This action cannot be undone and will also delete all related sub-tasks, comments, and attachments.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => onDelete(task.id, task.title)}
-                    className="bg-red-600 hover:bg-red-700"
-                  >
-                    Delete Task
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        </div>
       </CardContent>
     </Card>
   );

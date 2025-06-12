@@ -1,27 +1,26 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useActiveAnnouncements } from '@/hooks/useAnnouncements';
 import { format } from 'date-fns';
+import { Bell, AlertCircle } from 'lucide-react';
 
 const StaffAnnouncements: React.FC = () => {
   const { data: announcements = [], isLoading, error } = useActiveAnnouncements('staff_portal');
 
   if (isLoading) {
     return (
-      <Card className="border-l-4 border-l-blue-500 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700">
+      <Card className="border border-gray-200 dark:border-gray-700">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-blue-900 dark:text-blue-100">
-            📢 Firm Announcements
+          <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <Bell className="h-5 w-5" />
+            Firm Announcements
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="animate-pulse">
-            <div className="h-4 bg-blue-200 rounded w-3/4 mb-2"></div>
-            <div className="h-4 bg-blue-200 rounded w-1/2 mb-2"></div>
-            <div className="h-4 bg-blue-200 rounded w-2/3"></div>
-          </div>
+        <CardContent className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading announcements...</p>
         </CardContent>
       </Card>
     );
@@ -29,58 +28,56 @@ const StaffAnnouncements: React.FC = () => {
 
   if (error) {
     return (
-      <Card className="border-l-4 border-l-red-500 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700">
+      <Card className="border border-gray-200 dark:border-gray-700">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-red-900 dark:text-red-100">
-            📢 Firm Announcements
+          <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <Bell className="h-5 w-5" />
+            Firm Announcements
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-red-800 dark:text-red-200">
-            Failed to load announcements. Please try refreshing the page.
-          </p>
+        <CardContent className="text-center py-8">
+          <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
+          <p className="text-red-600">Failed to load announcements</p>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="border-l-4 border-l-blue-500 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700">
+    <Card className="border border-gray-200 dark:border-gray-700">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-blue-900 dark:text-blue-100">
-          📢 Firm Announcements
+        <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+          <Bell className="h-5 w-5" />
+          Firm Announcements
         </CardTitle>
+        <CardDescription>
+          Latest updates and notices from the firm
+        </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
         {announcements.length === 0 ? (
-          <p className="text-blue-800 dark:text-blue-200">
-            No announcements at this time.
-          </p>
-        ) : (
-          <div className="space-y-4">
-            {announcements.map((announcement) => (
-              <div key={announcement.id} className="border-b border-blue-200 dark:border-blue-700 last:border-b-0 pb-3 last:pb-0">
-                <div className="flex items-start justify-between mb-1">
-                  <h4 className="font-medium text-blue-900 dark:text-blue-100">
-                    {announcement.title}
-                  </h4>
-                  <div className="flex items-center gap-2">
-                    {announcement.priority === 'High' && (
-                      <Badge variant="destructive" className="text-xs">
-                        {announcement.priority}
-                      </Badge>
-                    )}
-                    <span className="text-xs text-blue-600 dark:text-blue-300">
-                      {format(new Date(announcement.published_at), 'MMM dd')}
-                    </span>
-                  </div>
-                </div>
-                <p className="text-blue-800 dark:text-blue-200 text-sm">
-                  {announcement.content}
-                </p>
-              </div>
-            ))}
+          <div className="text-center py-8 text-gray-500">
+            <Bell className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+            <p>No announcements at this time</p>
           </div>
+        ) : (
+          announcements.slice(0, 3).map((announcement) => (
+            <div key={announcement.id} className="border-l-4 border-blue-500 pl-4 py-2">
+              <div className="flex items-start justify-between mb-2">
+                <h3 className="font-medium text-gray-900 dark:text-white">{announcement.title}</h3>
+                <Badge 
+                  variant={announcement.priority === 'High' ? 'destructive' : announcement.priority === 'Normal' ? 'default' : 'secondary'}
+                  className="text-xs ml-2"
+                >
+                  {announcement.priority}
+                </Badge>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{announcement.content}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-500">
+                Published: {format(new Date(announcement.published_at), 'MMM dd, yyyy HH:mm')}
+              </p>
+            </div>
+          ))
         )}
       </CardContent>
     </Card>

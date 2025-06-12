@@ -1,71 +1,59 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import StaffSidebar from '@/components/staff/StaffSidebar';
+import StaffDashboardHeader from '@/components/staff/StaffDashboardHeader';
 import StaffDashboardStats from '@/components/staff/StaffDashboardStats';
 import StaffQuickAccess from '@/components/staff/StaffQuickAccess';
-import StaffRecentMessages from '@/components/staff/StaffRecentMessages';
 import StaffAnnouncements from '@/components/staff/StaffAnnouncements';
+import StaffRecentMessages from '@/components/staff/StaffRecentMessages';
+import StaffTasksList from '@/components/staff/StaffTasksList';
 import DSCManagement from '@/components/admin/DSCManagement';
 import { useAuth } from '@/contexts/AuthContext';
 
 const StaffDashboard = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [darkMode, setDarkMode] = useState(false);
-  const { profile, signOut } = useAuth();
-
-  const handleLogout = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      console.error('Error logging out:', error);
-    }
-  };
+  const [activeTab, setActiveTab] = React.useState('dashboard');
+  const { profile } = useAuth();
 
   const renderContent = () => {
     switch (activeTab) {
+      case 'tasks':
+        return <StaffTasksList />;
+      case 'dsc':
+        return <DSCManagement />;
+      case 'reports':
+        return (
+          <div className="space-y-6">
+            <h1 className="text-3xl font-bold">Reports</h1>
+            <p className="text-gray-600">Reports functionality coming soon...</p>
+          </div>
+        );
       case 'clients':
         return (
           <div className="space-y-6">
             <h1 className="text-3xl font-bold">Client Management</h1>
-            <p className="text-gray-600">Client management interface for staff coming soon...</p>
+            <p className="text-gray-600">Client management functionality coming soon...</p>
           </div>
         );
-      case 'documents':
+      case 'profile':
         return (
           <div className="space-y-6">
-            <h1 className="text-3xl font-bold">Document Management</h1>
-            <p className="text-gray-600">Document management interface for staff coming soon...</p>
-          </div>
-        );
-      case 'tasks':
-        return (
-          <div className="space-y-6">
-            <h1 className="text-3xl font-bold">Task Management</h1>
-            <p className="text-gray-600">Task management interface for staff coming soon...</p>
-          </div>
-        );
-      case 'dsc':
-        return <DSCManagement />;
-      case 'settings':
-        return (
-          <div className="space-y-6">
-            <h1 className="text-3xl font-bold">Settings</h1>
-            <p className="text-gray-600">Staff settings coming soon...</p>
+            <h1 className="text-3xl font-bold">Profile</h1>
+            <p className="text-gray-600">Profile management coming soon...</p>
           </div>
         );
       default:
         return (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-6">
-                <StaffDashboardStats />
-                <StaffQuickAccess />
-              </div>
-              <div className="lg:col-span-1 space-y-6">
-                <StaffRecentMessages />
-                <StaffAnnouncements />
-              </div>
+            <StaffDashboardHeader />
+            <StaffDashboardStats />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <StaffQuickAccess />
+              <StaffRecentMessages />
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <StaffAnnouncements />
+              <StaffTasksList />
             </div>
           </div>
         );
@@ -81,7 +69,7 @@ const StaffDashboard = () => {
             <SidebarTrigger className="-ml-1" />
             <div className="ml-auto flex items-center space-x-4">
               <span className="text-sm text-gray-600">
-                Welcome, {profile?.full_name || 'Staff User'}
+                Welcome, {profile?.full_name || profile?.email}
               </span>
             </div>
           </header>

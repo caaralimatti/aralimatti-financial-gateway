@@ -1,26 +1,29 @@
 
 import React from 'react';
-import { 
-  Sidebar, 
-  SidebarContent, 
-  SidebarHeader, 
-  SidebarMenu, 
-  SidebarMenuItem, 
-  SidebarMenuButton,
-  SidebarFooter,
+import {
+  Sidebar,
+  SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  useSidebar
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarHeader,
+  SidebarFooter,
 } from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
 import { 
   LayoutDashboard, 
-  FileText, 
   CheckSquare, 
+  FileText, 
   Users, 
-  Settings,
-  Award
+  Settings, 
+  User,
+  LogOut,
+  Shield
 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface StaffSidebarProps {
   activeTab: string;
@@ -28,60 +31,111 @@ interface StaffSidebarProps {
 }
 
 const StaffSidebar: React.FC<StaffSidebarProps> = ({ activeTab, setActiveTab }) => {
-  const { state } = useSidebar();
+  const { signOut, profile } = useAuth();
 
-  const sidebarItems = [
-    { id: 'dashboard', title: 'Dashboard', icon: LayoutDashboard },
-    { id: 'clients', title: 'Clients', icon: Users },
-    { id: 'documents', title: 'Documents', icon: FileText },
-    { id: 'tasks', title: 'Tasks', icon: CheckSquare },
-    { id: 'dsc', title: 'DSC Management', icon: Award },
-    { id: 'settings', title: 'Settings', icon: Settings },
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
+
+  const menuItems = [
+    {
+      title: 'Dashboard',
+      icon: LayoutDashboard,
+      key: 'dashboard',
+    },
+    {
+      title: 'My Tasks',
+      icon: CheckSquare,
+      key: 'tasks',
+    },
+    {
+      title: 'Reports',
+      icon: FileText,
+      key: 'reports',
+    },
+    {
+      title: 'Clients',
+      icon: Users,
+      key: 'clients',
+    },
+    {
+      title: 'DSC Management',
+      icon: Shield,
+      key: 'dsc',
+    },
   ];
 
   return (
-    <Sidebar className="border-r border-gray-200 dark:border-gray-700" collapsible="icon">
-      <SidebarHeader className="p-4">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
-            <Users className="text-white text-sm font-bold h-4 w-4" />
+    <Sidebar variant="inset">
+      <SidebarHeader className="border-b border-sidebar-border">
+        <div className="flex flex-col items-center py-4">
+          <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center mb-2">
+            <User className="h-6 w-6 text-primary-foreground" />
           </div>
-          {state === 'expanded' && (
-            <span className="font-semibold text-gray-900 dark:text-white whitespace-nowrap">
-              Staff Portal
-            </span>
-          )}
+          <h2 className="font-semibold text-sidebar-foreground">Staff Portal</h2>
+          <p className="text-xs text-sidebar-foreground/60">
+            {profile?.full_name || profile?.email}
+          </p>
         </div>
       </SidebarHeader>
-      
-      <SidebarContent className="px-2">
+
+      <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {sidebarItems.map((item) => (
-                <SidebarMenuItem key={item.id}>
-                  <SidebarMenuButton 
-                    isActive={activeTab === item.id}
-                    onClick={() => setActiveTab(item.id)}
-                    className="w-full justify-start"
-                    tooltip={state === 'collapsed' ? item.title : undefined}
+              {menuItems.map((item) => (
+                <SidebarMenuItem key={item.key}>
+                  <SidebarMenuButton
+                    onClick={() => setActiveTab(item.key)}
+                    isActive={activeTab === item.key}
+                    tooltip={item.title}
                   >
-                    <item.icon className="h-4 w-4 flex-shrink-0" />
-                    <span className="truncate">{item.title}</span>
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Account</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => setActiveTab('profile')}
+                  isActive={activeTab === 'profile'}
+                  tooltip="Profile"
+                >
+                  <Settings className="h-4 w-4" />
+                  <span>Profile</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-4">
-        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-          <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-          {state === 'expanded' && <span className="truncate">Online</span>}
-        </div>
+      <SidebarFooter className="border-t border-sidebar-border">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <Button
+              variant="ghost"
+              onClick={handleLogout}
+              className="w-full justify-start"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   );
