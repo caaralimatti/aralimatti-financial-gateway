@@ -17,7 +17,11 @@ export const announcementsService = {
     }
 
     console.log('🔥 Fetched announcements:', data);
-    return data || [];
+    return (data || []).map(item => ({
+      ...item,
+      target_audience: item.target_audience as 'all' | 'staff_portal' | 'client_portal',
+      priority: item.priority as 'High' | 'Normal' | 'Low'
+    }));
   },
 
   async fetchActiveAnnouncements(targetAudience?: 'staff_portal' | 'client_portal'): Promise<Announcement[]> {
@@ -46,7 +50,11 @@ export const announcementsService = {
     }
 
     console.log('🔥 Fetched active announcements:', data);
-    return data || [];
+    return (data || []).map(item => ({
+      ...item,
+      target_audience: item.target_audience as 'all' | 'staff_portal' | 'client_portal',
+      priority: item.priority as 'High' | 'Normal' | 'Low'
+    }));
   },
 
   async createAnnouncement(announcementData: CreateAnnouncementData): Promise<Announcement> {
@@ -64,7 +72,11 @@ export const announcementsService = {
     }
 
     console.log('🔥 Created announcement:', data);
-    return data;
+    return {
+      ...data,
+      target_audience: data.target_audience as 'all' | 'staff_portal' | 'client_portal',
+      priority: data.priority as 'High' | 'Normal' | 'Low'
+    };
   },
 
   async updateAnnouncement(announcementData: UpdateAnnouncementData): Promise<Announcement> {
@@ -85,7 +97,11 @@ export const announcementsService = {
     }
 
     console.log('🔥 Updated announcement:', data);
-    return data;
+    return {
+      ...data,
+      target_audience: data.target_audience as 'all' | 'staff_portal' | 'client_portal',
+      priority: data.priority as 'High' | 'Normal' | 'Low'
+    };
   },
 
   async deleteAnnouncement(id: string): Promise<void> {

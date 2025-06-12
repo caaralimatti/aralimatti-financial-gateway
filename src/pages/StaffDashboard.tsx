@@ -2,7 +2,6 @@
 import React from 'react';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import StaffSidebar from '@/components/staff/StaffSidebar';
-import StaffDashboardHeader from '@/components/staff/StaffDashboardHeader';
 import StaffDashboardStats from '@/components/staff/StaffDashboardStats';
 import StaffQuickAccess from '@/components/staff/StaffQuickAccess';
 import StaffAnnouncements from '@/components/staff/StaffAnnouncements';
@@ -45,7 +44,14 @@ const StaffDashboard = () => {
       default:
         return (
           <div className="space-y-6">
-            <StaffDashboardHeader />
+            <div className="flex items-center justify-between">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                Welcome back, {profile?.full_name || profile?.email}
+              </h1>
+              <div className="text-sm text-gray-500">
+                Staff Dashboard
+              </div>
+            </div>
             <StaffDashboardStats />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <StaffQuickAccess />
