@@ -9,8 +9,7 @@ export const dscService = {
       .from('dsc_certificates')
       .select(`
         *,
-        certificate_holder:profiles!certificate_holder_profile_id(full_name),
-        contact_person:profiles!contact_person_id(full_name)
+        certificate_holder:profiles!certificate_holder_profile_id(full_name)
       `)
       .order('created_at', { ascending: false });
 
@@ -22,8 +21,7 @@ export const dscService = {
     console.log('Fetched DSC certificates:', data);
     return data.map(cert => ({
       ...cert,
-      certificate_holder_name: cert.certificate_holder?.full_name || 'Unknown',
-      contact_person_name: cert.contact_person?.full_name || 'Not assigned'
+      certificate_holder_name: cert.certificate_holder?.full_name || 'Unknown'
     })) as DSCCertificate[];
   },
 
@@ -33,8 +31,7 @@ export const dscService = {
       .from('dsc_certificates')
       .select(`
         *,
-        certificate_holder:profiles!certificate_holder_profile_id(full_name),
-        contact_person:profiles!contact_person_id(full_name)
+        certificate_holder:profiles!certificate_holder_profile_id(full_name)
       `)
       .eq('certificate_holder_profile_id', clientId)
       .order('created_at', { ascending: false });
@@ -47,8 +44,7 @@ export const dscService = {
     console.log('Fetched client DSC certificates:', data);
     return data.map(cert => ({
       ...cert,
-      certificate_holder_name: cert.certificate_holder?.full_name || 'Unknown',
-      contact_person_name: cert.contact_person?.full_name || 'Not assigned'
+      certificate_holder_name: cert.certificate_holder?.full_name || 'Unknown'
     })) as DSCCertificate[];
   },
 
@@ -59,8 +55,7 @@ export const dscService = {
       .insert(dscData)
       .select(`
         *,
-        certificate_holder:profiles!certificate_holder_profile_id(full_name),
-        contact_person:profiles!contact_person_id(full_name)
+        certificate_holder:profiles!certificate_holder_profile_id(full_name)
       `)
       .single();
 
@@ -72,8 +67,7 @@ export const dscService = {
     console.log('DSC certificate created successfully:', data);
     return {
       ...data,
-      certificate_holder_name: data.certificate_holder?.full_name || 'Unknown',
-      contact_person_name: data.contact_person?.full_name || 'Not assigned'
+      certificate_holder_name: data.certificate_holder?.full_name || 'Unknown'
     } as DSCCertificate;
   },
 
@@ -87,8 +81,7 @@ export const dscService = {
       .eq('id', id)
       .select(`
         *,
-        certificate_holder:profiles!certificate_holder_profile_id(full_name),
-        contact_person:profiles!contact_person_id(full_name)
+        certificate_holder:profiles!certificate_holder_profile_id(full_name)
       `)
       .single();
 
@@ -100,8 +93,7 @@ export const dscService = {
     console.log('DSC certificate updated successfully:', data);
     return {
       ...data,
-      certificate_holder_name: data.certificate_holder?.full_name || 'Unknown',
-      contact_person_name: data.contact_person?.full_name || 'Not assigned'
+      certificate_holder_name: data.certificate_holder?.full_name || 'Unknown'
     } as DSCCertificate;
   },
 

@@ -2,13 +2,39 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Upload, Edit, Users } from 'lucide-react';
+import { Plus, Upload, Edit, Users, Search, Filter } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { useClients } from '@/hooks/useClients';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import AddClientModal from './AddClientModal';
 
 interface ClientManagementProps {
   activeTab: string;
 }
 
 const ClientManagement: React.FC<ClientManagementProps> = ({ activeTab }) => {
+  const { clients, isLoading } = useClients();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  const filteredClients = clients.filter(client =>
+    client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    client.file_no.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    client.primary_email?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'Active':
+        return 'default';
+      case 'Inactive':
+        return 'secondary';
+      default:
+        return 'outline';
+    }
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'clients-add':
@@ -21,7 +47,10 @@ const ClientManagement: React.FC<ClientManagementProps> = ({ activeTab }) => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">Add new client form will be implemented here.</p>
+              <Button onClick={() => setShowAddModal(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Client
+              </Button>
             </CardContent>
           </Card>
         );
@@ -29,13 +58,82 @@ const ClientManagement: React.FC<ClientManagementProps> = ({ activeTab }) => {
         return (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Client List
-              </CardTitle>
+              <div className="flex justify-between items-center">
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Client List
+                </CardTitle>
+                <Button onClick={() => setShowAddModal(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Client
+                </Button>
+              </div>
             </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">Client list table will be implemented here.</p>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Search className="h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search by name, file number, or email..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="max-w-md"
+                />
+              </div>
+
+              {isLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : (
+                <div className="border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>File No</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Mobile</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredClients.map((client) => (
+                        <TableRow key={client.id}>
+                          <TableCell className="font-medium">{client.file_no}</TableCell>
+                          <TableCell>{client.name}</TableCell>
+                          <TableCell>{client.primary_email || 'N/A'}</TableCell>
+                          <TableCell>{client.primary_mobile || 'N/A'}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {client.client_type || 'N/A'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={getStatusBadgeVariant(client.status)}>
+                              {client.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Button variant="outline" size="sm">
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+
+                  {filteredClients.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      {searchQuery ? 'No clients found matching your search.' : 'No clients found.'}
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         );
@@ -112,6 +210,7 @@ const ClientManagement: React.FC<ClientManagementProps> = ({ activeTab }) => {
   return (
     <div className="space-y-6">
       {renderContent()}
+      <AddClientModal open={showAddModal} onOpenChange={setShowAddModal} />
     </div>
   );
 };

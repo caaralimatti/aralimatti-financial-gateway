@@ -22,9 +22,9 @@ const DSCManagement: React.FC = () => {
   const [selectedDSC, setSelectedDSC] = useState<DSCCertificate | null>(null);
 
   const filteredDSCs = dscCertificates.filter(dsc =>
-    dsc.serial_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    dsc.certificate_holder_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    dsc.issuing_authority.toLowerCase().includes(searchQuery.toLowerCase())
+    (dsc.serial_number && dsc.serial_number.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (dsc.certificate_holder_name && dsc.certificate_holder_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (dsc.issuing_authority && dsc.issuing_authority.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const getStatusBadgeVariant = (status: string) => {
@@ -103,7 +103,7 @@ const DSCManagement: React.FC = () => {
                   <TableHead>Issuing Authority</TableHead>
                   <TableHead>Valid Until</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Contact Person</TableHead>
+                  <TableHead>Contact Phone</TableHead>
                   <TableHead>Storage Location</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -114,8 +114,8 @@ const DSCManagement: React.FC = () => {
                     <TableCell className="font-medium">
                       {dsc.certificate_holder_name}
                     </TableCell>
-                    <TableCell>{dsc.serial_number}</TableCell>
-                    <TableCell>{dsc.issuing_authority}</TableCell>
+                    <TableCell>{dsc.serial_number || 'N/A'}</TableCell>
+                    <TableCell>{dsc.issuing_authority || 'N/A'}</TableCell>
                     <TableCell>
                       {format(new Date(dsc.valid_until), 'MMM dd, yyyy')}
                     </TableCell>
@@ -124,7 +124,7 @@ const DSCManagement: React.FC = () => {
                         {dsc.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>{dsc.contact_person_name}</TableCell>
+                    <TableCell>{dsc.contact_person_phone || 'N/A'}</TableCell>
                     <TableCell>{dsc.storage_location || 'Not specified'}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">

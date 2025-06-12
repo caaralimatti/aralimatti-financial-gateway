@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,8 @@ import { useForm } from 'react-hook-form';
 import { CreateDSCData } from '@/types/dsc';
 import { useDSCManagement } from '@/hooks/useDSCManagement';
 import { useUserManagement } from '@/hooks/useUserManagement';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface AddDSCModalProps {
   open: boolean;
@@ -19,6 +21,8 @@ interface AddDSCModalProps {
 const AddDSCModal: React.FC<AddDSCModalProps> = ({ open, onOpenChange }) => {
   const { createDSC, isCreating } = useDSCManagement();
   const { users } = useUserManagement();
+  const [newClientName, setNewClientName] = useState('');
+  const [useNewClient, setUseNewClient] = useState(false);
   
   const {
     register,
@@ -29,17 +33,95 @@ const AddDSCModal: React.FC<AddDSCModalProps> = ({ open, onOpenChange }) => {
     formState: { errors }
   } = useForm<CreateDSCData>();
 
-  const onSubmit = (data: CreateDSCData) => {
-    createDSC(data, {
-      onSuccess: () => {
-        reset();
-        onOpenChange(false);
+  const selectedClientId = watch('certificate_holder_profile_id');
+  const clientUsers = users.filter(user => user.role === 'client');
+
+  const createNewClient = async (name: string) => {
+    try {
+      console.log('Creating new client with name:', name);
+      
+      // Create a temporary email for the new client
+      const tempEmail = `${name.toLowerCase().replace(/\s+/g, '.')}@temp.client`;
+      
+      // Create auth user first
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: tempEmail,
+        password: 'TempPassword123!',
+        user_metadata: {
+          full_name: name,
+          role: 'client'
+        }
+      });
+
+      if (authError) {
+        console.error('Error creating auth user:', authError);
+        throw authError;
       }
-    });
+
+      console.log('Auth user created:', authData.user);
+
+      // The profile should be created automatically by the trigger
+      // Wait a moment and then fetch the profile
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authData.user.id)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching created profile:', profileError);
+        throw profileError;
+      }
+
+      console.log('Profile created:', profile);
+      return profile.id;
+    } catch (error) {
+      console.error('Error creating new client:', error);
+      toast.error('Failed to create new client');
+      throw error;
+    }
+  };
+
+  const onSubmit = async (data: CreateDSCData) => {
+    try {
+      let clientId = data.certificate_holder_profile_id;
+
+      // If using new client, create the client first
+      if (useNewClient && newClientName.trim()) {
+        clientId = await createNewClient(newClientName.trim());
+      }
+
+      // Convert date strings to ISO format for database
+      const formattedData = {
+        ...data,
+        certificate_holder_profile_id: clientId,
+        valid_from: new Date(data.valid_from).toISOString(),
+        valid_until: new Date(data.valid_until).toISOString(),
+        received_date: new Date(data.received_date).toISOString(),
+        given_date: data.given_date ? new Date(data.given_date).toISOString() : undefined
+      };
+
+      console.log('Submitting DSC data:', formattedData);
+
+      createDSC(formattedData, {
+        onSuccess: () => {
+          reset();
+          setNewClientName('');
+          setUseNewClient(false);
+          onOpenChange(false);
+        }
+      });
+    } catch (error) {
+      console.error('Error in form submission:', error);
+    }
   };
 
   const handleClose = () => {
     reset();
+    setNewClientName('');
+    setUseNewClient(false);
     onOpenChange(false);
   };
 
@@ -51,66 +133,87 @@ const AddDSCModal: React.FC<AddDSCModalProps> = ({ open, onOpenChange }) => {
         </DialogHeader>
         
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Certificate Holder *</Label>
             <div className="space-y-2">
-              <Label htmlFor="certificate_holder_profile_id">Certificate Holder *</Label>
-              <Select onValueChange={(value) => setValue('certificate_holder_profile_id', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select certificate holder" />
-                </SelectTrigger>
-                <SelectContent>
-                  {users.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.full_name || user.email} ({user.role})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.certificate_holder_profile_id && (
-                <p className="text-sm text-red-600">Certificate holder is required</p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  id="existing-client"
+                  checked={!useNewClient}
+                  onChange={() => setUseNewClient(false)}
+                />
+                <Label htmlFor="existing-client">Select Existing Client</Label>
+              </div>
+              {!useNewClient && (
+                <Select onValueChange={(value) => setValue('certificate_holder_profile_id', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select certificate holder" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clientUsers.map((user) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {user.full_name || user.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              
+              <div className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  id="new-client"
+                  checked={useNewClient}
+                  onChange={() => setUseNewClient(true)}
+                />
+                <Label htmlFor="new-client">Create New Client</Label>
+              </div>
+              {useNewClient && (
+                <Input
+                  placeholder="Enter new client name"
+                  value={newClientName}
+                  onChange={(e) => setNewClientName(e.target.value)}
+                />
               )}
             </div>
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="contact_person_id">Contact Person</Label>
-              <Select onValueChange={(value) => setValue('contact_person_id', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select contact person" />
-                </SelectTrigger>
-                <SelectContent>
-                  {users.filter(user => user.role === 'staff' || user.role === 'admin').map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.full_name || user.email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="contact_person_phone">Contact Person Phone</Label>
+            <Input
+              id="contact_person_phone"
+              {...register('contact_person_phone')}
+              placeholder="Enter contact phone number"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="contact_person_name">Contact Person Name</Label>
+            <Input
+              id="contact_person_name"
+              {...register('contact_person_name')}
+              placeholder="Enter contact person name"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="serial_number">Serial Number *</Label>
+              <Label htmlFor="serial_number">Serial Number</Label>
               <Input
                 id="serial_number"
-                {...register('serial_number', { required: 'Serial number is required' })}
-                placeholder="Enter serial number"
+                {...register('serial_number')}
+                placeholder="Enter serial number (optional)"
               />
-              {errors.serial_number && (
-                <p className="text-sm text-red-600">{errors.serial_number.message}</p>
-              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="issuing_authority">Issuing Authority *</Label>
+              <Label htmlFor="issuing_authority">Issuing Authority</Label>
               <Input
                 id="issuing_authority"
-                {...register('issuing_authority', { required: 'Issuing authority is required' })}
-                placeholder="Enter issuing authority"
+                {...register('issuing_authority')}
+                placeholder="Enter issuing authority (optional)"
               />
-              {errors.issuing_authority && (
-                <p className="text-sm text-red-600">{errors.issuing_authority.message}</p>
-              )}
             </div>
           </div>
 
@@ -119,7 +222,7 @@ const AddDSCModal: React.FC<AddDSCModalProps> = ({ open, onOpenChange }) => {
               <Label htmlFor="valid_from">Valid From *</Label>
               <Input
                 id="valid_from"
-                type="datetime-local"
+                type="date"
                 {...register('valid_from', { required: 'Valid from date is required' })}
               />
               {errors.valid_from && (
@@ -131,7 +234,7 @@ const AddDSCModal: React.FC<AddDSCModalProps> = ({ open, onOpenChange }) => {
               <Label htmlFor="valid_until">Valid Until *</Label>
               <Input
                 id="valid_until"
-                type="datetime-local"
+                type="date"
                 {...register('valid_until', { required: 'Valid until date is required' })}
               />
               {errors.valid_until && (
@@ -145,7 +248,7 @@ const AddDSCModal: React.FC<AddDSCModalProps> = ({ open, onOpenChange }) => {
               <Label htmlFor="received_date">Received Date *</Label>
               <Input
                 id="received_date"
-                type="datetime-local"
+                type="date"
                 {...register('received_date', { required: 'Received date is required' })}
               />
               {errors.received_date && (
@@ -157,7 +260,7 @@ const AddDSCModal: React.FC<AddDSCModalProps> = ({ open, onOpenChange }) => {
               <Label htmlFor="given_date">Given Date</Label>
               <Input
                 id="given_date"
-                type="datetime-local"
+                type="date"
                 {...register('given_date')}
               />
             </div>

@@ -405,15 +405,16 @@ export type Database = {
       dsc_certificates: {
         Row: {
           certificate_holder_profile_id: string
-          contact_person_id: string | null
+          contact_person_name: string | null
+          contact_person_phone: string | null
           created_at: string
           given_date: string | null
           id: string
-          issuing_authority: string
+          issuing_authority: string | null
           pin: string | null
           received_date: string
           remarks: string | null
-          serial_number: string
+          serial_number: string | null
           status: string
           storage_location: string | null
           updated_at: string
@@ -422,15 +423,16 @@ export type Database = {
         }
         Insert: {
           certificate_holder_profile_id: string
-          contact_person_id?: string | null
+          contact_person_name?: string | null
+          contact_person_phone?: string | null
           created_at?: string
           given_date?: string | null
           id?: string
-          issuing_authority: string
+          issuing_authority?: string | null
           pin?: string | null
           received_date: string
           remarks?: string | null
-          serial_number: string
+          serial_number?: string | null
           status?: string
           storage_location?: string | null
           updated_at?: string
@@ -439,15 +441,16 @@ export type Database = {
         }
         Update: {
           certificate_holder_profile_id?: string
-          contact_person_id?: string | null
+          contact_person_name?: string | null
+          contact_person_phone?: string | null
           created_at?: string
           given_date?: string | null
           id?: string
-          issuing_authority?: string
+          issuing_authority?: string | null
           pin?: string | null
           received_date?: string
           remarks?: string | null
-          serial_number?: string
+          serial_number?: string | null
           status?: string
           storage_location?: string | null
           updated_at?: string
@@ -458,13 +461,6 @@ export type Database = {
           {
             foreignKeyName: "dsc_certificates_certificate_holder_profile_id_fkey"
             columns: ["certificate_holder_profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "dsc_certificates_contact_person_id_fkey"
-            columns: ["contact_person_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
