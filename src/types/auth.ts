@@ -11,6 +11,7 @@ export interface Profile {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  last_login_at: string | null;
 }
 
 export interface AuthContextType {
