@@ -1,106 +1,87 @@
 
 import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
-import { Badge } from '@/components/ui/badge';
-import IncomeTaxApp from '@/components/client/IncomeTaxApp';
-import FileITR from '@/components/client/FileITR';
-import PastITRFilings from '@/components/client/PastITRFilings';
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import StaffSidebar from '@/components/staff/StaffSidebar';
 import StaffDashboardHeader from '@/components/staff/StaffDashboardHeader';
 import StaffDashboardStats from '@/components/staff/StaffDashboardStats';
 import StaffQuickAccess from '@/components/staff/StaffQuickAccess';
 import StaffRecentMessages from '@/components/staff/StaffRecentMessages';
 import StaffAnnouncements from '@/components/staff/StaffAnnouncements';
-import StaffSidebar from '@/components/staff/StaffSidebar';
+import DSCManagement from '@/components/admin/DSCManagement';
 
 const StaffDashboard = () => {
-  const { profile, signOut } = useAuth();
-  const [darkMode, setDarkMode] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [incomeTaxOpen, setIncomeTaxOpen] = useState(false);
-
-  const handleLogout = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'income-tax-quick':
-        return <IncomeTaxApp />;
-      case 'file-itr-staff':
-        return <FileITR />;
-      case 'past-itr-staff':
-        return <PastITRFilings />;
+      case 'clients':
+        return (
+          <div className="space-y-6">
+            <h1 className="text-3xl font-bold">Client Management</h1>
+            <p className="text-gray-600">Client management interface for staff coming soon...</p>
+          </div>
+        );
+      case 'documents':
+        return (
+          <div className="space-y-6">
+            <h1 className="text-3xl font-bold">Document Management</h1>
+            <p className="text-gray-600">Document management interface for staff coming soon...</p>
+          </div>
+        );
+      case 'tasks':
+        return (
+          <div className="space-y-6">
+            <h1 className="text-3xl font-bold">Task Management</h1>
+            <p className="text-gray-600">Task management interface for staff coming soon...</p>
+          </div>
+        );
+      case 'dsc':
+        return <DSCManagement />;
+      case 'settings':
+        return (
+          <div className="space-y-6">
+            <h1 className="text-3xl font-bold">Settings</h1>
+            <p className="text-gray-600">Staff settings coming soon...</p>
+          </div>
+        );
       default:
-        return renderDashboard();
+        return (
+          <div className="space-y-6">
+            <StaffDashboardHeader />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-6">
+                <StaffDashboardStats />
+                <StaffQuickAccess />
+              </div>
+              <div className="lg:col-span-1 space-y-6">
+                <StaffRecentMessages />
+                <StaffAnnouncements />
+              </div>
+            </div>
+          </div>
+        );
     }
   };
 
-  const renderDashboard = () => (
-    <div className="space-y-6">
-      {/* Welcome Section */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Welcome back, {profile?.full_name || 'Staff Member'}!
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Here's what's happening with your clients today.
-          </p>
-        </div>
-        <Badge variant="outline" className="text-green-600 border-green-200">
-          All systems operational
-        </Badge>
-      </div>
-
-      {/* Stats Cards */}
-      <StaffDashboardStats />
-
-      {/* Quick Access & Recent Messages */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <StaffQuickAccess />
-        <StaffRecentMessages />
-      </div>
-
-      {/* Announcements Banner */}
-      <StaffAnnouncements />
-    </div>
-  );
-
   return (
-    <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
-      <SidebarProvider defaultOpen={true}>
-        <div className="flex min-h-screen w-full bg-gray-50 dark:bg-gray-900">
-          {/* Sidebar */}
-          <StaffSidebar 
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            incomeTaxOpen={incomeTaxOpen}
-            setIncomeTaxOpen={setIncomeTaxOpen}
-          />
-
-          {/* Main Content */}
-          <SidebarInset className="flex-1">
-            {/* Top Navbar */}
-            <StaffDashboardHeader 
-              profile={profile}
-              darkMode={darkMode}
-              setDarkMode={setDarkMode}
-              handleLogout={handleLogout}
-            />
-
-            {/* Dashboard Content */}
-            <main className="p-6 space-y-6">
-              {renderContent()}
-            </main>
-          </SidebarInset>
-        </div>
-      </SidebarProvider>
-    </div>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full">
+        <StaffSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+        <SidebarInset className="flex-1">
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+            <SidebarTrigger className="-ml-1" />
+            <div className="ml-auto flex items-center space-x-4">
+              <span className="text-sm text-gray-600">
+                Staff Portal
+              </span>
+            </div>
+          </header>
+          <main className="flex-1 space-y-4 p-4 md:p-8">
+            {renderContent()}
+          </main>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   );
 };
 

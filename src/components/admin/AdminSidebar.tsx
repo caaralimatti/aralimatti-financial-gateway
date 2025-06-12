@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Sidebar, 
@@ -33,7 +32,8 @@ import {
   ChevronRight,
   ChevronDown,
   FileText,
-  Target
+  Target,
+  Award
 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
@@ -59,6 +59,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActiveTab }) 
   const sidebarItems = [
     { id: 'dashboard', title: 'Dashboard', icon: LayoutDashboard },
     { id: 'user-management', title: 'User Management', icon: Users },
+    { id: 'dsc-management', title: 'DSC Management', icon: Award },
     { id: 'system-settings', title: 'System Settings', icon: Settings },
     { id: 'analytics', title: 'Analytics', icon: BarChart3 },
   ];
