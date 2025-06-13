@@ -52,6 +52,27 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
     return role.charAt(0).toUpperCase() + role.slice(1);
   };
 
+  const formatLastLogin = (lastLogin: string | undefined) => {
+    if (!lastLogin) {
+      return <span className="text-gray-400">Never</span>;
+    }
+    
+    const date = new Date(lastLogin);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) {
+      return <span className="text-green-600">Just now</span>;
+    } else if (diffInHours < 24) {
+      return <span className="text-green-600">{diffInHours}h ago</span>;
+    } else if (diffInHours < 168) { // 7 days
+      const days = Math.floor(diffInHours / 24);
+      return <span className="text-yellow-600">{days}d ago</span>;
+    } else {
+      return <span className="text-gray-600">{date.toLocaleDateString()}</span>;
+    }
+  };
+
   return (
     <TableRow>
       <TableCell className="font-medium">
@@ -67,6 +88,9 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
         <Badge variant={user.is_active ? 'default' : 'secondary'}>
           {user.is_active ? 'Active' : 'Inactive'}
         </Badge>
+      </TableCell>
+      <TableCell>
+        {formatLastLogin(user.last_login_at)}
       </TableCell>
       <TableCell className="text-right">
         <div className="flex justify-end items-center gap-2">

@@ -11,10 +11,12 @@ const AdminRecentActivity = () => {
   const getActivityIcon = (activityType: string) => {
     switch (activityType) {
       case 'login':
+      case 'logout':
         return <LogIn className="h-4 w-4 text-blue-600" />;
       case 'user_added':
         return <UserPlus className="h-4 w-4 text-green-600" />;
       case 'user_updated':
+      case 'user_status_changed':
         return <Edit className="h-4 w-4 text-orange-600" />;
       case 'settings_changed':
         return <Settings className="h-4 w-4 text-purple-600" />;
@@ -26,16 +28,74 @@ const AdminRecentActivity = () => {
   const getActivityColor = (activityType: string) => {
     switch (activityType) {
       case 'login':
+      case 'logout':
         return 'bg-blue-100';
       case 'user_added':
         return 'bg-green-100';
       case 'user_updated':
+      case 'user_status_changed':
         return 'bg-orange-100';
       case 'settings_changed':
         return 'bg-purple-100';
       default:
         return 'bg-gray-100';
     }
+  };
+
+  const formatActivityDescription = (activity: any) => {
+    const { description, metadata, activity_type } = activity;
+    
+    // Enhanced formatting for settings changes
+    if (activity_type === 'settings_changed' && metadata?.settingKey) {
+      const { settingKey, oldValue, newValue } = metadata;
+      return `Updated setting: ${settingKey}`;
+    }
+    
+    // Enhanced formatting for user status changes
+    if (activity_type === 'user_status_changed' && metadata?.targetUserName) {
+      const { targetUserName, changedFields } = metadata;
+      
+      // Check if it's an activation/deactivation
+      if (changedFields?.is_active) {
+        const isActivated = changedFields.is_active.new === true;
+        return `${isActivated ? 'Activated' : 'Deactivated'} user: ${targetUserName}`;
+      }
+      
+      return `Updated user: ${targetUserName}`;
+    }
+    
+    // Enhanced formatting for other user updates
+    if (activity_type === 'user_updated' && metadata?.targetUserName) {
+      return `Updated user: ${metadata.targetUserName}`;
+    }
+    
+    // Enhanced formatting for user creation
+    if (activity_type === 'user_added' && metadata?.targetUserName) {
+      return `Added new user: ${metadata.targetUserName}`;
+    }
+    
+    // For activities with UUIDs in the description, try to clean them up
+    if (description.includes('user:') && description.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)) {
+      // Extract action from description
+      const action = description.split(':')[0];
+      
+      if (metadata?.targetUserName) {
+        return `${action}: ${metadata.targetUserName}`;
+      } else {
+        // Fallback to generic description if user name not available
+        if (action.toLowerCase().includes('activate')) {
+          return 'A user was activated';
+        } else if (action.toLowerCase().includes('deactivate')) {
+          return 'A user was deactivated';
+        } else if (action.toLowerCase().includes('update')) {
+          return 'A user was updated';
+        } else if (action.toLowerCase().includes('add')) {
+          return 'A new user was added';
+        }
+      }
+    }
+    
+    return description;
   };
 
   if (isLoading) {
@@ -109,13 +169,15 @@ const AdminRecentActivity = () => {
                     {getActivityIcon(activity.activity_type)}
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">{activity.description}</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      {formatActivityDescription(activity)}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       by {activity.profiles?.full_name || activity.profiles?.email || 'Unknown User'}
                     </p>
                   </div>
                 </div>
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
                   {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
                 </span>
               </div>
