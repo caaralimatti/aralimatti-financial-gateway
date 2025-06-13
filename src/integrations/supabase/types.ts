@@ -438,6 +438,39 @@ export type Database = {
           },
         ]
       }
+      compliance_deadlines: {
+        Row: {
+          compliance_type: string
+          created_at: string
+          deadline_date: string
+          description: string | null
+          form_activity: string | null
+          id: string
+          relevant_fy_ay: string | null
+          updated_at: string
+        }
+        Insert: {
+          compliance_type: string
+          created_at?: string
+          deadline_date: string
+          description?: string | null
+          form_activity?: string | null
+          id?: string
+          relevant_fy_ay?: string | null
+          updated_at?: string
+        }
+        Update: {
+          compliance_type?: string
+          created_at?: string
+          deadline_date?: string
+          description?: string | null
+          form_activity?: string | null
+          id?: string
+          relevant_fy_ay?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       dsc_certificates: {
         Row: {
           certificate_holder_profile_id: string

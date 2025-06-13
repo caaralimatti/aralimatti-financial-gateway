@@ -13,6 +13,7 @@ import ClientManagement from '@/components/admin/ClientManagement';
 import AdminTasksList from '@/components/admin/AdminTasksList';
 import AdminTaskOverview from '@/components/admin/AdminTaskOverview';
 import TaskCategoryManagement from '@/components/admin/TaskCategoryManagement';
+import ComplianceCalendarUpload from '@/components/admin/ComplianceCalendarUpload';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -20,30 +21,27 @@ const AdminDashboard = () => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'user-management':
+      case 'users':
         return <UserManagement />;
       case 'announcements':
         return <AnnouncementsManagement />;
-      case 'dsc-management':
+      case 'dsc':
         return <DSCManagement />;
-      case 'system-settings':
-        return <SystemSettings />;
-      case 'clients-add':
-      case 'clients-list':
-      case 'clients-import':
-      case 'clients-bulk-edit':
-        return <ClientManagement activeTab={activeTab} />;
-      case 'tasks-overview':
-        return <AdminTaskOverview />;
-      case 'tasks-list':
-        return <AdminTasksList />;
-      case 'tasks-categories':
-        return <TaskCategoryManagement />;
-      case 'analytics':
+      case 'settings':
         return (
           <div className="space-y-6">
-            <h1 className="text-3xl font-bold">Analytics</h1>
-            <p className="text-gray-600">Analytics dashboard coming soon...</p>
+            <SystemSettings />
+            <ComplianceCalendarUpload />
+          </div>
+        );
+      case 'clients':
+        return <ClientManagement activeTab="clients-list" />;
+      case 'tasks':
+        return (
+          <div className="space-y-6">
+            <AdminTaskOverview />
+            <AdminTasksList />
+            <TaskCategoryManagement />
           </div>
         );
       default:
