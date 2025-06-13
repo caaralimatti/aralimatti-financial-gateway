@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { CalendarData, CalendarTask } from '@/services/calendarService';
+import { CalendarData, CalendarTask, CalendarCompliance } from '@/services/calendarService';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import TaskCalendarEvent from './TaskCalendarEvent';
@@ -11,7 +11,7 @@ interface TaskCalendarDayProps {
   calendarData: CalendarData;
   expandedDays: Set<string>;
   onToggleDayExpansion: (dateString: string) => void;
-  onEventClick: (event: any) => void;
+  onEventClick: (event: CalendarTask | CalendarCompliance) => void;
 }
 
 const TaskCalendarDay: React.FC<TaskCalendarDayProps> = ({

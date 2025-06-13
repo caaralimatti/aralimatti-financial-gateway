@@ -21,6 +21,7 @@ export interface CalendarCompliance {
   description?: string;
   relevant_fy_ay?: string;
   deadline_date: string;
+  priority: 'high' | 'medium' | 'low'; // Added priority field
 }
 
 export interface CalendarData {

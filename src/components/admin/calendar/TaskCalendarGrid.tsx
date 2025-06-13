@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { CalendarData } from '@/services/calendarService';
+import { CalendarData, CalendarTask, CalendarCompliance } from '@/services/calendarService';
 import TaskCalendarDay from './TaskCalendarDay';
 
 interface TaskCalendarGridProps {
@@ -9,7 +9,7 @@ interface TaskCalendarGridProps {
   calendarData: CalendarData;
   expandedDays: Set<string>;
   onToggleDayExpansion: (dateString: string) => void;
-  onEventClick: (event: any) => void;
+  onEventClick: (event: CalendarTask | CalendarCompliance) => void;
 }
 
 const TaskCalendarGrid: React.FC<TaskCalendarGridProps> = ({

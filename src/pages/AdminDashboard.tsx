@@ -1,20 +1,21 @@
+
 import React, { useState } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import AdminDashboardStats from '@/components/admin/dashboard/AdminDashboardStats';
-import AdminManagementCards from '@/components/admin/dashboard/AdminManagementCards';
-import AdminRecentActivity from '@/components/admin/dashboard/AdminRecentActivity';
-import AdminTaskOverview from '@/components/admin/dashboard/AdminTaskOverview';
-import UserManagement from '@/components/admin/userManagement/UserManagement';
-import ClientManagement from '@/components/admin/clientManagement/ClientManagement';
-import ClientImport from '@/components/admin/clientManagement/ClientImport';
-import ClientBulkEdit from '@/components/admin/clientManagement/ClientBulkEdit';
-import AddClientModal from '@/components/admin/clientManagement/AddClientModal';
-import AdminTasksList from '@/components/admin/tasks/AdminTasksList';
-import TaskCategoryManagement from '@/components/admin/tasks/TaskCategoryManagement';
-import ComplianceCalendarUpload from '@/components/admin/compliance/ComplianceCalendarUpload';
-import DSCManagement from '@/components/admin/dsc/DSCManagement';
-import AnnouncementsManagement from '@/components/admin/announcements/AnnouncementsManagement';
-import SystemSettings from '@/components/admin/systemSettings/SystemSettings';
+import AdminDashboardStats from '@/components/admin/AdminDashboardStats';
+import AdminManagementCards from '@/components/admin/AdminManagementCards';
+import AdminRecentActivity from '@/components/admin/AdminRecentActivity';
+import AdminTaskOverview from '@/components/admin/AdminTaskOverview';
+import UserManagement from '@/components/admin/UserManagement';
+import ClientManagement from '@/components/admin/ClientManagement';
+import ClientImport from '@/components/admin/ClientImport';
+import ClientBulkEdit from '@/components/admin/ClientBulkEdit';
+import AddClientModal from '@/components/admin/AddClientModal';
+import AdminTasksList from '@/components/admin/AdminTasksList';
+import TaskCategoryManagement from '@/components/admin/TaskCategoryManagement';
+import ComplianceCalendarUpload from '@/components/admin/ComplianceCalendarUpload';
+import DSCManagement from '@/components/admin/DSCManagement';
+import AnnouncementsManagement from '@/components/admin/AnnouncementsManagement';
+import SystemSettings from '@/components/admin/SystemSettings';
 import TaskCalendar from '@/components/admin/TaskCalendar';
 
 const AdminDashboard: React.FC = () => {

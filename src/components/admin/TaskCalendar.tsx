@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 import { useTaskCalendar } from '@/hooks/useTaskCalendar';
 import { useTaskCalendarLogic } from '@/hooks/useTaskCalendarLogic';
+import { CalendarTask, CalendarCompliance } from '@/services/calendarService';
 import TaskCalendarGrid from './calendar/TaskCalendarGrid';
 import TaskCalendarHeader from './calendar/TaskCalendarHeader';
 import TaskEventModal from './calendar/TaskEventModal';
@@ -21,7 +22,7 @@ const TaskCalendar: React.FC = () => {
     handleTaskClick
   } = useTaskCalendarLogic();
 
-  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarTask | CalendarCompliance | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
@@ -30,7 +31,7 @@ const TaskCalendar: React.FC = () => {
     fetchCalendarData(startDate, endDate);
   }, [currentDate, fetchCalendarData]);
 
-  const handleEventClick = (event: any) => {
+  const handleEventClick = (event: CalendarTask | CalendarCompliance) => {
     setSelectedEvent(event);
     setIsModalOpen(true);
   };

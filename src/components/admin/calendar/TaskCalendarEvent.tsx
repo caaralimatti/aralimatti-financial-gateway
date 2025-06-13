@@ -1,10 +1,9 @@
 
 import React from 'react';
-import { CalendarTask } from '@/services/calendarService';
-import { Badge } from '@/components/ui/badge';
+import { CalendarTask, CalendarCompliance } from '@/services/calendarService';
 
 interface TaskCalendarEventProps {
-  event: CalendarTask;
+  event: CalendarTask | CalendarCompliance;
   onClick: () => void;
 }
 
@@ -35,11 +34,11 @@ const TaskCalendarEvent: React.FC<TaskCalendarEventProps> = ({ event, onClick })
       onClick={onClick}
     >
       <div className="font-medium truncate">
-        {isCompliance ? (event as any).compliance_type : event.title}
+        {isCompliance ? (event as CalendarCompliance).compliance_type : (event as CalendarTask).title}
       </div>
-      {event.client_name && (
+      {(event as CalendarTask).client_name && (
         <div className="text-xs opacity-75 truncate">
-          {event.client_name}
+          {(event as CalendarTask).client_name}
         </div>
       )}
     </div>
