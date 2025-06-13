@@ -66,8 +66,6 @@ const AdminTasksList = () => {
 
       <AdminTasksGrid
         tasks={filteredTasks}
-        onDeleteTask={handleDeleteTask}
-        deleteLoading={deleteLoading}
         onCreateTask={handleCreateTask}
       />
 
