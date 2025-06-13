@@ -13,13 +13,15 @@ import {
   SidebarGroupLabel,
   useSidebar
 } from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
 import { 
   LayoutDashboard, 
   FileText, 
   CheckSquare, 
   Calendar,
   User,
-  Award
+  Award,
+  LogOut
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -30,7 +32,15 @@ interface ClientSidebarProps {
 
 const ClientSidebar: React.FC<ClientSidebarProps> = ({ activeTab, setActiveTab }) => {
   const { state } = useSidebar();
-  const { profile } = useAuth();
+  const { profile, signOut } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
 
   const sidebarItems = [
     { id: 'dashboard', title: 'Dashboard', icon: LayoutDashboard },
@@ -84,9 +94,30 @@ const ClientSidebar: React.FC<ClientSidebarProps> = ({ activeTab, setActiveTab }
       </SidebarContent>
 
       <SidebarFooter className="p-4">
-        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-          <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-          {state === 'expanded' && <span className="truncate">Online</span>}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+            {state === 'expanded' && <span className="truncate">Online</span>}
+          </div>
+          {state === 'expanded' && (
+            <Button
+              variant="ghost"
+              onClick={handleLogout}
+              className="w-full justify-start text-sm"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
+          )}
+          {state === 'collapsed' && (
+            <SidebarMenuButton 
+              onClick={handleLogout}
+              tooltip="Logout"
+              className="w-full justify-center"
+            >
+              <LogOut className="h-4 w-4" />
+            </SidebarMenuButton>
+          )}
         </div>
       </SidebarFooter>
     </Sidebar>
