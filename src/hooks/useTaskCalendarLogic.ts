@@ -58,7 +58,7 @@ export const useTaskCalendarLogic = () => {
 
   const handleTaskClick = (taskId: string) => {
     console.log('Task clicked:', taskId);
-    // This function can be implemented to open a task detail modal or navigate to task details
+    // This function is called when a task is clicked - the actual modal handling is done in the TaskCalendar component
   };
 
   return {

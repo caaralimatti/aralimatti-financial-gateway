@@ -1,64 +1,48 @@
 
 import React from 'react';
-import { CalendarTask } from '@/services/calendarService';
+import { ClientCalendarData } from '@/types/clientCalendar';
 import TaskCalendarDay from './TaskCalendarDay';
 
 interface TaskCalendarGridProps {
   days: (Date | null)[];
-  calendarData: { [date: string]: CalendarTask[] };
+  calendarData: ClientCalendarData;
   expandedDays: Set<string>;
   onToggleExpansion: (dateString: string) => void;
   onTaskClick: (taskId: string) => void;
 }
 
-const TaskCalendarGrid = ({
+const TaskCalendarGrid: React.FC<TaskCalendarGridProps> = ({
   days,
   calendarData,
   expandedDays,
   onToggleExpansion,
   onTaskClick
-}: TaskCalendarGridProps) => {
+}) => {
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  const getTasksForDate = (date: Date | null): CalendarTask[] => {
-    if (!date) return [];
-    const dateString = date.toISOString().split('T')[0];
-    return calendarData[dateString] || [];
-  };
-
-  const isToday = (date: Date | null) => {
-    if (!date) return false;
-    const today = new Date();
-    return date.toDateString() === today.toDateString();
-  };
-
   return (
-    <div className="grid grid-cols-7 gap-1">
+    <div className="grid grid-cols-7 gap-0 border rounded-lg overflow-hidden">
       {/* Week day headers */}
-      {weekDays.map(day => (
-        <div key={day} className="p-3 text-center text-sm font-medium text-gray-600 dark:text-gray-400 border-b">
+      {weekDays.map((day) => (
+        <div
+          key={day}
+          className="p-3 text-center font-medium bg-gray-50 dark:bg-gray-800 border-b border-r text-gray-700 dark:text-gray-300"
+        >
           {day}
         </div>
       ))}
-      
+
       {/* Calendar days */}
-      {days.map((date, index) => {
-        const tasksForDate = getTasksForDate(date);
-        const dateString = date?.toISOString().split('T')[0] || '';
-        const isExpanded = expandedDays.has(dateString);
-        
-        return (
-          <TaskCalendarDay
-            key={index}
-            date={date}
-            tasks={tasksForDate}
-            isToday={isToday(date)}
-            isExpanded={isExpanded}
-            onToggleExpansion={onToggleExpansion}
-            onTaskClick={onTaskClick}
-          />
-        );
-      })}
+      {days.map((day, index) => (
+        <TaskCalendarDay
+          key={index}
+          day={day}
+          calendarData={calendarData}
+          expandedDays={expandedDays}
+          onToggleExpansion={onToggleExpansion}
+          onTaskClick={onTaskClick}
+        />
+      ))}
     </div>
   );
 };
