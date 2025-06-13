@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminDashboardStats from '@/components/admin/AdminDashboardStats';
 import AdminManagementCards from '@/components/admin/AdminManagementCards';
@@ -84,12 +85,14 @@ const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-background">
-      <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-      <div className="flex-1 p-6 overflow-y-auto">
-        {renderContent()}
+    <SidebarProvider>
+      <div className="flex h-screen bg-background w-full">
+        <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+        <div className="flex-1 p-6 overflow-y-auto">
+          {renderContent()}
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
