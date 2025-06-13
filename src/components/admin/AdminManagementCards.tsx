@@ -25,7 +25,7 @@ const AdminManagementCards = ({ showAddClientModal, setShowAddClientModal, setAc
               <p className="text-sm text-gray-600">Manage all users and roles</p>
             </div>
           </div>
-          <Button className="w-full" onClick={() => setActiveTab('user-management')}>
+          <Button className="w-full" onClick={() => setActiveTab('users')}>
             Manage Users
           </Button>
         </CardContent>
@@ -42,7 +42,7 @@ const AdminManagementCards = ({ showAddClientModal, setShowAddClientModal, setAc
               <p className="text-sm text-gray-600">Configure system preferences</p>
             </div>
           </div>
-          <Button className="w-full" variant="outline" onClick={() => setActiveTab('system-settings')}>
+          <Button className="w-full" variant="outline" onClick={() => setActiveTab('settings')}>
             System Settings
           </Button>
         </CardContent>
@@ -76,9 +76,9 @@ const AdminManagementCards = ({ showAddClientModal, setShowAddClientModal, setAc
               <p className="text-sm text-gray-600">Add and manage clients</p>
             </div>
           </div>
-          <Button className="w-full" onClick={() => setShowAddClientModal(true)}>
+          <Button className="w-full" onClick={() => setActiveTab('clients')}>
             <Plus className="h-4 w-4 mr-2" />
-            Add Client
+            Manage Clients
           </Button>
         </CardContent>
       </Card>
