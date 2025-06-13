@@ -40,27 +40,6 @@ export const authService = {
     }
   },
 
-  async updateLastLoginTimestamp(userId: string) {
-    console.log('🔥 Updating last login timestamp for user:', userId);
-    
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ last_login_at: new Date().toISOString() })
-        .eq('id', userId);
-
-      if (error) {
-        console.error('🔥 Error updating last login timestamp:', error);
-        throw error;
-      }
-
-      console.log('🔥 Last login timestamp updated successfully');
-    } catch (error) {
-      console.error('🔥 Error in updateLastLoginTimestamp:', error);
-      throw error;
-    }
-  },
-
   async createAuthUser(userData: CreateUserData) {
     console.log('🔥 Creating auth user:', userData.email);
     

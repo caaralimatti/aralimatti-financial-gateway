@@ -37,50 +37,6 @@ export type Database = {
           timestamp?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "admin_activity_log_user_id_profiles_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      announcements: {
-        Row: {
-          content: string
-          created_at: string
-          expires_at: string | null
-          id: string
-          is_active: boolean
-          priority: string
-          published_at: string
-          target_audience: string
-          title: string
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          expires_at?: string | null
-          id?: string
-          is_active?: boolean
-          priority?: string
-          published_at?: string
-          target_audience?: string
-          title: string
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          expires_at?: string | null
-          id?: string
-          is_active?: boolean
-          priority?: string
-          published_at?: string
-          target_audience?: string
-          title?: string
-        }
         Relationships: []
       }
       client_attachments: {
@@ -438,71 +394,6 @@ export type Database = {
           },
         ]
       }
-      dsc_certificates: {
-        Row: {
-          certificate_holder_profile_id: string
-          contact_person_name: string | null
-          contact_person_phone: string | null
-          created_at: string
-          given_date: string | null
-          id: string
-          issuing_authority: string | null
-          pin: string | null
-          received_date: string
-          remarks: string | null
-          serial_number: string | null
-          status: string
-          storage_location: string | null
-          updated_at: string
-          valid_from: string
-          valid_until: string
-        }
-        Insert: {
-          certificate_holder_profile_id: string
-          contact_person_name?: string | null
-          contact_person_phone?: string | null
-          created_at?: string
-          given_date?: string | null
-          id?: string
-          issuing_authority?: string | null
-          pin?: string | null
-          received_date: string
-          remarks?: string | null
-          serial_number?: string | null
-          status?: string
-          storage_location?: string | null
-          updated_at?: string
-          valid_from: string
-          valid_until: string
-        }
-        Update: {
-          certificate_holder_profile_id?: string
-          contact_person_name?: string | null
-          contact_person_phone?: string | null
-          created_at?: string
-          given_date?: string | null
-          id?: string
-          issuing_authority?: string | null
-          pin?: string | null
-          received_date?: string
-          remarks?: string | null
-          serial_number?: string | null
-          status?: string
-          storage_location?: string | null
-          updated_at?: string
-          valid_from?: string
-          valid_until?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "dsc_certificates_certificate_holder_profile_id_fkey"
-            columns: ["certificate_holder_profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       gst_clients: {
         Row: {
           client_name: string
@@ -549,33 +440,27 @@ export type Database = {
         Row: {
           created_at: string
           email: string
-          enable_dsc_tab: boolean
           full_name: string | null
           id: string
           is_active: boolean
-          last_login_at: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
         }
         Insert: {
           created_at?: string
           email: string
-          enable_dsc_tab?: boolean
           full_name?: string | null
           id: string
           is_active?: boolean
-          last_login_at?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
         Update: {
           created_at?: string
           email?: string
-          enable_dsc_tab?: boolean
           full_name?: string | null
           id?: string
           is_active?: boolean
-          last_login_at?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }

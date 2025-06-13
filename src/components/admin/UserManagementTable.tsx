@@ -37,7 +37,6 @@ const UserManagementTable: React.FC<UserManagementTableProps> = ({
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Last Login</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -53,7 +52,7 @@ const UserManagementTable: React.FC<UserManagementTableProps> = ({
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
+                  <TableCell colSpan={5} className="text-center py-8">
                     No users found matching your criteria.
                   </TableCell>
                 </TableRow>

@@ -19,7 +19,6 @@ import GSTReports from "./pages/GSTReports";
 import TasksPage from "./pages/TasksPage";
 import Unauthorized from "./pages/Unauthorized";
 import ResetPassword from "./pages/ResetPassword";
-import MaintenancePage from "./pages/MaintenancePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -47,7 +46,6 @@ const App = () => {
               <Route path="/auth" element={<Auth />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
-              <Route path="/maintenance" element={<MaintenancePage />} />
               
               {/* Protected Routes */}
               <Route 

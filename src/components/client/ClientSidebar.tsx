@@ -8,20 +8,28 @@ import {
   SidebarMenuItem, 
   SidebarMenuButton,
   SidebarFooter,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   useSidebar
 } from '@/components/ui/sidebar';
 import { 
   LayoutDashboard, 
   FileText, 
-  CheckSquare, 
-  Calendar,
-  User,
-  Award
+  Calculator,
+  Receipt,
+  CreditCard,
+  ChevronRight,
+  Eye,
+  Upload,
+  History,
+  CheckSquare,
+  ListTodo,
+  Clock
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface ClientSidebarProps {
   activeTab: string;
@@ -30,39 +38,42 @@ interface ClientSidebarProps {
 
 const ClientSidebar: React.FC<ClientSidebarProps> = ({ activeTab, setActiveTab }) => {
   const { state } = useSidebar();
-  const { profile } = useAuth();
+  const [incomeTaxOpen, setIncomeTaxOpen] = React.useState(false);
+  const [tasksOpen, setTasksOpen] = React.useState(false);
 
   const sidebarItems = [
-    { id: 'dashboard', title: 'Dashboard', icon: LayoutDashboard },
+    { id: 'overview', title: 'Overview', icon: LayoutDashboard },
     { id: 'documents', title: 'Documents', icon: FileText },
-    { id: 'tasks', title: 'My Tasks', icon: CheckSquare },
-    { id: 'calendar', title: 'Calendar', icon: Calendar },
-    { id: 'profile', title: 'Profile', icon: User },
+    { id: 'gst-registration', title: 'GST', icon: Receipt },
+    { id: 'billing', title: 'Billing', icon: CreditCard },
   ];
 
-  // Conditionally add DSC tab if enabled for this client
-  if (profile?.enable_dsc_tab) {
-    sidebarItems.push({ id: 'dsc', title: 'DSC', icon: Award });
-  }
+  const incomeTaxSubItems = [
+    { id: 'income-tax-quick-glance', title: 'Quick Glance', icon: Eye },
+    { id: 'file-itr', title: 'File ITR', icon: Upload },
+    { id: 'past-itr', title: 'Past ITR Filings', icon: History },
+  ];
+
+  const taskSubItems = [
+    { id: 'my-tasks', title: 'My Tasks', icon: ListTodo },
+    { id: 'task-calendar', title: 'Task Calendar', icon: Clock },
+  ];
 
   return (
-    <Sidebar className="border-r border-gray-200 dark:border-gray-700" collapsible="icon">
+    <Sidebar collapsible="icon" className="border-r border-gray-200 dark:border-gray-700">
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
-            <User className="text-white text-sm font-bold h-4 w-4" />
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <span className="text-white text-sm font-bold">CA</span>
           </div>
-          {state === 'expanded' && (
-            <span className="font-semibold text-gray-900 dark:text-white whitespace-nowrap">
-              Client Portal
-            </span>
+          {state === "expanded" && (
+            <span className="font-semibold text-gray-900 dark:text-white">Client Portal</span>
           )}
         </div>
       </SidebarHeader>
       
       <SidebarContent className="px-2">
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {sidebarItems.map((item) => (
@@ -71,13 +82,80 @@ const ClientSidebar: React.FC<ClientSidebarProps> = ({ activeTab, setActiveTab }
                     isActive={activeTab === item.id}
                     onClick={() => setActiveTab(item.id)}
                     className="w-full justify-start"
-                    tooltip={state === 'collapsed' ? item.title : undefined}
                   >
-                    <item.icon className="h-4 w-4 flex-shrink-0" />
-                    <span className="truncate">{item.title}</span>
+                    <item.icon className="h-4 w-4" />
+                    {state === "expanded" && <span>{item.title}</span>}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              
+              {/* Income Tax with submenu */}
+              <SidebarMenuItem>
+                <Collapsible open={incomeTaxOpen} onOpenChange={setIncomeTaxOpen}>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton className="w-full justify-start">
+                      <Calculator className="h-4 w-4" />
+                      {state === "expanded" && (
+                        <>
+                          <span>Income Tax</span>
+                          <ChevronRight className={`h-4 w-4 ml-auto transition-transform ${incomeTaxOpen ? 'rotate-90' : ''}`} />
+                        </>
+                      )}
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  {state === "expanded" && (
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {incomeTaxSubItems.map((subItem) => (
+                          <SidebarMenuSubItem key={subItem.id}>
+                            <SidebarMenuSubButton
+                              isActive={activeTab === subItem.id}
+                              onClick={() => setActiveTab(subItem.id)}
+                            >
+                              <subItem.icon className="h-4 w-4" />
+                              <span>{subItem.title}</span>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  )}
+                </Collapsible>
+              </SidebarMenuItem>
+
+              {/* Tasks with submenu */}
+              <SidebarMenuItem>
+                <Collapsible open={tasksOpen} onOpenChange={setTasksOpen}>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton className="w-full justify-start">
+                      <CheckSquare className="h-4 w-4" />
+                      {state === "expanded" && (
+                        <>
+                          <span>Tasks</span>
+                          <ChevronRight className={`h-4 w-4 ml-auto transition-transform ${tasksOpen ? 'rotate-90' : ''}`} />
+                        </>
+                      )}
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  {state === "expanded" && (
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {taskSubItems.map((subItem) => (
+                          <SidebarMenuSubItem key={subItem.id}>
+                            <SidebarMenuSubButton
+                              isActive={activeTab === subItem.id}
+                              onClick={() => setActiveTab(subItem.id)}
+                            >
+                              <subItem.icon className="h-4 w-4" />
+                              <span>{subItem.title}</span>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  )}
+                </Collapsible>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -85,8 +163,8 @@ const ClientSidebar: React.FC<ClientSidebarProps> = ({ activeTab, setActiveTab }
 
       <SidebarFooter className="p-4">
         <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-          <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-          {state === 'expanded' && <span className="truncate">Online</span>}
+          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+          {state === "expanded" && <span>Online</span>}
         </div>
       </SidebarFooter>
     </Sidebar>
