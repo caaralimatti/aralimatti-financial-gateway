@@ -1,0 +1,53 @@
+
+import React from 'react';
+import { CalendarData } from '@/services/calendarService';
+import TaskCalendarDay from './TaskCalendarDay';
+
+interface TaskCalendarGridProps {
+  days: (Date | null)[];
+  currentDate: Date;
+  calendarData: CalendarData;
+  expandedDays: Set<string>;
+  onToggleDayExpansion: (dateString: string) => void;
+  onEventClick: (event: any) => void;
+}
+
+const TaskCalendarGrid: React.FC<TaskCalendarGridProps> = ({
+  days,
+  currentDate,
+  calendarData,
+  expandedDays,
+  onToggleDayExpansion,
+  onEventClick
+}) => {
+  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  return (
+    <div className="grid grid-cols-7 gap-0 border">
+      {/* Week day headers */}
+      {weekDays.map((day) => (
+        <div
+          key={day}
+          className="p-3 text-center font-medium bg-gray-50 border-b border-r"
+        >
+          {day}
+        </div>
+      ))}
+
+      {/* Calendar days */}
+      {days.map((day, index) => (
+        <TaskCalendarDay
+          key={index}
+          day={day}
+          currentDate={currentDate}
+          calendarData={calendarData}
+          expandedDays={expandedDays}
+          onToggleDayExpansion={onToggleDayExpansion}
+          onEventClick={onEventClick}
+        />
+      ))}
+    </div>
+  );
+};
+
+export default TaskCalendarGrid;

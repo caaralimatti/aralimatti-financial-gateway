@@ -1,83 +1,72 @@
-
 import React, { useState } from 'react';
-import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import UserManagement from '@/components/admin/UserManagement';
-import SystemSettings from '@/components/admin/SystemSettings';
-import DSCManagement from '@/components/admin/DSCManagement';
-import AnnouncementsManagement from '@/components/admin/AnnouncementsManagement';
-import AdminDashboardStats from '@/components/admin/AdminDashboardStats';
-import AdminRecentActivity from '@/components/admin/AdminRecentActivity';
-import AdminManagementCards from '@/components/admin/AdminManagementCards';
-import ClientManagement from '@/components/admin/ClientManagement';
-import AdminTasksList from '@/components/admin/AdminTasksList';
-import AdminTaskOverview from '@/components/admin/AdminTaskOverview';
-import TaskCategoryManagement from '@/components/admin/TaskCategoryManagement';
-import ComplianceCalendarUpload from '@/components/admin/ComplianceCalendarUpload';
+import AdminDashboardStats from '@/components/admin/dashboard/AdminDashboardStats';
+import AdminManagementCards from '@/components/admin/dashboard/AdminManagementCards';
+import AdminRecentActivity from '@/components/admin/dashboard/AdminRecentActivity';
+import AdminTaskOverview from '@/components/admin/dashboard/AdminTaskOverview';
+import UserManagement from '@/components/admin/userManagement/UserManagement';
+import ClientManagement from '@/components/admin/clientManagement/ClientManagement';
+import ClientImport from '@/components/admin/clientManagement/ClientImport';
+import ClientBulkEdit from '@/components/admin/clientManagement/ClientBulkEdit';
+import AddClientModal from '@/components/admin/clientManagement/AddClientModal';
+import AdminTasksList from '@/components/admin/tasks/AdminTasksList';
+import TaskCategoryManagement from '@/components/admin/tasks/TaskCategoryManagement';
+import ComplianceCalendarUpload from '@/components/admin/compliance/ComplianceCalendarUpload';
+import DSCManagement from '@/components/admin/dsc/DSCManagement';
+import AnnouncementsManagement from '@/components/admin/announcements/AnnouncementsManagement';
+import SystemSettings from '@/components/admin/systemSettings/SystemSettings';
+import TaskCalendar from '@/components/admin/TaskCalendar';
 
-const AdminDashboard = () => {
+const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [showAddClientModal, setShowAddClientModal] = useState(false);
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'users':
-        return <UserManagement />;
-      case 'announcements':
-        return <AnnouncementsManagement />;
-      case 'dsc':
-        return <DSCManagement />;
-      case 'settings':
+      case 'dashboard':
         return (
           <div className="space-y-6">
-            <SystemSettings />
-            <ComplianceCalendarUpload />
+            <AdminDashboardStats />
+            <AdminManagementCards setActiveTab={setActiveTab} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <AdminRecentActivity />
+              <AdminTaskOverview />
+            </div>
           </div>
         );
-      case 'add-client':
-        return <ClientManagement activeTab="clients-add" />;
+      case 'users':
+        return <UserManagement />;
       case 'clients':
-        return <ClientManagement activeTab="clients-list" />;
+        return <ClientManagement />;
+      case 'add-client':
+        return <AddClientModal isOpen={true} onClose={() => setActiveTab('clients')} />;
       case 'import-clients':
-        return <ClientManagement activeTab="clients-import" />;
+        return <ClientImport />;
       case 'bulk-edit':
-        return <ClientManagement activeTab="clients-bulk-edit" />;
+        return <ClientBulkEdit />;
       case 'task-overview':
         return <AdminTaskOverview />;
       case 'tasks':
         return <AdminTasksList />;
       case 'task-calendar':
-        return (
-          <div className="space-y-6">
-            <h1 className="text-3xl font-bold">Task Calendar</h1>
-            <p className="text-gray-600">Task calendar view with compliance deadlines integration will be implemented here.</p>
-          </div>
-        );
+        return <TaskCalendar />;
       case 'categories':
         return <TaskCategoryManagement />;
       case 'task-settings':
-        return (
-          <div className="space-y-6">
-            <h1 className="text-3xl font-bold">Task Settings</h1>
-            <ComplianceCalendarUpload />
-          </div>
-        );
+        return <ComplianceCalendarUpload />;
+      case 'dsc':
+        return <DSCManagement />;
+      case 'announcements':
+        return <AnnouncementsManagement />;
+      case 'settings':
+        return <SystemSettings />;
       default:
         return (
           <div className="space-y-6">
-            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-            <AdminManagementCards 
-              showAddClientModal={showAddClientModal}
-              setShowAddClientModal={setShowAddClientModal}
-              setActiveTab={setActiveTab}
-            />
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <AdminDashboardStats />
-              </div>
-              <div className="lg:col-span-1">
-                <AdminRecentActivity />
-              </div>
+            <AdminDashboardStats />
+            <AdminManagementCards setActiveTab={setActiveTab} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <AdminRecentActivity />
+              <AdminTaskOverview />
             </div>
           </div>
         );
@@ -85,24 +74,12 @@ const AdminDashboard = () => {
   };
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-        <SidebarInset className="flex-1">
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-            <SidebarTrigger className="-ml-1" />
-            <div className="ml-auto flex items-center space-x-4">
-              <span className="text-sm text-gray-600">
-                Welcome back, Admin
-              </span>
-            </div>
-          </header>
-          <main className="flex-1 space-y-4 p-4 md:p-8">
-            {renderContent()}
-          </main>
-        </SidebarInset>
+    <div className="flex h-screen bg-background">
+      <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <div className="flex-1 p-6 overflow-y-auto">
+        {renderContent()}
       </div>
-    </SidebarProvider>
+    </div>
   );
 };
 
