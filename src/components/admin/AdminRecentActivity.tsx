@@ -6,7 +6,7 @@ import { Activity, User } from 'lucide-react';
 import { useAdminActivity } from '@/hooks/useAdminActivity';
 
 const AdminRecentActivity = () => {
-  const { data: activities = [], isLoading } = useAdminActivity();
+  const { activities = [], isLoading } = useAdminActivity();
 
   if (isLoading) {
     return (

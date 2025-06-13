@@ -3,10 +3,10 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Megaphone, Calendar } from 'lucide-react';
-import { useAnnouncements } from '@/hooks/useAnnouncements';
+import { useActiveAnnouncements } from '@/hooks/useAnnouncements';
 
 const StaffAnnouncements = () => {
-  const { data: announcements = [], isLoading } = useAnnouncements('staff_portal');
+  const { data: announcements = [], isLoading } = useActiveAnnouncements('staff_portal');
 
   if (isLoading) {
     return (

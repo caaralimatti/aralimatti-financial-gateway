@@ -8,17 +8,18 @@ import AdminTaskCard from './AdminTaskCard';
 
 interface AdminTasksGridProps {
   tasks: Task[];
-  onDeleteTask: (taskId: string, taskTitle: string) => void;
-  deleteLoading: string | null;
   onCreateTask: () => void;
 }
 
 const AdminTasksGrid = ({ 
   tasks, 
-  onDeleteTask, 
-  deleteLoading,
   onCreateTask 
 }: AdminTasksGridProps) => {
+  const handleTaskUpdated = () => {
+    // This will be handled by the parent component's refetch
+    window.location.reload();
+  };
+
   if (tasks.length === 0) {
     return (
       <Card>
@@ -45,8 +46,7 @@ const AdminTasksGrid = ({
         <AdminTaskCard
           key={task.id}
           task={task}
-          onDelete={onDeleteTask}
-          deleteLoading={deleteLoading}
+          onTaskUpdated={handleTaskUpdated}
         />
       ))}
     </div>

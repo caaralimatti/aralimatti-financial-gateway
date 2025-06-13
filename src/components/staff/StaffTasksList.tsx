@@ -10,13 +10,13 @@ import TaskMarkCompleted from '@/components/tasks/TaskMarkCompleted';
 
 const StaffTasksList = () => {
   const { profile } = useAuth();
-  const { data: tasks = [], isLoading, refetch } = useTasks();
+  const { tasks = [], loading, refetch } = useTasks();
 
   const assignedTasks = tasks.filter(task => 
     task.assigned_to_profile_id === profile?.id
   );
 
-  if (isLoading) {
+  if (loading) {
     return (
       <Card>
         <CardHeader>
