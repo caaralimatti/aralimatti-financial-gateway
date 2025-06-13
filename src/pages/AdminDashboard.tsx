@@ -34,14 +34,32 @@ const AdminDashboard = () => {
             <ComplianceCalendarUpload />
           </div>
         );
+      case 'add-client':
+        return <ClientManagement activeTab="clients-add" />;
       case 'clients':
         return <ClientManagement activeTab="clients-list" />;
+      case 'import-clients':
+        return <ClientManagement activeTab="clients-import" />;
+      case 'bulk-edit':
+        return <ClientManagement activeTab="clients-bulk-edit" />;
+      case 'task-overview':
+        return <AdminTaskOverview />;
       case 'tasks':
+        return <AdminTasksList />;
+      case 'task-calendar':
         return (
           <div className="space-y-6">
-            <AdminTaskOverview />
-            <AdminTasksList />
-            <TaskCategoryManagement />
+            <h1 className="text-3xl font-bold">Task Calendar</h1>
+            <p className="text-gray-600">Task calendar view with compliance deadlines integration will be implemented here.</p>
+          </div>
+        );
+      case 'categories':
+        return <TaskCategoryManagement />;
+      case 'task-settings':
+        return (
+          <div className="space-y-6">
+            <h1 className="text-3xl font-bold">Task Settings</h1>
+            <ComplianceCalendarUpload />
           </div>
         );
       default:
