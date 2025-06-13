@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useTaskCalendar } from '@/hooks/useTaskCalendar';
 import { useTaskCalendarLogic } from '@/hooks/useTaskCalendarLogic';
+import { ClientCalendarData, ClientCalendarTask } from '@/types/clientCalendar';
 import TaskCalendarHeader from './calendar/TaskCalendarHeader';
 import TaskCalendarGrid from './calendar/TaskCalendarGrid';
 import TaskCalendarLegend from './calendar/TaskCalendarLegend';
@@ -19,6 +20,21 @@ const TaskCalendar = () => {
     toggleDayExpansion,
     handleTaskClick
   } = useTaskCalendarLogic();
+
+  // Convert admin calendar data to client calendar data (tasks only)
+  const clientCalendarData: ClientCalendarData = React.useMemo(() => {
+    const clientData: ClientCalendarData = {};
+    
+    Object.entries(calendarData).forEach(([date, events]) => {
+      // Filter only task events (not compliance deadlines) for client view
+      const taskEvents = events.filter(event => 'title' in event) as ClientCalendarTask[];
+      if (taskEvents.length > 0) {
+        clientData[date] = taskEvents;
+      }
+    });
+    
+    return clientData;
+  }, [calendarData]);
 
   // Fetch data when component mounts or month changes
   useEffect(() => {
@@ -82,7 +98,7 @@ const TaskCalendar = () => {
           ) : (
             <TaskCalendarGrid
               days={days}
-              calendarData={calendarData}
+              calendarData={clientCalendarData}
               expandedDays={expandedDays}
               onToggleExpansion={toggleDayExpansion}
               onTaskClick={handleTaskClick}

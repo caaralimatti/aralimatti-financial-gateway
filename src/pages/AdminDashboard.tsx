@@ -20,6 +20,7 @@ import TaskCalendar from '@/components/admin/TaskCalendar';
 
 const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [showAddClientModal, setShowAddClientModal] = useState(false);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -27,7 +28,11 @@ const AdminDashboard: React.FC = () => {
         return (
           <div className="space-y-6">
             <AdminDashboardStats />
-            <AdminManagementCards setActiveTab={setActiveTab} />
+            <AdminManagementCards 
+              setActiveTab={setActiveTab}
+              showAddClientModal={showAddClientModal}
+              setShowAddClientModal={setShowAddClientModal}
+            />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <AdminRecentActivity />
               <AdminTaskOverview />
@@ -37,9 +42,9 @@ const AdminDashboard: React.FC = () => {
       case 'users':
         return <UserManagement />;
       case 'clients':
-        return <ClientManagement />;
+        return <ClientManagement activeTab={activeTab} />;
       case 'add-client':
-        return <AddClientModal isOpen={true} onClose={() => setActiveTab('clients')} />;
+        return <AddClientModal open={true} onOpenChange={() => setActiveTab('clients')} />;
       case 'import-clients':
         return <ClientImport />;
       case 'bulk-edit':
@@ -64,7 +69,11 @@ const AdminDashboard: React.FC = () => {
         return (
           <div className="space-y-6">
             <AdminDashboardStats />
-            <AdminManagementCards setActiveTab={setActiveTab} />
+            <AdminManagementCards 
+              setActiveTab={setActiveTab}
+              showAddClientModal={showAddClientModal}
+              setShowAddClientModal={setShowAddClientModal}
+            />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <AdminRecentActivity />
               <AdminTaskOverview />
