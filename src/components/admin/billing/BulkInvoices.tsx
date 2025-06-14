@@ -8,9 +8,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Download, Upload, FileSpreadsheet, AlertCircle, CheckCircle } from 'lucide-react';
+import { Download, Upload, FileSpreadsheet, AlertCircle, CheckCircle, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { parseCSV } from '@/utils/csvParser';
+import AddClientModal from '@/components/admin/AddClientModal';
 
 const BulkInvoices: React.FC = () => {
   const queryClient = useQueryClient();
@@ -18,6 +19,8 @@ const BulkInvoices: React.FC = () => {
   const [uploadedData, setUploadedData] = useState<any[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [validationResults, setValidationResults] = useState<any[]>([]);
+  const [showAddClientModal, setShowAddClientModal] = useState(false);
+  const [selectedClientName, setSelectedClientName] = useState<string>('');
 
   // Get current user profile
   const { data: currentProfile } = useQuery({
@@ -151,6 +154,25 @@ XYZ Ltd,2024-01-16,2024-02-16,Software Development,1,5000,Project,900,500`;
     });
 
     setValidationResults(results);
+  };
+
+  const handleCreateClient = (clientName: string) => {
+    setSelectedClientName(clientName);
+    setShowAddClientModal(true);
+  };
+
+  const handleClientCreated = () => {
+    setShowAddClientModal(false);
+    setSelectedClientName('');
+    // Refresh clients data and re-validate
+    queryClient.invalidateQueries({ queryKey: ['clients-bulk'] });
+    // Re-validate data after a short delay to allow for client data to be updated
+    setTimeout(() => {
+      if (uploadedData.length > 0) {
+        validateData(uploadedData);
+      }
+    }, 500);
+    toast.success('Client created successfully. Please re-validate your data.');
   };
 
   const bulkImportMutation = useMutation({
@@ -346,6 +368,7 @@ XYZ Ltd,2024-01-16,2024-02-16,Software Development,1,5000,Project,900,500`;
                     <TableHead>Amount</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Errors</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -371,6 +394,19 @@ XYZ Ltd,2024-01-16,2024-02-16,Software Development,1,5000,Project,900,500`;
                           </span>
                         )}
                       </TableCell>
+                      <TableCell>
+                        {result.errors.includes('Client not found') && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleCreateClient(result.row['Client Name'])}
+                            className="h-8 px-2"
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Create Client
+                          </Button>
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -390,6 +426,16 @@ XYZ Ltd,2024-01-16,2024-02-16,Software Development,1,5000,Project,900,500`;
           </CardContent>
         </Card>
       )}
+
+      {/* Add Client Modal */}
+      <AddClientModal
+        open={showAddClientModal}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleClientCreated();
+          }
+        }}
+      />
     </div>
   );
 };
