@@ -2,10 +2,12 @@
 import React, { useState } from 'react';
 import { useTasksListFilters } from '@/hooks/useTasksListFilters';
 import { getMockTasks } from '@/services/mockTasksService';
+import { Task } from '@/types/task';
 import TasksListHeader from './TasksListHeader';
 import TasksListEmpty from './TasksListEmpty';
 import TasksListGrid from './TasksListGrid';
 import TasksListView from './TasksListView';
+import TaskDetailsModal from './TaskDetailsModal';
 
 interface TasksListProps {
   filters: {
@@ -22,6 +24,8 @@ interface TasksListProps {
 const TasksList: React.FC<TasksListProps> = ({ filters, searchQuery, viewMode }) => {
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
   const [tasks, setTasks] = useState(getMockTasks());
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const { filteredTasks } = useTasksListFilters(tasks, filters, searchQuery);
 
   const handleSelect = (taskId: string, selected: boolean) => {
@@ -37,11 +41,16 @@ const TasksList: React.FC<TasksListProps> = ({ filters, searchQuery, viewMode })
   };
 
   const handleViewDetails = (taskId: string) => {
-    window.alert(`View details for task: ${taskId}`);
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      setSelectedTask(task);
+      setShowDetailsModal(true);
+    }
   };
 
   // Placeholder for bulk action handler (fixes lint)
   const handleBulkAction = () => {};
+  
   if (filteredTasks.length === 0) {
     return <TasksListEmpty />;
   }
@@ -70,6 +79,12 @@ const TasksList: React.FC<TasksListProps> = ({ filters, searchQuery, viewMode })
           onSelect={handleSelect}
         />
       )}
+
+      <TaskDetailsModal
+        task={selectedTask}
+        open={showDetailsModal}
+        onOpenChange={setShowDetailsModal}
+      />
     </div>
   );
 };

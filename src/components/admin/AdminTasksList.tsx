@@ -3,15 +3,19 @@ import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { useTasks } from '@/hooks/useTasks';
 import { useAdminTasksFilters } from '@/hooks/useAdminTasksFilters';
+import { Task } from '@/types/task';
 import AdminTasksHeader from './tasks/AdminTasksHeader';
 import AdminTasksFilters from './tasks/AdminTasksFilters';
 import AdminTasksGrid from './tasks/AdminTasksGrid';
 import AddTaskModal from './AddTaskModal';
+import TaskDetailsModal from '../tasks/TaskDetailsModal';
 
 const AdminTasksList = () => {
   const { tasks, loading, refetch, deleteTask } = useTasks();
   const [showAddModal, setShowAddModal] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   const {
     searchTerm,
@@ -40,6 +44,11 @@ const AdminTasksList = () => {
     setShowAddModal(true);
   };
 
+  const handleViewDetails = (task: Task) => {
+    setSelectedTask(task);
+    setShowDetailsModal(true);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -50,10 +59,6 @@ const AdminTasksList = () => {
       </div>
     );
   }
-
-  const handleViewDetails = (task: any) => {
-    alert(`Task Details\nTitle: ${task.title}\nID: ${task.id}`);
-  };
 
   return (
     <div className="space-y-6">
@@ -79,6 +84,12 @@ const AdminTasksList = () => {
         open={showAddModal}
         onOpenChange={setShowAddModal}
         onTaskCreated={refetch}
+      />
+
+      <TaskDetailsModal
+        task={selectedTask}
+        open={showDetailsModal}
+        onOpenChange={setShowDetailsModal}
       />
     </div>
   );
