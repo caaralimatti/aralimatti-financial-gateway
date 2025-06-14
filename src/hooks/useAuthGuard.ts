@@ -18,10 +18,28 @@ export const useAuthGuard = () => {
     // Don't run auth guard on auth pages to prevent infinite loops
     if (location.pathname === '/auth' || location.pathname === '/reset-password') {
       console.log('🔥 Auth guard: Skipping validation on auth page');
+      // Clear any existing intervals if on auth pages
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      return;
+    }
+
+    // Don't run validation if there's no user at all
+    if (!user) {
+      console.log('🔥 Auth guard: No user, skipping validation');
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      isValidating.current = false;
+      hasShownToast.current = false;
       return;
     }
 
     const validateUserAccess = async () => {
+      // Double check user exists before validation
       if (!user || isValidating.current) return;
 
       // Debounce validation - only run once every 30 minutes
@@ -79,31 +97,40 @@ export const useAuthGuard = () => {
     };
 
     // Only run validation if user exists and not on auth pages
-    if (user) {
-      console.log('🔥 Auth guard: Setting up validation for user:', user.id);
-      
-      // Run validation immediately on mount (with debounce)
-      validateUserAccess();
-      
-      // Set up interval for periodic validation (every 45 minutes)
-      intervalRef.current = setInterval(() => {
-        console.log('🔥 Auth guard: Periodic validation triggered');
+    console.log('🔥 Auth guard: Setting up validation for user:', user.id);
+    
+    // Run validation immediately on mount (with debounce)
+    validateUserAccess();
+    
+    // Set up interval for periodic validation (every 45 minutes)
+    intervalRef.current = setInterval(() => {
+      console.log('🔥 Auth guard: Periodic validation triggered');
+      // Double check user still exists before validation
+      if (user) {
         validateUserAccess();
-      }, 2700000); // 45 minutes
-      
-      return () => {
-        console.log('🔥 Auth guard: Cleaning up interval');
+      } else {
+        console.log('🔥 Auth guard: User no longer exists, clearing interval');
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
           intervalRef.current = null;
         }
-        isValidating.current = false;
-      };
-    }
-
-    // Reset state when user logs out
+      }
+    }, 2700000); // 45 minutes
+    
     return () => {
-      console.log('🔥 Auth guard: User logged out, cleaning up');
+      console.log('🔥 Auth guard: Cleaning up interval');
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      isValidating.current = false;
+    };
+  }, [user?.id, signOut, toast, location.pathname]);
+
+  // Cleanup effect when component unmounts or user changes
+  useEffect(() => {
+    return () => {
+      console.log('🔥 Auth guard: Component unmounting, cleaning up');
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
@@ -111,5 +138,5 @@ export const useAuthGuard = () => {
       isValidating.current = false;
       hasShownToast.current = false;
     };
-  }, [user?.id, signOut, toast, location.pathname]); // Added location.pathname to dependencies
+  }, []);
 };
