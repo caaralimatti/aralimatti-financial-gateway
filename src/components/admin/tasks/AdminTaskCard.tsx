@@ -23,7 +23,7 @@ interface AdminTaskCardProps {
 
 const AdminTaskCard: React.FC<AdminTaskCardProps> = ({ task, onTaskUpdated, onDelete, onViewDetails }) => {
   const [showConfirm, setShowConfirm] = React.useState(false);
-  const isCompleted = (task.status === 'completed' || task.status === 'COMPLETED');
+  const isCompleted = (task.status === 'completed');
 
   const handleDelete = () => {
     if (isCompleted) {
@@ -114,6 +114,6 @@ const AdminTaskCard: React.FC<AdminTaskCardProps> = ({ task, onTaskUpdated, onDe
       </CardContent>
     </Card>
   );
-};;
+};
 
 export default AdminTaskCard;

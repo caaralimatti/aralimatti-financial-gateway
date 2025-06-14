@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useTaskCalendar } from '@/hooks/useTaskCalendar';
@@ -26,10 +26,30 @@ const TaskCalendar = () => {
   const [selectedTask, setSelectedTask] = useState<ClientCalendarTask | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Convert admin calendar data to client calendar data (all events)
-  // Show all events (tasks and compliance deadlines)
+  // Convert admin calendar data to client calendar data (tasks only)
   const clientCalendarData: ClientCalendarData = React.useMemo(() => {
-    return calendarData;
+    const converted: ClientCalendarData = {};
+    
+    Object.entries(calendarData).forEach(([date, events]) => {
+      converted[date] = events
+        .filter((event): event is import('@/services/calendarService').CalendarTask => 
+          'title' in event && 'status' in event
+        )
+        .map(event => ({
+          id: event.id,
+          title: event.title,
+          description: event.description,
+          priority: event.priority,
+          status: event.status,
+          deadline_date: event.deadline_date,
+          start_date: event.start_date,
+          client_name: event.client_name,
+          assigned_to_name: event.assigned_to_name,
+          category_name: event.category_name
+        }));
+    });
+    
+    return converted;
   }, [calendarData]);
 
   // Fetch data when component mounts or month changes
@@ -100,9 +120,9 @@ const TaskCalendar = () => {
   const days = getDaysInMonth(currentDate);
 
   console.log('DEBUG: clientCalendarData', clientCalendarData);
-console.log('DEBUG: calendarData', calendarData);
+  console.log('DEBUG: calendarData', calendarData);
 
-return (
+  return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>

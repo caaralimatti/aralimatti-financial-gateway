@@ -1,11 +1,13 @@
 
 import React from 'react';
-import { CalendarTask } from '@/services/calendarService';
+import { Button } from '@/components/ui/button';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ClientCalendarTask } from '@/types/clientCalendar';
 import TaskCalendarTask from './TaskCalendarTask';
 
 interface TaskCalendarDayProps {
   date: Date | null;
-  tasks: CalendarTask[];
+  tasks: ClientCalendarTask[];
   isToday: boolean;
   isExpanded: boolean;
   onToggleExpansion: (dateString: string) => void;
@@ -29,6 +31,7 @@ const TaskCalendarDay = ({
   const dateString = date.toISOString().split('T')[0];
   const visibleTasks = isExpanded ? tasks : tasks.slice(0, 3);
   const hiddenTasksCount = tasks.length - 3;
+  const hasMoreTasks = tasks.length > 3;
 
   return (
     <div className={`min-h-[120px] border-r border-b p-2 ${
@@ -38,7 +41,7 @@ const TaskCalendarDay = ({
         <span className={`text-sm font-medium ${
           isToday ? 'bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center' : 'text-gray-900 dark:text-gray-100'
         }`}>
-          {day.getDate()}
+          {date.getDate()}
         </span>
         {hasMoreTasks && (
           <Button
@@ -61,7 +64,7 @@ const TaskCalendarDay = ({
           <TaskCalendarTask
             key={task.id}
             task={task}
-            onTaskClick={onTaskClick}
+            onClick={() => onTaskClick(task.id)}
           />
         ))}
         

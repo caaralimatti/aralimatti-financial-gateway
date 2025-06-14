@@ -1,13 +1,11 @@
 
 import React from 'react';
-import { CalendarTask } from '@/services/calendarService';
+import { ClientCalendarData, ClientCalendarTask } from '@/types/clientCalendar';
 import TaskCalendarDay from './TaskCalendarDay';
-
-type CalendarEvent = CalendarTask | CalendarCompliance;
 
 interface TaskCalendarGridProps {
   days: (Date | null)[];
-  calendarData: { [date: string]: CalendarTask[] };
+  calendarData: ClientCalendarData;
   expandedDays: Set<string>;
   onToggleExpansion: (dateString: string) => void;
   onTaskClick: (eventId: string) => void;
@@ -22,7 +20,7 @@ const TaskCalendarGrid: React.FC<TaskCalendarGridProps> = ({
 }) => {
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  const getTasksForDate = (date: Date | null): CalendarTask[] => {
+  const getTasksForDate = (date: Date | null): ClientCalendarTask[] => {
     if (!date) return [];
     const dateString = date.toISOString().split('T')[0];
     return calendarData[dateString] || [];
