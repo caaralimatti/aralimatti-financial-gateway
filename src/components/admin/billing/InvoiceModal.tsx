@@ -46,6 +46,24 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ open, onOpenChange, invoice
     { description: '', quantity: 1, unit_price: 0, total_line_item_amount: 0 }
   ]);
 
+  // Get current user profile
+  const { data: currentProfile } = useQuery({
+    queryKey: ['current-profile'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('No user found');
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
   // Fetch clients
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
@@ -134,17 +152,27 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ open, onOpenChange, invoice
   // Save invoice mutation
   const saveInvoiceMutation = useMutation({
     mutationFn: async (data: any) => {
+      if (!currentProfile) {
+        throw new Error('No current user profile found');
+      }
+
+      const invoiceData = {
+        ...data,
+        total_amount: total,
+        created_by_profile_id: currentProfile.id
+      };
+
       if (isEditing) {
         const { error } = await supabase
           .from('invoices')
-          .update({ ...data, total_amount: total })
+          .update(invoiceData)
           .eq('id', invoice.id);
         if (error) throw error;
         return invoice.id;
       } else {
         const { data: result, error } = await supabase
           .from('invoices')
-          .insert({ ...data, total_amount: total })
+          .insert(invoiceData)
           .select()
           .single();
         if (error) throw error;
@@ -193,6 +221,11 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ open, onOpenChange, invoice
     
     if (!formData.client_id) {
       toast.error('Please select a client');
+      return;
+    }
+
+    if (!currentProfile) {
+      toast.error('User profile not loaded');
       return;
     }
 
