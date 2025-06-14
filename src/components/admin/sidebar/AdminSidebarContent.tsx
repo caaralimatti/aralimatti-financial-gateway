@@ -9,7 +9,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from '@/components/ui/sidebar';
-import { LayoutDashboard, Users, Shield, Megaphone, Settings } from 'lucide-react';
+import { LayoutDashboard, Users, Shield, Megaphone, Settings, BarChart3 } from 'lucide-react';
 import ClientsDropdown from './ClientsDropdown';
 import TaskManagementDropdown from './TaskManagementDropdown';
 
@@ -54,6 +54,18 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({ activeTab, se
 
             {/* Task Management Dropdown */}
             <TaskManagementDropdown activeTab={activeTab} setActiveTab={setActiveTab} />
+
+            {/* Analytics */}
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={() => setActiveTab('analytics')}
+                isActive={activeTab === 'analytics'}
+                tooltip="Analytics & Reports"
+              >
+                <BarChart3 className="h-4 w-4" />
+                <span>Analytics</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
 
             {/* DSC Management */}
             <SidebarMenuItem>

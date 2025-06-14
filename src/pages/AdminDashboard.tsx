@@ -18,6 +18,7 @@ import DSCManagement from '@/components/admin/DSCManagement';
 import AnnouncementsManagement from '@/components/admin/AnnouncementsManagement';
 import SystemSettings from '@/components/admin/SystemSettings';
 import TaskCalendar from '@/components/admin/TaskCalendar';
+import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
 
 const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -62,6 +63,8 @@ const AdminDashboard: React.FC = () => {
         return <TaskCategoryManagement />;
       case 'task-settings':
         return <ComplianceCalendarUpload />;
+      case 'analytics':
+        return <AnalyticsDashboard />;
       case 'dsc':
         return <DSCManagement />;
       case 'announcements':
