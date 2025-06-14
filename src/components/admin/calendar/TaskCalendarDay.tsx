@@ -1,8 +1,6 @@
 
 import React from 'react';
 import { CalendarData, CalendarTask, CalendarCompliance } from '@/services/calendarService';
-import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronUp } from 'lucide-react';
 import TaskCalendarEvent from './TaskCalendarEvent';
 
 interface TaskCalendarDayProps {
@@ -12,6 +10,7 @@ interface TaskCalendarDayProps {
   expandedDays: Set<string>;
   onToggleDayExpansion: (dateString: string) => void;
   onEventClick: (event: CalendarTask | CalendarCompliance) => void;
+  onShowMoreTasks?: (date: string, events: (CalendarTask | CalendarCompliance)[]) => void;
 }
 
 const TaskCalendarDay: React.FC<TaskCalendarDayProps> = ({
@@ -20,47 +19,42 @@ const TaskCalendarDay: React.FC<TaskCalendarDayProps> = ({
   calendarData,
   expandedDays,
   onToggleDayExpansion,
-  onEventClick
+  onEventClick,
+  onShowMoreTasks
 }) => {
   if (!day) {
-    return <div className="min-h-[120px] border-r border-b bg-gray-50"></div>;
+    return <div className="min-h-24 bg-gray-50 border-b border-r"></div>;
   }
 
   const dateString = day.toISOString().split('T')[0];
-  const dayEvents = calendarData[dateString] || [];
+  const events = calendarData[dateString] || [];
+  const isExpanded = expandedDays.has(dateString);
   const isToday = day.toDateString() === new Date().toDateString();
   const isCurrentMonth = day.getMonth() === currentDate.getMonth();
-  const isExpanded = expandedDays.has(dateString);
 
-  const visibleEvents = isExpanded ? dayEvents : dayEvents.slice(0, 2);
-  const hasMoreEvents = dayEvents.length > 2;
+  const maxVisibleEvents = 3;
+  const visibleEvents = isExpanded ? events : events.slice(0, maxVisibleEvents);
+  const hiddenEventsCount = events.length - maxVisibleEvents;
+  const hasMoreEvents = !isExpanded && events.length > maxVisibleEvents;
+
+  const handleShowMore = () => {
+    if (onShowMoreTasks) {
+      onShowMoreTasks(dateString, events);
+    } else {
+      onToggleDayExpansion(dateString);
+    }
+  };
 
   return (
-    <div className={`min-h-[120px] border-r border-b p-2 ${
-      !isCurrentMonth ? 'bg-gray-50 text-gray-400' : 'bg-white'
-    } ${isToday ? 'bg-blue-50 border-blue-200' : ''}`}>
-      <div className="flex items-center justify-between mb-2">
-        <span className={`text-sm font-medium ${
-          isToday ? 'bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center' : ''
-        }`}>
-          {day.getDate()}
-        </span>
-        {hasMoreEvents && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onToggleDayExpansion(dateString)}
-            className="h-6 w-6 p-0"
-          >
-            {isExpanded ? (
-              <ChevronUp className="h-3 w-3" />
-            ) : (
-              <ChevronDown className="h-3 w-3" />
-            )}
-          </Button>
-        )}
+    <div className={`min-h-24 p-2 border-b border-r ${
+      isToday ? 'bg-blue-50' : isCurrentMonth ? 'bg-white' : 'bg-gray-50'
+    }`}>
+      <div className={`text-sm font-medium mb-1 ${
+        isToday ? 'text-blue-600' : isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
+      }`}>
+        {day.getDate()}
       </div>
-
+      
       <div className="space-y-1">
         {visibleEvents.map((event, index) => (
           <TaskCalendarEvent
@@ -69,10 +63,14 @@ const TaskCalendarDay: React.FC<TaskCalendarDayProps> = ({
             onClick={() => onEventClick(event)}
           />
         ))}
-        {!isExpanded && hasMoreEvents && (
-          <div className="text-xs text-gray-500">
-            +{dayEvents.length - 2} more
-          </div>
+        
+        {hasMoreEvents && (
+          <button
+            onClick={handleShowMore}
+            className="text-xs text-blue-600 hover:text-blue-800 cursor-pointer underline"
+          >
+            +{hiddenEventsCount} more
+          </button>
         )}
       </div>
     </div>

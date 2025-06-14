@@ -10,6 +10,7 @@ interface TaskCalendarGridProps {
   expandedDays: Set<string>;
   onToggleDayExpansion: (dateString: string) => void;
   onEventClick: (event: CalendarTask | CalendarCompliance) => void;
+  onShowMoreTasks?: (date: string, events: (CalendarTask | CalendarCompliance)[]) => void;
 }
 
 const TaskCalendarGrid: React.FC<TaskCalendarGridProps> = ({
@@ -18,7 +19,8 @@ const TaskCalendarGrid: React.FC<TaskCalendarGridProps> = ({
   calendarData,
   expandedDays,
   onToggleDayExpansion,
-  onEventClick
+  onEventClick,
+  onShowMoreTasks
 }) => {
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -44,6 +46,7 @@ const TaskCalendarGrid: React.FC<TaskCalendarGridProps> = ({
           expandedDays={expandedDays}
           onToggleDayExpansion={onToggleDayExpansion}
           onEventClick={onEventClick}
+          onShowMoreTasks={onShowMoreTasks}
         />
       ))}
     </div>
