@@ -13,7 +13,7 @@ export const getInitialFormData = (editingClient?: Tables<'clients'> | null): Cl
     },
     basicDetails: {
       fileNo: editingClient?.file_no || '',
-      clientType: editingClient?.client_type || 'individual',
+      clientType: editingClient?.client_type || 'Individual',
       name: editingClient?.name || '',
       tradeName: editingClient?.trade_name || '',
       dateOfBirth: editingClient?.date_of_birth || '',
@@ -53,11 +53,26 @@ export const getInitialFormData = (editingClient?: Tables<'clients'> | null): Cl
   };
 };
 
+const mapClientTypeToDatabase = (clientType: string): 'Individual' | 'Company' | 'Partnership' | 'LLP' | 'Trust' | 'HUF' | 'Other' => {
+  const mapping: Record<string, 'Individual' | 'Company' | 'Partnership' | 'LLP' | 'Trust' | 'HUF' | 'Other'> = {
+    'individual': 'Individual',
+    'business': 'Company',
+    'company': 'Company',
+    'partnership': 'Partnership',
+    'llp': 'LLP',
+    'trust': 'Trust',
+    'huf': 'HUF',
+    'other': 'Other'
+  };
+  
+  return mapping[clientType.toLowerCase()] || 'Individual';
+};
+
 export const transformFormDataToClientData = (formData: ClientFormData) => {
   return {
     // Basic Details
     file_no: formData.basicDetails.fileNo,
-    client_type: formData.basicDetails.clientType as 'individual' | 'business' | 'company',
+    client_type: mapClientTypeToDatabase(formData.basicDetails.clientType),
     name: formData.basicDetails.name,
     trade_name: formData.basicDetails.tradeName || null,
     date_of_birth: formData.basicDetails.dateOfBirth || null,
