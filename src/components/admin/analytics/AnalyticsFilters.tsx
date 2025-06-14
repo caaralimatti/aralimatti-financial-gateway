@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -20,14 +19,14 @@ interface AnalyticsFiltersProps {
 }
 
 const AnalyticsFilters: React.FC<AnalyticsFiltersProps> = ({ filters, onFilterChange }) => {
-  // Fetch only staff members (staff, admin, super_admin roles) from profiles table
+  // Fetch only staff members (staff role only) from profiles table
   const { data: staffMembers = [] } = useQuery({
     queryKey: ['staff-members'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
         .select('id, full_name, email')
-        .in('role', ['admin', 'staff', 'super_admin'])
+        .eq('role', 'staff')
         .eq('is_active', true)
         .order('full_name');
 
