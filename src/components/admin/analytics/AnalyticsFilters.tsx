@@ -20,7 +20,7 @@ interface AnalyticsFiltersProps {
 }
 
 const AnalyticsFilters: React.FC<AnalyticsFiltersProps> = ({ filters, onFilterChange }) => {
-  // Fetch staff members from profiles table
+  // Fetch only staff members (staff, admin, super_admin roles) from profiles table
   const { data: staffMembers = [] } = useQuery({
     queryKey: ['staff-members'],
     queryFn: async () => {
@@ -36,7 +36,23 @@ const AnalyticsFilters: React.FC<AnalyticsFiltersProps> = ({ filters, onFilterCh
     },
   });
 
-  // Fetch clients from clients table
+  // Fetch only clients from profiles table
+  const { data: clientUsers = [] } = useQuery({
+    queryKey: ['client-users'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .eq('role', 'client')
+        .eq('is_active', true)
+        .order('full_name');
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Fetch clients from clients table for client type filtering
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
     queryFn: async () => {
@@ -111,9 +127,9 @@ const AnalyticsFilters: React.FC<AnalyticsFiltersProps> = ({ filters, onFilterCh
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Clients</SelectItem>
-                {clients.map((client) => (
+                {clientUsers.map((client) => (
                   <SelectItem key={client.id} value={client.id}>
-                    {client.name}
+                    {client.full_name || client.email}
                   </SelectItem>
                 ))}
               </SelectContent>
