@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import ClientsDropdown from './ClientsDropdown';
 import TaskManagementDropdown from './TaskManagementDropdown';
+import BillingDropdown from './BillingDropdown';
 
 interface AdminSidebarContentProps {
   activeTab: string;
@@ -24,7 +25,6 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({ activeTab, se
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'users', label: 'User Management', icon: Users },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'billing', label: 'Billing', icon: Receipt },
     { id: 'dsc', label: 'DSC Management', icon: KeyRound },
     { id: 'announcements', label: 'Announcements', icon: Megaphone },
     { id: 'settings', label: 'Settings', icon: Settings },
@@ -46,6 +46,7 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({ activeTab, se
           </SidebarMenuItem>
         ))}
         
+        <BillingDropdown activeTab={activeTab} setActiveTab={setActiveTab} />
         <ClientsDropdown activeTab={activeTab} setActiveTab={setActiveTab} />
         <TaskManagementDropdown activeTab={activeTab} setActiveTab={setActiveTab} />
       </SidebarMenu>

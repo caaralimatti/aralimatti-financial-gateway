@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,10 +11,12 @@ import { Plus, Eye, Edit, Trash2, CreditCard, Filter } from 'lucide-react';
 import { format } from 'date-fns';
 import InvoiceModal from './InvoiceModal';
 import PaymentModal from './PaymentModal';
+import DeleteInvoiceModal from './DeleteInvoiceModal';
 
 const InvoiceList: React.FC = () => {
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const [filters, setFilters] = useState({
     status: 'all',
@@ -121,6 +122,11 @@ const InvoiceList: React.FC = () => {
   const handleRecordPayment = (invoice: any) => {
     setSelectedInvoice(invoice);
     setShowPaymentModal(true);
+  };
+
+  const handleDeleteInvoice = (invoice: any) => {
+    setSelectedInvoice(invoice);
+    setShowDeleteModal(true);
   };
 
   return (
@@ -252,6 +258,9 @@ const InvoiceList: React.FC = () => {
                           <Button variant="ghost" size="sm" onClick={() => handleRecordPayment(invoice)}>
                             <CreditCard className="h-4 w-4" />
                           </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleDeleteInvoice(invoice)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -273,6 +282,12 @@ const InvoiceList: React.FC = () => {
       <PaymentModal
         open={showPaymentModal}
         onOpenChange={setShowPaymentModal}
+        invoice={selectedInvoice}
+      />
+
+      <DeleteInvoiceModal
+        open={showDeleteModal}
+        onOpenChange={setShowDeleteModal}
         invoice={selectedInvoice}
       />
     </div>

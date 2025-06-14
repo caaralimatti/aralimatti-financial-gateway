@@ -20,6 +20,7 @@ import SystemSettings from '@/components/admin/SystemSettings';
 import TaskCalendar from '@/components/admin/TaskCalendar';
 import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
 import BillingDashboard from '@/components/admin/BillingDashboard';
+import BulkInvoices from '@/components/admin/billing/BulkInvoices';
 import { Menu } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
@@ -69,6 +70,8 @@ const AdminDashboard: React.FC = () => {
         return <AnalyticsDashboard />;
       case 'billing':
         return <BillingDashboard />;
+      case 'bulk-invoices':
+        return <BulkInvoices />;
       case 'dsc':
         return <DSCManagement />;
       case 'announcements':
