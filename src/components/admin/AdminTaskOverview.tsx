@@ -1,44 +1,14 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Plus, Users, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useTasks } from '@/hooks/useTasks';
-import { useAuth } from '@/contexts/AuthContext';
-import { useCurrentUserPermissions } from '@/hooks/useAdminPermissions';
 import AddTaskModal from './AddTaskModal';
 
 const AdminTaskOverview = () => {
   const { tasks, loading, refetch } = useTasks();
   const [showAddModal, setShowAddModal] = useState(false);
-  const { profile } = useAuth();
-  const { data: permissions = {} } = useCurrentUserPermissions();
-
-  const isSuperAdmin = profile?.role === 'super_admin';
-  const isAdmin = profile?.role === 'admin';
-
-  // Helper function to check if a module is enabled
-  const isModuleEnabled = (moduleName: string): boolean => {
-    if (isSuperAdmin) return true;
-    if (!isAdmin) return false;
-    return permissions[moduleName] !== false;
-  };
-
-  // Check if user has access to task management overview
-  if (!isModuleEnabled('task_management_overview')) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Access Restricted</h3>
-          <p className="text-gray-600 dark:text-gray-400">
-            You don't have permission to access the Task Management Overview.
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   const taskStats = {
     total: tasks.length,
@@ -182,7 +152,7 @@ const AdminTaskOverview = () => {
         </CardContent>
       </Card>
 
-      {/* Add Task Modal - Show modal but control access inside */}
+      {/* Add Task Modal */}
       <AddTaskModal
         open={showAddModal}
         onOpenChange={setShowAddModal}

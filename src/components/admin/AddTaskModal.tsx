@@ -2,10 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useCurrentUserPermissions } from '@/hooks/useAdminPermissions';
 import { toast } from 'sonner';
 import TaskBasicDetailsForm from '@/components/tasks/forms/TaskBasicDetailsForm';
 import TaskCategoryPriorityForm from '@/components/tasks/forms/TaskCategoryPriorityForm';
@@ -29,25 +27,11 @@ interface AddTaskModalProps {
 
 const AddTaskModal: React.FC<AddTaskModalProps> = ({ open, onOpenChange, onTaskCreated }) => {
   const { profile } = useAuth();
-  const { data: permissions = {} } = useCurrentUserPermissions();
   const [loading, setLoading] = useState(false);
   const [staffUsers, setStaffUsers] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   
-  const isSuperAdmin = profile?.role === 'super_admin';
-  const isAdmin = profile?.role === 'admin';
-
-  // Helper function to check if a module is enabled
-  const isModuleEnabled = (moduleName: string): boolean => {
-    if (isSuperAdmin) return true;
-    if (!isAdmin) return false;
-    return permissions[moduleName] !== false;
-  };
-
-  // Check if user has access to task management overview
-  const hasTaskAccess = isModuleEnabled('task_management_overview');
-
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -65,12 +49,12 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ open, onOpenChange, onTaskC
   const [newSubTask, setNewSubTask] = useState({ title: '', description: '' });
 
   useEffect(() => {
-    if (open && hasTaskAccess) {
+    if (open) {
       fetchStaffUsers();
       fetchClients();
       fetchCategories();
     }
-  }, [open, hasTaskAccess]);
+  }, [open]);
 
   const fetchStaffUsers = async () => {
     try {
@@ -117,13 +101,6 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ open, onOpenChange, onTaskC
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Check permissions before allowing submission
-    if (!hasTaskAccess) {
-      toast.error('You do not have permission to create tasks');
-      return;
-    }
-
     if (!profile?.id) return;
 
     setLoading(true);
@@ -183,30 +160,6 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ open, onOpenChange, onTaskC
       setLoading(false);
     }
   };
-
-  // If user doesn't have access, show access denied message
-  if (!hasTaskAccess) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Access Restricted</DialogTitle>
-          </DialogHeader>
-          
-          <div className="text-center py-6">
-            <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Permission Required</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              You don't have permission to create tasks. Please contact your administrator.
-            </p>
-            <Button onClick={() => onOpenChange(false)} variant="outline">
-              Close
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
