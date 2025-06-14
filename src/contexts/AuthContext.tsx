@@ -127,6 +127,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await authOperations.signOut();
   }, [clearProfile]);
 
+  // Enhanced logging for super admin debugging
+  useEffect(() => {
+    if (profile) {
+      console.log('🔥 AuthContext - Profile loaded:', {
+        id: profile.id,
+        email: profile.email,
+        role: profile.role,
+        is_active: profile.is_active
+      });
+      
+      if (profile.role === 'super_admin') {
+        console.log('🔥 SUPER ADMIN detected in AuthContext!');
+      }
+    }
+  }, [profile]);
+
   // Memoize the context value with stable references
   const value = useMemo(() => ({
     user,

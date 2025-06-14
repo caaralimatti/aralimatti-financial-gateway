@@ -21,7 +21,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = memo(({
   const { user, profile, loading } = useAuth();
   const { isPortalActive, isLoading: portalLoading, error: portalError } = usePortalStatus();
   
-  console.log('🔥 ProtectedRoute render - User:', user?.id, 'Profile:', profile?.id, 'Loading:', loading);
+  console.log('🔥 ProtectedRoute render - User:', user?.id, 'Profile:', profile?.id, 'Role:', profile?.role, 'Loading:', loading);
   
   // Use the auth guard to continuously validate user access (but much less aggressively now)
   useAuthGuard();
@@ -57,6 +57,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = memo(({
     // Super admins can access admin routes
     const hasAccess = allowedRoles.includes(profile.role) || 
                      (profile.role === 'super_admin' && allowedRoles.includes('admin'));
+    
+    console.log('🔥 ProtectedRoute: Role check -', {
+      userRole: profile.role,
+      allowedRoles,
+      hasAccess,
+      isSuperAdmin: profile.role === 'super_admin',
+      canAccessAdminRoutes: profile.role === 'super_admin' && allowedRoles.includes('admin')
+    });
     
     if (!hasAccess) {
       console.log('🔥 ProtectedRoute: Role not allowed, redirecting to unauthorized');
