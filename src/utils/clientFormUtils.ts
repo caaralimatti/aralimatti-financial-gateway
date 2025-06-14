@@ -23,9 +23,9 @@ export const getInitialFormData = (editingClient?: Tables<'clients'> | null): Cl
       notes: editingClient?.notes || '',
     },
     incomeTaxDetails: {
-      incomeTaxReturns: editingClient?.income_tax_returns || [],
-      tdsTcsReturns: editingClient?.tds_tcs_returns || [],
-      gstReturns: editingClient?.gst_returns || false,
+      incomeTaxReturns: [],
+      tdsTcsReturns: [],
+      gstReturns: false,
       pan: editingClient?.pan || '',
       tan: editingClient?.tan || '',
     },
@@ -72,7 +72,7 @@ const mapClientTypeToDatabase = (clientType: string): 'Individual' | 'Company' |
 
 export const transformFormDataToClientData = (formData: ClientFormData) => {
   return {
-    // Basic Details (same as before)
+    // Basic Details
     file_no: formData.basicDetails.fileNo,
     client_type: mapClientTypeToDatabase(formData.basicDetails.clientType),
     name: formData.basicDetails.name,
@@ -89,16 +89,13 @@ export const transformFormDataToClientData = (formData: ClientFormData) => {
     tds_tcs_applicable: formData.taxesApplicable.tdsTcs,
     other_tax_applicable: formData.taxesApplicable.other,
 
-    // Tax Returns
-    income_tax_returns: formData.incomeTaxDetails.incomeTaxReturns,
-    tds_tcs_returns: formData.incomeTaxDetails.tdsTcsReturns,
-    gst_returns: formData.incomeTaxDetails.gstReturns,
+    // These tax returns fields don't exist in table, so NOT included in the returned object
 
     // Income Tax Details
     pan: formData.incomeTaxDetails.pan || null,
     tan: formData.incomeTaxDetails.tan || null,
 
-    // Login Details (same as before)
+    // Login Details
     it_pan: formData.loginDetails.itPan || null,
     it_password: formData.loginDetails.itPassword || null,
     it_tan: formData.loginDetails.itTan || null,
