@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useAuth } from '@/contexts/AuthContext';
 
 export type UserRole = 'admin' | 'staff' | 'client' | 'super_admin';
 
@@ -18,6 +19,9 @@ interface RoleAssignmentFormProps {
 }
 
 const RoleAssignmentForm = ({ role, onRoleChange, showSuperAdmin = false }: RoleAssignmentFormProps) => {
+  const { profile } = useAuth();
+  const isSuperAdmin = profile?.role === 'super_admin';
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Role Assignment</h3>
@@ -31,7 +35,7 @@ const RoleAssignmentForm = ({ role, onRoleChange, showSuperAdmin = false }: Role
             <SelectItem value="admin">Admin</SelectItem>
             <SelectItem value="staff">Staff Member</SelectItem>
             <SelectItem value="client">Client</SelectItem>
-            {showSuperAdmin && (
+            {(showSuperAdmin || isSuperAdmin) && (
               <SelectItem value="super_admin">Super Admin</SelectItem>
             )}
           </SelectContent>

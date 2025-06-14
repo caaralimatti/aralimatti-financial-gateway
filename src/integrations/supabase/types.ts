@@ -47,6 +47,41 @@ export type Database = {
           },
         ]
       }
+      admin_module_permissions: {
+        Row: {
+          admin_profile_id: string
+          created_at: string
+          id: string
+          is_enabled: boolean
+          module_name: string
+          updated_at: string
+        }
+        Insert: {
+          admin_profile_id: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          module_name: string
+          updated_at?: string
+        }
+        Update: {
+          admin_profile_id?: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          module_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_module_permissions_admin_profile_id_fkey"
+            columns: ["admin_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       announcements: {
         Row: {
           content: string

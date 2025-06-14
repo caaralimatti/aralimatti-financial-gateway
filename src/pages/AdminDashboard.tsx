@@ -21,11 +21,43 @@ import TaskCalendar from '@/components/admin/TaskCalendar';
 import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
 import BillingDashboard from '@/components/admin/BillingDashboard';
 import BulkInvoices from '@/components/admin/billing/BulkInvoices';
-import { Menu } from 'lucide-react';
+import AdminPermissionsManagement from '@/components/admin/AdminPermissionsManagement';
+import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentUserPermissions } from '@/hooks/useAdminPermissions';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Shield } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showAddClientModal, setShowAddClientModal] = useState(false);
+  const { profile } = useAuth();
+  const { data: permissions = {} } = useCurrentUserPermissions();
+
+  const isSuperAdmin = profile?.role === 'super_admin';
+  const isAdmin = profile?.role === 'admin';
+
+  // Helper function to check if a module is enabled
+  const isModuleEnabled = (moduleName: string): boolean => {
+    if (isSuperAdmin) return true;
+    if (!isAdmin) return false;
+    return permissions[moduleName] !== false;
+  };
+
+  // Access control component
+  const ProtectedContent = ({ module, children }: { module?: string; children: React.ReactNode }) => {
+    if (!module || isModuleEnabled(module)) {
+      return <>{children}</>;
+    }
+    
+    return (
+      <Alert className="m-6">
+        <Shield className="h-4 w-4" />
+        <AlertDescription>
+          You don't have permission to access this module. Please contact your administrator.
+        </AlertDescription>
+      </Alert>
+    );
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -45,39 +77,114 @@ const AdminDashboard: React.FC = () => {
           </div>
         );
       case 'users':
-        return <UserManagement />;
+        return (
+          <ProtectedContent module="user_management">
+            <UserManagement />
+          </ProtectedContent>
+        );
+      case 'admin-permissions':
+        return isSuperAdmin ? (
+          <AdminPermissionsManagement />
+        ) : (
+          <Alert className="m-6">
+            <Shield className="h-4 w-4" />
+            <AlertDescription>
+              Only Super Admins can access this feature.
+            </AlertDescription>
+          </Alert>
+        );
       case 'clients':
       case 'clients-add':
       case 'clients-list':
-        return <ClientManagement activeTab={activeTab} setActiveTab={setActiveTab} />;
+        return (
+          <ProtectedContent module="client_management_list">
+            <ClientManagement activeTab={activeTab} setActiveTab={setActiveTab} />
+          </ProtectedContent>
+        );
       case 'add-client':
-        return <AddClientModal open={true} onOpenChange={() => setActiveTab('clients')} />;
+        return (
+          <ProtectedContent module="client_management_add">
+            <AddClientModal open={true} onOpenChange={() => setActiveTab('clients')} />
+          </ProtectedContent>
+        );
       case 'import-clients':
-        return <ClientImport />;
+        return (
+          <ProtectedContent module="client_management_import">
+            <ClientImport />
+          </ProtectedContent>
+        );
       case 'bulk-edit':
-        return <ClientBulkEdit />;
+        return (
+          <ProtectedContent module="client_management_bulk_edit">
+            <ClientBulkEdit />
+          </ProtectedContent>
+        );
       case 'task-overview':
-        return <AdminTaskOverview />;
+        return (
+          <ProtectedContent module="task_management_overview">
+            <AdminTaskOverview />
+          </ProtectedContent>
+        );
       case 'tasks':
-        return <AdminTasksList />;
+        return (
+          <ProtectedContent module="task_management_overview">
+            <AdminTasksList />
+          </ProtectedContent>
+        );
       case 'task-calendar':
-        return <TaskCalendar />;
+        return (
+          <ProtectedContent module="task_management_calendar">
+            <TaskCalendar />
+          </ProtectedContent>
+        );
       case 'categories':
-        return <TaskCategoryManagement />;
+        return (
+          <ProtectedContent module="task_management_categories">
+            <TaskCategoryManagement />
+          </ProtectedContent>
+        );
       case 'task-settings':
-        return <ComplianceCalendarUpload />;
+        return (
+          <ProtectedContent module="task_management_settings">
+            <ComplianceCalendarUpload />
+          </ProtectedContent>
+        );
       case 'analytics':
-        return <AnalyticsDashboard />;
+        return (
+          <ProtectedContent module="analytics">
+            <AnalyticsDashboard />
+          </ProtectedContent>
+        );
       case 'billing':
-        return <BillingDashboard />;
+        return (
+          <ProtectedContent module="billing_invoices_list">
+            <BillingDashboard />
+          </ProtectedContent>
+        );
       case 'bulk-invoices':
-        return <BulkInvoices />;
+        return (
+          <ProtectedContent module="billing_invoices_list">
+            <BulkInvoices />
+          </ProtectedContent>
+        );
       case 'dsc':
-        return <DSCManagement />;
+        return (
+          <ProtectedContent module="dsc_management">
+            <DSCManagement />
+          </ProtectedContent>
+        );
       case 'announcements':
-        return <AnnouncementsManagement />;
+        return (
+          <ProtectedContent module="announcements">
+            <AnnouncementsManagement />
+          </ProtectedContent>
+        );
       case 'settings':
-        return <SystemSettings />;
+        return (
+          <ProtectedContent module="system_settings">
+            <SystemSettings />
+          </ProtectedContent>
+        );
       default:
         return (
           <div className="space-y-6">
