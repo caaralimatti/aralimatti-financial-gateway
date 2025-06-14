@@ -10,8 +10,8 @@ import {
 } from '@/components/ui/select';
 
 interface RoleAssignmentFormProps {
-  role: string;
-  onRoleChange: (role: string) => void;
+  role: 'admin' | 'staff' | 'client' | 'super_admin';
+  onRoleChange: (role: 'admin' | 'staff' | 'client' | 'super_admin') => void;
   showSuperAdmin?: boolean;
 }
 
@@ -19,7 +19,6 @@ const RoleAssignmentForm = ({ role, onRoleChange, showSuperAdmin = false }: Role
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Role Assignment</h3>
-      
       <div className="space-y-2">
         <Label htmlFor="role">User Role *</Label>
         <Select value={role} onValueChange={onRoleChange}>
@@ -41,3 +40,4 @@ const RoleAssignmentForm = ({ role, onRoleChange, showSuperAdmin = false }: Role
 };
 
 export default RoleAssignmentForm;
+

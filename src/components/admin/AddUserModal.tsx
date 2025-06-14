@@ -155,7 +155,6 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange }) => {
         <DialogHeader>
           <DialogTitle>Add New User</DialogTitle>
         </DialogHeader>
-
         <div className="space-y-6 py-4">
           <BasicDetailsForm
             formData={{
@@ -173,7 +172,12 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange }) => {
 
           <RoleAssignmentForm
             role={formData.role}
-            onRoleChange={(role) => handleFormDataChange({ role: role as 'admin' | 'staff' | 'client' | 'super_admin' })}
+            onRoleChange={(role) =>
+              setFormData((prev) => ({
+                ...prev,
+                role: role as 'admin' | 'staff' | 'client' | 'super_admin',
+              }))
+            }
             showSuperAdmin={profile?.role === 'super_admin'}
           />
 
