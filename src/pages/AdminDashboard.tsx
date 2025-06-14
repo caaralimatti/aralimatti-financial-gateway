@@ -43,7 +43,9 @@ const AdminDashboard: React.FC = () => {
       case 'users':
         return <UserManagement />;
       case 'clients':
-        return <ClientManagement activeTab={activeTab} />;
+      case 'clients-add':
+      case 'clients-list':
+        return <ClientManagement activeTab={activeTab} setActiveTab={setActiveTab} />;
       case 'add-client':
         return <AddClientModal open={true} onOpenChange={() => setActiveTab('clients')} />;
       case 'import-clients':

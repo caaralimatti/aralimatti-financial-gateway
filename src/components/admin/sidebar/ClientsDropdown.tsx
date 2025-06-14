@@ -16,7 +16,9 @@ interface ClientsDropdownProps {
 }
 
 const ClientsDropdown: React.FC<ClientsDropdownProps> = ({ activeTab, setActiveTab }) => {
-  const [clientsOpen, setClientsOpen] = useState(false);
+  const [clientsOpen, setClientsOpen] = useState(
+    activeTab.startsWith('clients') || activeTab === 'import-clients' || activeTab === 'bulk-edit'
+  );
 
   return (
     <SidebarMenuItem>
@@ -32,8 +34,17 @@ const ClientsDropdown: React.FC<ClientsDropdownProps> = ({ activeTab, setActiveT
           <SidebarMenuSub>
             <SidebarMenuSubItem>
               <SidebarMenuSubButton
-                onClick={() => setActiveTab('add-client')}
-                isActive={activeTab === 'add-client'}
+                onClick={() => setActiveTab('clients')}
+                isActive={activeTab === 'clients'}
+              >
+                <Users className="h-4 w-4" />
+                <span>Client Management</span>
+              </SidebarMenuSubButton>
+            </SidebarMenuSubItem>
+            <SidebarMenuSubItem>
+              <SidebarMenuSubButton
+                onClick={() => setActiveTab('clients-add')}
+                isActive={activeTab === 'clients-add'}
               >
                 <UserPlus className="h-4 w-4" />
                 <span>Add Client</span>
@@ -41,8 +52,8 @@ const ClientsDropdown: React.FC<ClientsDropdownProps> = ({ activeTab, setActiveT
             </SidebarMenuSubItem>
             <SidebarMenuSubItem>
               <SidebarMenuSubButton
-                onClick={() => setActiveTab('clients')}
-                isActive={activeTab === 'clients'}
+                onClick={() => setActiveTab('clients-list')}
+                isActive={activeTab === 'clients-list'}
               >
                 <List className="h-4 w-4" />
                 <span>Client List</span>

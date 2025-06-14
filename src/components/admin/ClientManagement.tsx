@@ -11,9 +11,10 @@ import AddClientModal from './AddClientModal';
 
 interface ClientManagementProps {
   activeTab: string;
+  setActiveTab: (tab: string) => void;
 }
 
-const ClientManagement: React.FC<ClientManagementProps> = ({ activeTab }) => {
+const ClientManagement: React.FC<ClientManagementProps> = ({ activeTab, setActiveTab }) => {
   const { clients, isLoading, deleteClient } = useClients();
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -152,40 +153,15 @@ const ClientManagement: React.FC<ClientManagementProps> = ({ activeTab }) => {
             </CardContent>
           </Card>
         );
-      case 'clients-import':
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Upload className="h-5 w-5" />
-                Import Clients
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">Client import functionality will be implemented here.</p>
-            </CardContent>
-          </Card>
-        );
-      case 'clients-bulk-edit':
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Edit className="h-5 w-5" />
-                Bulk Edit Clients
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">Bulk edit functionality will be implemented here.</p>
-            </CardContent>
-          </Card>
-        );
       default:
         return (
           <div className="space-y-6">
             <h1 className="text-3xl font-bold">Client Management</h1>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card className="cursor-pointer hover:shadow-md transition-shadow">
+              <Card 
+                className="cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => setActiveTab('clients-add')}
+              >
                 <CardContent className="p-6 text-center">
                   <Plus className="h-8 w-8 mx-auto mb-2 text-primary" />
                   <h3 className="font-semibold">Add Client</h3>
@@ -193,7 +169,10 @@ const ClientManagement: React.FC<ClientManagementProps> = ({ activeTab }) => {
                 </CardContent>
               </Card>
               
-              <Card className="cursor-pointer hover:shadow-md transition-shadow">
+              <Card 
+                className="cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => setActiveTab('clients-list')}
+              >
                 <CardContent className="p-6 text-center">
                   <Users className="h-8 w-8 mx-auto mb-2 text-primary" />
                   <h3 className="font-semibold">View Clients</h3>
@@ -201,7 +180,10 @@ const ClientManagement: React.FC<ClientManagementProps> = ({ activeTab }) => {
                 </CardContent>
               </Card>
               
-              <Card className="cursor-pointer hover:shadow-md transition-shadow">
+              <Card 
+                className="cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => setActiveTab('import-clients')}
+              >
                 <CardContent className="p-6 text-center">
                   <Upload className="h-8 w-8 mx-auto mb-2 text-primary" />
                   <h3 className="font-semibold">Import</h3>
@@ -209,7 +191,10 @@ const ClientManagement: React.FC<ClientManagementProps> = ({ activeTab }) => {
                 </CardContent>
               </Card>
               
-              <Card className="cursor-pointer hover:shadow-md transition-shadow">
+              <Card 
+                className="cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => setActiveTab('bulk-edit')}
+              >
                 <CardContent className="p-6 text-center">
                   <Edit className="h-8 w-8 mx-auto mb-2 text-primary" />
                   <h3 className="font-semibold">Bulk Edit</h3>
