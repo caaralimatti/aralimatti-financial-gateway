@@ -12,9 +12,10 @@ import {
 interface RoleAssignmentFormProps {
   role: string;
   onRoleChange: (role: string) => void;
+  showSuperAdmin?: boolean;
 }
 
-const RoleAssignmentForm = ({ role, onRoleChange }: RoleAssignmentFormProps) => {
+const RoleAssignmentForm = ({ role, onRoleChange, showSuperAdmin = false }: RoleAssignmentFormProps) => {
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Role Assignment</h3>
@@ -29,7 +30,9 @@ const RoleAssignmentForm = ({ role, onRoleChange }: RoleAssignmentFormProps) => 
             <SelectItem value="admin">Admin</SelectItem>
             <SelectItem value="staff">Staff Member</SelectItem>
             <SelectItem value="client">Client</SelectItem>
-            <SelectItem value="viewer">Viewer</SelectItem>
+            {showSuperAdmin && (
+              <SelectItem value="super_admin">Super Admin</SelectItem>
+            )}
           </SelectContent>
         </Select>
       </div>

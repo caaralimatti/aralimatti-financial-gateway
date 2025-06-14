@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select';
 import { UserProfile } from '@/types/userManagement';
 import { useUserManagement } from '@/hooks/useUserManagement';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface EditUserModalProps {
   open: boolean;
@@ -28,9 +29,10 @@ interface EditUserModalProps {
 
 const EditUserModal: React.FC<EditUserModalProps> = ({ open, onOpenChange, user }) => {
   const { updateUser, sendPasswordReset, isUpdating, isSendingReset } = useUserManagement();
+  const { profile } = useAuth();
   const [formData, setFormData] = useState({
     fullName: '',
-    role: 'client' as 'admin' | 'staff' | 'client',
+    role: 'client' as 'admin' | 'staff' | 'client' | 'super_admin',
     isActive: true,
   });
 
@@ -108,7 +110,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ open, onOpenChange, user 
 
           <div className="space-y-2">
             <Label htmlFor="role">User Role *</Label>
-            <Select value={formData.role} onValueChange={(value: 'admin' | 'staff' | 'client') => setFormData(prev => ({ ...prev, role: value }))}>
+            <Select value={formData.role} onValueChange={(value: 'admin' | 'staff' | 'client' | 'super_admin') => setFormData(prev => ({ ...prev, role: value }))}>
               <SelectTrigger>
                 <SelectValue placeholder="Select user role" />
               </SelectTrigger>
@@ -116,6 +118,9 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ open, onOpenChange, user 
                 <SelectItem value="admin">Admin</SelectItem>
                 <SelectItem value="staff">Staff Member</SelectItem>
                 <SelectItem value="client">Client</SelectItem>
+                {profile?.role === 'super_admin' && (
+                  <SelectItem value="super_admin">Super Admin</SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>
