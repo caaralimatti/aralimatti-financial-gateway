@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,15 +16,15 @@ const ComplianceCalendarUpload = () => {
 
   const downloadTemplate = () => {
     const csvContent = 'Date (MM DD),Compliance Type,Form/Activity,Description,Relevant FY/AY\n' +
-                      '03 15,Income Tax,ITR Filing,Annual Income Tax Return Filing,FY 2024-25\n' +
-                      '07 31,GST,GSTR-3B,Monthly GST Return,FY 2024-25\n' +
-                      '05 30,MCA,AOC-4,Annual Filing with MCA,FY 2024-25';
+                      `03 15,Income Tax,ITR Filing,Annual Income Tax Return Filing,FY ${year}-${parseInt(year) + 1}\n` +
+                      `07 31,GST,GSTR-3B,Monthly GST Return,FY ${year}-${parseInt(year) + 1}\n` +
+                      `05 30,MCA,AOC-4,Annual Filing with MCA,FY ${year}-${parseInt(year) + 1}`;
     
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'compliance_deadlines_template.csv';
+    a.download = `compliance_deadlines_template_${year}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -33,7 +32,7 @@ const ComplianceCalendarUpload = () => {
     
     toast({
       title: "Template Downloaded",
-      description: "Compliance deadlines template has been downloaded successfully.",
+      description: `Compliance deadlines template for ${year} has been downloaded successfully.`,
     });
   };
 
@@ -138,6 +137,20 @@ const ComplianceCalendarUpload = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="year">Year (will be applied to all dates)</Label>
+          <Input
+            id="year"
+            type="number"
+            value={year}
+            onChange={(e) => setYear(e.target.value)}
+            placeholder="2025"
+            min="2020"
+            max="2030"
+            className="w-32"
+          />
+        </div>
+
         <div className="flex gap-4">
           <Button onClick={downloadTemplate} variant="outline" className="flex items-center gap-2">
             <Download className="h-4 w-4" />
@@ -166,20 +179,6 @@ const ComplianceCalendarUpload = () => {
               </span>
             )}
           </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="year">Year (will be applied to all dates)</Label>
-          <Input
-            id="year"
-            type="number"
-            value={year}
-            onChange={(e) => setYear(e.target.value)}
-            placeholder="2025"
-            min="2020"
-            max="2030"
-            className="w-32"
-          />
         </div>
 
         <Button
