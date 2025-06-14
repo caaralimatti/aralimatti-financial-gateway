@@ -26,51 +26,32 @@ import {
   Edit3, 
   CheckCircle, 
   Search,
-  Loader2,
-  X
+  Loader2
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-
-interface Client {
-  id: string;
-  name: string;
-  fileNo: string;
-  typeOfClient: string;
-  email: string;
-  workingUser: string;
-  status: 'Active' | 'Inactive';
-}
+import { useClients } from '@/hooks/useClients';
+import { useClientBulkEdit } from '@/hooks/useClientBulkEdit';
 
 const ClientBulkEdit: React.FC = () => {
+  const { clients, isLoading } = useClients();
+  const { bulkUpdate, isUpdating } = useClientBulkEdit();
   const [selectedClients, setSelectedClients] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [fieldsToEdit, setFieldsToEdit] = useState<string[]>([]);
   const [editValues, setEditValues] = useState<Record<string, any>>({});
-  const [isApplying, setIsApplying] = useState(false);
   const [editComplete, setEditComplete] = useState(false);
 
-  // Simulated client data
-  const clients: Client[] = [
-    { id: '1', name: 'ABC Corporation', fileNo: 'FILE001', typeOfClient: 'Company', email: 'contact@abc.com', workingUser: 'John Doe', status: 'Active' },
-    { id: '2', name: 'XYZ Limited', fileNo: 'FILE002', typeOfClient: 'Company', email: 'info@xyz.com', workingUser: 'Jane Smith', status: 'Active' },
-    { id: '3', name: 'Global Enterprises', fileNo: 'FILE003', typeOfClient: 'LLP', email: 'hello@global.com', workingUser: 'Mike Johnson', status: 'Inactive' },
-    { id: '4', name: 'Tech Solutions', fileNo: 'FILE004', typeOfClient: 'Partnership', email: 'support@tech.com', workingUser: 'Sarah Wilson', status: 'Active' },
-    { id: '5', name: 'Marketing Pro', fileNo: 'FILE005', typeOfClient: 'Individual', email: 'team@marketing.com', workingUser: 'David Brown', status: 'Active' },
-  ];
-
   const editableFields = [
-    { id: 'type_of_client', label: 'Type of Client', type: 'select', options: ['Company', 'LLP', 'Partnership', 'Individual'] },
-    { id: 'working_user', label: 'Working User', type: 'select', options: ['John Doe', 'Jane Smith', 'Mike Johnson', 'Sarah Wilson', 'David Brown'] },
+    { id: 'client_type', label: 'Type of Client', type: 'select', options: ['Individual', 'Company', 'LLP', 'Partnership'] },
     { id: 'status', label: 'Status', type: 'select', options: ['Active', 'Inactive'] },
-    { id: 'tags', label: 'Tags', type: 'text' },
     { id: 'notes', label: 'Notes', type: 'textarea' }
   ];
 
-  const filteredClients = clients.filter(client => 
+  const filteredClients = clients?.filter(client => 
     client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    client.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    client.fileNo.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+    client.primary_email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    client.file_no.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -103,14 +84,16 @@ const ClientBulkEdit: React.FC = () => {
     setEditValues(prev => ({ ...prev, [fieldId]: value }));
   };
 
-  const handleApplyChanges = () => {
-    setIsApplying(true);
-    
-    // Simulate bulk edit process
-    setTimeout(() => {
-      setIsApplying(false);
+  const handleApplyChanges = async () => {
+    try {
+      await bulkUpdate({
+        clientIds: selectedClients,
+        updates: editValues
+      });
       setEditComplete(true);
-    }, 2000);
+    } catch (error) {
+      console.error('Error applying bulk changes:', error);
+    }
   };
 
   const resetForm = () => {
@@ -145,6 +128,14 @@ const ClientBulkEdit: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -201,7 +192,6 @@ const ClientBulkEdit: React.FC = () => {
                   <TableHead>File No</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Working User</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
@@ -215,10 +205,9 @@ const ClientBulkEdit: React.FC = () => {
                       />
                     </TableCell>
                     <TableCell className="font-medium">{client.name}</TableCell>
-                    <TableCell>{client.fileNo}</TableCell>
-                    <TableCell>{client.typeOfClient}</TableCell>
-                    <TableCell>{client.email}</TableCell>
-                    <TableCell>{client.workingUser}</TableCell>
+                    <TableCell>{client.file_no}</TableCell>
+                    <TableCell>{client.client_type}</TableCell>
+                    <TableCell>{client.primary_email || 'N/A'}</TableCell>
                     <TableCell>
                       <Badge variant={client.status === 'Active' ? 'default' : 'secondary'}>
                         {client.status}
@@ -334,11 +323,11 @@ const ClientBulkEdit: React.FC = () => {
                 </Button>
                 <Button 
                   onClick={handleApplyChanges} 
-                  disabled={isApplying}
+                  disabled={isUpdating}
                   className="flex items-center gap-2"
                 >
-                  {isApplying && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {isApplying ? 'Applying Changes...' : 'Apply Changes'}
+                  {isUpdating && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {isUpdating ? 'Applying Changes...' : 'Apply Changes'}
                 </Button>
               </div>
             </div>

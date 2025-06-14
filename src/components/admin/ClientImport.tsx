@@ -28,35 +28,25 @@ import {
   Loader2
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useClientImport } from '@/hooks/useClientImport';
 
 const ClientImport: React.FC = () => {
+  const { importClients, isImporting } = useClientImport();
   const [dragActive, setDragActive] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
   const [importComplete, setImportComplete] = useState(false);
   const [fieldMappings, setFieldMappings] = useState<Record<string, string>>({});
+  const [previewData, setPreviewData] = useState<any[]>([]);
 
-  // Simulated file columns after upload
-  const fileColumns = ['Name', 'Company_Email', 'Phone_Number', 'Business_Type', 'File_Number'];
-  
   // System fields for mapping
   const systemFields = [
     { value: 'name', label: 'Client Name' },
     { value: 'email', label: 'Email Address' },
     { value: 'mobile', label: 'Mobile Number' },
-    { value: 'type_of_client', label: 'Type of Client' },
+    { value: 'client_type', label: 'Type of Client' },
     { value: 'file_no', label: 'File Number' },
-    { value: 'trade_name', label: 'Trade Name' },
-    { value: 'working_user', label: 'Working User' },
     { value: 'status', label: 'Status' }
-  ];
-
-  // Simulated preview data
-  const previewData = [
-    { Name: 'ABC Corporation', Company_Email: 'contact@abc.com', Phone_Number: '+91-9876543210', Business_Type: 'Company', File_Number: 'FILE001' },
-    { Name: 'XYZ Limited', Company_Email: 'info@xyz.com', Phone_Number: '+91-9876543211', Business_Type: 'Company', File_Number: 'FILE002' },
-    { Name: 'Global Enterprises', Company_Email: 'hello@global.com', Phone_Number: '+91-9876543212', Business_Type: 'LLP', File_Number: 'FILE003' }
   ];
 
   const handleDrag = (e: React.DragEvent) => {
@@ -84,36 +74,84 @@ const ClientImport: React.FC = () => {
     setIsUploading(true);
     setUploadedFile(file);
     
-    // Simulate file processing
-    setTimeout(() => {
-      setIsUploading(false);
-      // Auto-suggest mappings based on column names
+    // Parse CSV file (simplified for demo)
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const csv = e.target?.result as string;
+      const lines = csv.split('\n');
+      const headers = lines[0].split(',').map(h => h.trim());
+      
+      // Create sample preview data
+      const sampleData = lines.slice(1, 4).map(line => {
+        const values = line.split(',').map(v => v.trim());
+        const obj: any = {};
+        headers.forEach((header, index) => {
+          obj[header] = values[index] || '';
+        });
+        return obj;
+      }).filter(row => Object.values(row).some(val => val));
+
+      setPreviewData(sampleData);
+      
+      // Auto-suggest mappings
       const autoMappings: Record<string, string> = {};
-      fileColumns.forEach(col => {
-        const lowerCol = col.toLowerCase();
-        if (lowerCol.includes('name')) autoMappings[col] = 'name';
-        if (lowerCol.includes('email')) autoMappings[col] = 'email';
-        if (lowerCol.includes('phone') || lowerCol.includes('mobile')) autoMappings[col] = 'mobile';
-        if (lowerCol.includes('type') || lowerCol.includes('business')) autoMappings[col] = 'type_of_client';
-        if (lowerCol.includes('file')) autoMappings[col] = 'file_no';
+      headers.forEach(header => {
+        const lowerHeader = header.toLowerCase();
+        if (lowerHeader.includes('name')) autoMappings[header] = 'name';
+        if (lowerHeader.includes('email')) autoMappings[header] = 'email';
+        if (lowerHeader.includes('phone') || lowerHeader.includes('mobile')) autoMappings[header] = 'mobile';
+        if (lowerHeader.includes('type')) autoMappings[header] = 'client_type';
+        if (lowerHeader.includes('file')) autoMappings[header] = 'file_no';
+        if (lowerHeader.includes('status')) autoMappings[header] = 'status';
       });
       setFieldMappings(autoMappings);
-    }, 2000);
+      setIsUploading(false);
+    };
+    
+    reader.readAsText(file);
   };
 
-  const handleImport = () => {
-    setIsImporting(true);
-    
-    // Simulate import process
-    setTimeout(() => {
-      setIsImporting(false);
+  const handleImport = async () => {
+    if (!previewData.length) return;
+
+    try {
+      const importData = previewData.map(row => {
+        const mapped: any = {};
+        Object.entries(fieldMappings).forEach(([fileCol, systemField]) => {
+          if (systemField && row[fileCol]) {
+            mapped[systemField] = row[fileCol];
+          }
+        });
+        
+        // Ensure required fields
+        if (!mapped.name || !mapped.file_no) return null;
+        
+        return {
+          name: mapped.name,
+          email: mapped.email,
+          mobile: mapped.mobile,
+          file_no: mapped.file_no,
+          client_type: mapped.client_type || 'Individual',
+          status: mapped.status || 'Active'
+        };
+      }).filter(Boolean);
+
+      await importClients(importData);
       setImportComplete(true);
-    }, 3000);
+    } catch (error) {
+      console.error('Import failed:', error);
+    }
   };
 
   const downloadTemplate = () => {
-    // Simulate template download
-    console.log('Downloading template...');
+    const csvContent = "Name,Email,Mobile,File Number,Client Type,Status\nABC Corporation,contact@abc.com,+91-9876543210,FILE001,Company,Active";
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'client_import_template.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   if (importComplete) {
@@ -189,10 +227,10 @@ const ClientImport: React.FC = () => {
               <div className="flex flex-col items-center">
                 <Upload className="h-12 w-12 text-gray-400 mb-4" />
                 <p className="text-lg font-medium mb-2">Drop your file here, or browse</p>
-                <p className="text-gray-600 mb-4">Supports CSV, Excel (XLS, XLSX) files up to 10MB</p>
+                <p className="text-gray-600 mb-4">Supports CSV files up to 10MB</p>
                 <Input
                   type="file"
-                  accept=".csv,.xls,.xlsx"
+                  accept=".csv"
                   onChange={(e) => {
                     if (e.target.files && e.target.files[0]) {
                       handleFileUpload(e.target.files[0]);
@@ -211,102 +249,102 @@ const ClientImport: React.FC = () => {
       </Card>
 
       {/* Field Mapping Section */}
-      {uploadedFile && !isUploading && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Map Fields</CardTitle>
-            <p className="text-sm text-gray-600">
-              Map the columns from your file to the corresponding system fields
-            </p>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {fileColumns.map((column) => (
-                <div key={column} className="space-y-2">
-                  <Label>File Column: {column}</Label>
-                  <Select
-                    value={fieldMappings[column] || ''}
-                    onValueChange={(value) => 
-                      setFieldMappings(prev => ({ ...prev, [column]: value }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select system field" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Don't import</SelectItem>
-                      {systemFields.map((field) => (
-                        <SelectItem key={field.value} value={field.value}>
-                          {field.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {uploadedFile && !isUploading && previewData.length > 0 && (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle>Map Fields</CardTitle>
+              <p className="text-sm text-gray-600">
+                Map the columns from your file to the corresponding system fields
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {Object.keys(previewData[0] || {}).map((column) => (
+                  <div key={column} className="space-y-2">
+                    <Label>File Column: {column}</Label>
+                    <Select
+                      value={fieldMappings[column] || ''}
+                      onValueChange={(value) => 
+                        setFieldMappings(prev => ({ ...prev, [column]: value }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select system field" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Don't import</SelectItem>
+                        {systemFields.map((field) => (
+                          <SelectItem key={field.value} value={field.value}>
+                            {field.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Preview Section */}
-      {uploadedFile && !isUploading && Object.keys(fieldMappings).length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Preview Import Data</CardTitle>
-            <p className="text-sm text-gray-600">
-              Review the first few rows to ensure the mapping is correct
-            </p>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    {Object.entries(fieldMappings).map(([fileCol, systemField]) => 
-                      systemField && (
-                        <TableHead key={fileCol}>
-                          {systemFields.find(f => f.value === systemField)?.label || systemField}
-                        </TableHead>
-                      )
-                    )}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {previewData.map((row, index) => (
-                    <TableRow key={index}>
+          {/* Preview Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Preview Import Data</CardTitle>
+              <p className="text-sm text-gray-600">
+                Review the first few rows to ensure the mapping is correct
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
                       {Object.entries(fieldMappings).map(([fileCol, systemField]) => 
                         systemField && (
-                          <TableCell key={fileCol}>
-                            {row[fileCol as keyof typeof row]}
-                          </TableCell>
+                          <TableHead key={fileCol}>
+                            {systemFields.find(f => f.value === systemField)?.label || systemField}
+                          </TableHead>
                         )
                       )}
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {previewData.map((row, index) => (
+                      <TableRow key={index}>
+                        {Object.entries(fieldMappings).map(([fileCol, systemField]) => 
+                          systemField && (
+                            <TableCell key={fileCol}>
+                              {row[fileCol]}
+                            </TableCell>
+                          )
+                        )}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
 
-            <Alert className="mt-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                This preview shows the first 3 rows. Your file contains {previewData.length} total records.
-              </AlertDescription>
-            </Alert>
+              <Alert className="mt-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  This preview shows the first 3 rows. Your file contains {previewData.length} total records.
+                </AlertDescription>
+              </Alert>
 
-            <div className="flex justify-end mt-6">
-              <Button 
-                onClick={handleImport} 
-                disabled={isImporting}
-                className="flex items-center gap-2"
-              >
-                {isImporting && <Loader2 className="h-4 w-4 animate-spin" />}
-                {isImporting ? 'Importing...' : 'Import Data'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="flex justify-end mt-6">
+                <Button 
+                  onClick={handleImport} 
+                  disabled={isImporting}
+                  className="flex items-center gap-2"
+                >
+                  {isImporting && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {isImporting ? 'Importing...' : 'Import Data'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </>
       )}
     </div>
   );

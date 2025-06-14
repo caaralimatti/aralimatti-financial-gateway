@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Upload, Edit, Users, Search, Filter } from 'lucide-react';
+import { Plus, Upload, Edit, Users, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useClients } from '@/hooks/useClients';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -14,15 +14,16 @@ interface ClientManagementProps {
 }
 
 const ClientManagement: React.FC<ClientManagementProps> = ({ activeTab }) => {
-  const { clients, isLoading } = useClients();
+  const { clients, isLoading, deleteClient } = useClients();
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingClient, setEditingClient] = useState(null);
 
-  const filteredClients = clients.filter(client =>
+  const filteredClients = clients?.filter(client =>
     client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.file_no.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.primary_email?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ) || [];
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
@@ -33,6 +34,16 @@ const ClientManagement: React.FC<ClientManagementProps> = ({ activeTab }) => {
       default:
         return 'outline';
     }
+  };
+
+  const handleEdit = (client: any) => {
+    setEditingClient(client);
+    setShowAddModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowAddModal(false);
+    setEditingClient(null);
   };
 
   const renderContent = () => {
@@ -117,7 +128,11 @@ const ClientManagement: React.FC<ClientManagementProps> = ({ activeTab }) => {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
-                              <Button variant="outline" size="sm">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleEdit(client)}
+                              >
                                 <Edit className="h-4 w-4" />
                               </Button>
                             </div>
@@ -210,7 +225,11 @@ const ClientManagement: React.FC<ClientManagementProps> = ({ activeTab }) => {
   return (
     <div className="space-y-6">
       {renderContent()}
-      <AddClientModal open={showAddModal} onOpenChange={setShowAddModal} />
+      <AddClientModal 
+        open={showAddModal} 
+        onOpenChange={handleCloseModal}
+        editingClient={editingClient}
+      />
     </div>
   );
 };
