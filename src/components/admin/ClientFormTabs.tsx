@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import BasicDetailsTab from './tabs/BasicDetailsTab';
@@ -11,9 +12,10 @@ import AttachmentsTab from './tabs/AttachmentsTab';
 interface ClientFormTabsProps {
   clientForm: any;
   setClientForm: (form: any) => void;
+  clientId?: string;
 }
 
-const ClientFormTabs = ({ clientForm, setClientForm }: ClientFormTabsProps) => {
+const ClientFormTabs = ({ clientForm, setClientForm, clientId }: ClientFormTabsProps) => {
   return (
     <Tabs defaultValue="basic" className="w-full">
       <TabsList className="grid w-full grid-cols-7">
@@ -35,7 +37,7 @@ const ClientFormTabs = ({ clientForm, setClientForm }: ClientFormTabsProps) => {
       </TabsContent>
 
       <TabsContent value="contact">
-        <ContactPersonsTab />
+        <ContactPersonsTab clientForm={clientForm} setClientForm={setClientForm} clientId={clientId} />
       </TabsContent>
 
       <TabsContent value="groups">
@@ -43,7 +45,7 @@ const ClientFormTabs = ({ clientForm, setClientForm }: ClientFormTabsProps) => {
       </TabsContent>
 
       <TabsContent value="custom">
-        <CustomFieldsTab />
+        <CustomFieldsTab clientForm={clientForm} setClientForm={setClientForm} clientId={clientId} />
       </TabsContent>
 
       <TabsContent value="login">
@@ -51,7 +53,7 @@ const ClientFormTabs = ({ clientForm, setClientForm }: ClientFormTabsProps) => {
       </TabsContent>
 
       <TabsContent value="attachments">
-        <AttachmentsTab />
+        <AttachmentsTab clientForm={clientForm} setClientForm={setClientForm} clientId={clientId} />
       </TabsContent>
     </Tabs>
   );

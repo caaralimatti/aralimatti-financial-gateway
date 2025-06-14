@@ -5,6 +5,7 @@ import { useClientForm } from '@/hooks/useClientForm';
 import ClientFormTabs from './ClientFormTabs';
 import TaxesApplicableSection from './TaxesApplicableSection';
 import ClientModalHeader from './ClientModalHeader';
+import ClientOnboardingProgress from './ClientOnboardingProgress';
 import type { Tables } from '@/integrations/supabase/types';
 
 interface AddClientModalProps {
@@ -29,7 +30,7 @@ const AddClientModal = ({ open, onOpenChange, editingClient }: AddClientModalPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <ClientModalHeader
           isEditing={!!editingClient}
           isLoading={isLoading}
@@ -38,12 +39,18 @@ const AddClientModal = ({ open, onOpenChange, editingClient }: AddClientModalPro
         />
 
         <div className="space-y-6">
+          <ClientOnboardingProgress clientForm={clientForm} />
+          
           <TaxesApplicableSection
             taxesApplicable={clientForm.taxesApplicable}
             onTaxesChange={handleTaxesChange}
           />
 
-          <ClientFormTabs clientForm={clientForm} setClientForm={setClientForm} />
+          <ClientFormTabs 
+            clientForm={clientForm} 
+            setClientForm={setClientForm}
+            clientId={editingClient?.id}
+          />
         </div>
       </DialogContent>
     </Dialog>

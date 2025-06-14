@@ -31,6 +31,7 @@ export const getInitialFormData = (editingClient?: Tables<'clients'> | null): Cl
     },
     contactPersons: [],
     clientGroups: [],
+    customFields: [],
     loginDetails: {
       itPan: editingClient?.it_pan || '',
       itPassword: editingClient?.it_password || '',
@@ -89,8 +90,6 @@ export const transformFormDataToClientData = (formData: ClientFormData) => {
     tds_tcs_applicable: formData.taxesApplicable.tdsTcs,
     other_tax_applicable: formData.taxesApplicable.other,
 
-    // These tax returns fields don't exist in table, so NOT included in the returned object
-
     // Income Tax Details
     pan: formData.incomeTaxDetails.pan || null,
     tan: formData.incomeTaxDetails.tan || null,
@@ -129,4 +128,42 @@ export const validateRequiredFields = (formData: ClientFormData): boolean => {
   }
   
   return true;
+};
+
+// File validation utilities
+export const validateFileType = (file: File): boolean => {
+  const allowedTypes = [
+    'application/pdf',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'image/jpeg',
+    'image/png',
+    'image/jpg'
+  ];
+  return allowedTypes.includes(file.type);
+};
+
+export const validateFileSize = (file: File): boolean => {
+  const maxSize = 10 * 1024 * 1024; // 10MB
+  return file.size <= maxSize;
+};
+
+export const getFileTypeLabel = (mimeType: string): string => {
+  const typeMap: Record<string, string> = {
+    'application/pdf': 'PDF',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'DOCX',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'XLSX',
+    'image/jpeg': 'JPEG',
+    'image/png': 'PNG',
+    'image/jpg': 'JPG'
+  };
+  return typeMap[mimeType] || 'Unknown';
+};
+
+export const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };

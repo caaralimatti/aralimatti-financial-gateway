@@ -87,6 +87,7 @@ export type Database = {
         Row: {
           client_id: string
           created_at: string
+          description: string | null
           file_name: string
           file_size: number | null
           file_type: string | null
@@ -97,6 +98,7 @@ export type Database = {
         Insert: {
           client_id: string
           created_at?: string
+          description?: string | null
           file_name: string
           file_size?: number | null
           file_type?: string | null
@@ -107,6 +109,7 @@ export type Database = {
         Update: {
           client_id?: string
           created_at?: string
+          description?: string | null
           file_name?: string
           file_size?: number | null
           file_type?: string | null
@@ -168,6 +171,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "client_contact_persons_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_custom_fields: {
+        Row: {
+          client_id: string
+          created_at: string
+          field_name: string
+          field_type: string
+          field_value: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          field_name: string
+          field_type?: string
+          field_value?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          field_name?: string
+          field_type?: string
+          field_value?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_custom_fields_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"

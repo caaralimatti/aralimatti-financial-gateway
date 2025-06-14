@@ -1,4 +1,32 @@
+
 import type { Tables } from '@/integrations/supabase/types';
+
+export interface CustomField {
+  id?: string;
+  field_name: string;
+  field_value: string;
+  field_type: 'text' | 'number' | 'date' | 'boolean';
+}
+
+export interface ContactPerson {
+  id?: string;
+  name: string;
+  email: string;
+  mobile: string;
+  designation: string;
+  is_primary: boolean;
+}
+
+export interface ClientAttachment {
+  id?: string;
+  file_name: string;
+  file_url: string;
+  file_size: number;
+  file_type: string;
+  description?: string;
+  uploaded_by?: string;
+  created_at?: string;
+}
 
 export interface ClientFormData {
   taxesApplicable: {
@@ -22,12 +50,13 @@ export interface ClientFormData {
   incomeTaxDetails: {
     pan: string;
     tan: string;
-    incomeTaxReturns: string[]; // e.g. ITR - Unaudited, SFT, etc.
-    tdsTcsReturns: string[]; // e.g. TDS Return - Salary, etc.
-    gstReturns: boolean; // New checkbox for GST Returns in Tax Details tab
+    incomeTaxReturns: string[];
+    tdsTcsReturns: string[];
+    gstReturns: boolean;
   };
-  contactPersons: any[];
+  contactPersons: ContactPerson[];
   clientGroups: any[];
+  customFields: CustomField[];
   loginDetails: {
     itPan: string;
     itPassword: string;
@@ -48,7 +77,7 @@ export interface ClientFormData {
     gstRegistrationType: string;
     gstReturnFrequency: string;
   };
-  attachments: any[];
+  attachments: ClientAttachment[];
 }
 
 export type ClientEntity = Tables<'clients'>;
