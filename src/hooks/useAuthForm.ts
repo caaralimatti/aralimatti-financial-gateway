@@ -89,8 +89,8 @@ export const useAuthForm = () => {
       
       if (error.message?.includes('Invalid login credentials')) {
         errorMessage = "Invalid email or password. Please check your credentials and try again.";
-      } else if (error.message?.includes('Account is inactive')) {
-        errorMessage = "Your account is currently inactive. Please contact your administrator.";
+      } else if (error.message?.includes('Account is inactive') || error.message?.includes('Profile not found')) {
+        errorMessage = "Your account is currently inactive or not found. Please contact your administrator.";
       } else if (error.message?.includes('Email not confirmed')) {
         errorMessage = "Please check your email and confirm your account before logging in.";
       } else if (error.message?.includes('Too many requests')) {

@@ -1,18 +1,26 @@
 
 import { useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLocation } from 'react-router-dom';
 import { authService } from '@/services/authService';
 import { useToast } from '@/hooks/use-toast';
 
 export const useAuthGuard = () => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
+  const location = useLocation();
   const hasShownToast = useRef(false);
   const isValidating = useRef(false);
   const lastValidationTime = useRef(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    // Don't run auth guard on auth pages to prevent infinite loops
+    if (location.pathname === '/auth' || location.pathname === '/reset-password') {
+      console.log('🔥 Auth guard: Skipping validation on auth page');
+      return;
+    }
+
     const validateUserAccess = async () => {
       if (!user || isValidating.current) return;
 
@@ -42,7 +50,7 @@ export const useAuthGuard = () => {
             hasShownToast.current = true;
           }
 
-          // Sign out the user - DO NOT use window.location methods
+          // Sign out the user
           console.log('🔥 Auth guard: Signing out user due to invalid access');
           await signOut();
         } else {
@@ -70,14 +78,14 @@ export const useAuthGuard = () => {
       }
     };
 
-    // Only run validation if user exists
+    // Only run validation if user exists and not on auth pages
     if (user) {
       console.log('🔥 Auth guard: Setting up validation for user:', user.id);
       
       // Run validation immediately on mount (with debounce)
       validateUserAccess();
       
-      // Set up interval for periodic validation (every 45 minutes - even less aggressive)
+      // Set up interval for periodic validation (every 45 minutes)
       intervalRef.current = setInterval(() => {
         console.log('🔥 Auth guard: Periodic validation triggered');
         validateUserAccess();
@@ -103,5 +111,5 @@ export const useAuthGuard = () => {
       isValidating.current = false;
       hasShownToast.current = false;
     };
-  }, [user?.id, signOut, toast]); // Only depend on user ID, not the entire user object
+  }, [user?.id, signOut, toast, location.pathname]); // Added location.pathname to dependencies
 };
