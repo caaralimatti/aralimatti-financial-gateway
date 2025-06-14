@@ -51,6 +51,63 @@ const ComplianceCalendarUpload = () => {
     }
   };
 
+  // Utility: Parse date from various formats to { month: MM, day: DD }
+  const parseDateCell = (dateRaw: string): { month: string, day: string } | null => {
+    // Remove quotes and trim
+    let value = dateRaw.replace(/"/g, '').trim();
+
+    // Try to handle "04-Jan" or "4-Jan"
+    const dashMonthMatch = value.match(/^(\d{1,2})-([A-Za-z]{3,})$/);
+    if (dashMonthMatch) {
+      const dayStr = dashMonthMatch[1];
+      const monthStr = dashMonthMatch[2];
+      // Map Jan=>01, Feb=>02, etc.
+      const monthMap: { [key: string]: string } = {
+        jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
+        jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12'
+      };
+      const m = monthMap[monthStr.toLowerCase().slice(0,3)];
+      if (m) return { month: m, day: dayStr.padStart(2, '0') };
+    }
+
+    // Try "MM-DD" or "M-D"
+    const dashMatch = value.match(/^(\d{1,2})-(\d{1,2})$/);
+    if (dashMatch)
+      return { month: dashMatch[1].padStart(2, '0'), day: dashMatch[2].padStart(2, '0') };
+
+    // Try "MM/DD" or "M/D"
+    const slashMatch = value.match(/^(\d{1,2})\/(\d{1,2})$/);
+    if (slashMatch)
+      return { month: slashMatch[1].padStart(2, '0'), day: slashMatch[2].padStart(2, '0') };
+
+    // Try "MM DD"
+    const spaceMatch = value.match(/^(\d{1,2})\s+(\d{1,2})$/);
+    if (spaceMatch)
+      return { month: spaceMatch[1].padStart(2, '0'), day: spaceMatch[2].padStart(2, '0') };
+
+    // Try "DD-MMM" as "day-month text"
+    const dayTextMonth = value.match(/^(\d{1,2})-([A-Za-z]{3,})$/);
+    if (dayTextMonth) {
+      const dayStr = dayTextMonth[1];
+      const monthStr = dayTextMonth[2];
+      const monthMap: { [key: string]: string } = {
+        jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
+        jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12'
+      };
+      const m = monthMap[monthStr.toLowerCase().slice(0,3)];
+      if (m) return { month: m, day: dayStr.padStart(2, '0') };
+    }
+
+    // Try Excel native date format as 'yyyy-mm-dd'
+    const isoMatch = value.match(/^\d{4}-\d{2}-\d{2}$/);
+    if (isoMatch) {
+      const iso = value.split('-');
+      return { month: iso[1], day: iso[2] };
+    }
+
+    return null;
+  };
+
   const parseCSV = (csvText: string): ComplianceUploadData[] => {
     const lines = csvText.split('\n').filter(line => line.trim() !== "");
     if (lines.length < 2) return [];
@@ -101,18 +158,21 @@ const ComplianceCalendarUpload = () => {
       const complianceDeadlines: CreateComplianceDeadlineData[] = [];
 
       parsedData.forEach(item => {
-        // Defensive: handle malformed or missing date
-        const dateParts = item.date.split(' ');
-        const month = dateParts[0]?.padStart(2, '0');
-        const day = dateParts[1]?.padStart(2, '0');
+        // Accept multiple date formats now!
+        const parsed = parseDateCell(item.date);
+        if (!parsed) {
+          errorCount++;
+          return;
+        }
+        const { month, day } = parsed;
+        // Defensive: handle invalid month/day
         const yearInt = parseInt(year);
-
         const isMonthValid = /^\d{2}$/.test(month) && Number(month) >= 1 && Number(month) <= 12;
         const isDayValid = /^\d{2}$/.test(day) && Number(day) >= 1 && Number(day) <= 31;
 
         if (!isMonthValid || !isDayValid || isNaN(yearInt)) {
           errorCount++;
-          return; // Skip malformed date rows
+          return;
         }
 
         const deadline_date = `${year}-${month}-${day}`;
@@ -127,7 +187,9 @@ const ComplianceCalendarUpload = () => {
       });
 
       if (complianceDeadlines.length === 0) {
-        throw new Error("No valid data rows to upload. Please check the file format and ensure all dates are provided as 'MM DD'.");
+        throw new Error(
+          "No valid data rows to upload. Please check the Date column formats (accepted: '04-Jan', '04-01', '04/01', 'MM DD', 'YYYY-MM-DD')."
+        );
       }
 
       await complianceService.upsertComplianceDeadlines(complianceDeadlines);
