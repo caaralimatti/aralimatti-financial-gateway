@@ -4,21 +4,20 @@ import { UserProfile } from '@/types/userManagement';
 
 export const userService = {
   async fetchUsers(): Promise<UserProfile[]> {
-    console.log('Fetching users...');
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false });
+    console.log('Fetching manageable users (excluding super admins)...');
+    
+    // Use the new function that excludes super admins from regular admin view
+    const { data, error } = await supabase.rpc('get_manageable_users');
 
     if (error) {
       console.error('Error fetching users:', error);
       throw error;
     }
-    console.log('Fetched users:', data);
+    console.log('Fetched manageable users:', data);
     return data as UserProfile[];
   },
 
-  async updateUserProfile(userData: { id: string; fullName?: string; role?: 'admin' | 'staff' | 'client'; isActive?: boolean }) {
+  async updateUserProfile(userData: { id: string; fullName?: string; role?: 'admin' | 'staff' | 'client' | 'super_admin'; isActive?: boolean }) {
     console.log('Updating user profile:', userData);
     const updateData: any = {};
     

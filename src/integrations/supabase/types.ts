@@ -702,6 +702,45 @@ export type Database = {
           },
         ]
       }
+      super_admin_audit_log: {
+        Row: {
+          action_type: string
+          description: string
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          super_admin_id: string
+          target_id: string | null
+          target_resource: string | null
+          timestamp: string
+          user_agent: string | null
+        }
+        Insert: {
+          action_type: string
+          description: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          super_admin_id: string
+          target_id?: string | null
+          target_resource?: string | null
+          timestamp?: string
+          user_agent?: string | null
+        }
+        Update: {
+          action_type?: string
+          description?: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          super_admin_id?: string
+          target_id?: string | null
+          target_resource?: string | null
+          timestamp?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       system_settings: {
         Row: {
           created_at: string
@@ -930,7 +969,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_manageable_users: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          email: string
+          full_name: string
+          role: Database["public"]["Enums"]["user_role"]
+          is_active: boolean
+          created_at: string
+          updated_at: string
+          last_login_at: string
+        }[]
+      }
       is_current_user_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_super_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }

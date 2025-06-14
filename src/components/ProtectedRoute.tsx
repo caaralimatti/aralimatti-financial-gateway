@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { usePortalStatus } from '@/hooks/usePortalStatus';
 
-type UserRole = 'client' | 'staff' | 'admin';
+type UserRole = 'client' | 'staff' | 'admin' | 'super_admin';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -46,9 +46,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = memo(({
     return <Navigate to="/auth" replace />;
   }
 
-  // Check portal maintenance mode for non-admin users
+  // Check portal maintenance mode for non-admin and non-super-admin users
   // If there's an error fetching portal status, assume portal is active to avoid blocking users
-  if (!portalError && isPortalActive === false && profile.role !== 'admin') {
+  if (!portalError && isPortalActive === false && profile.role !== 'admin' && profile.role !== 'super_admin') {
     console.log('🔥 ProtectedRoute: Portal in maintenance mode, redirecting non-admin user');
     return <Navigate to="/maintenance" replace />;
   }

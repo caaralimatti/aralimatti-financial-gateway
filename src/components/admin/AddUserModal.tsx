@@ -12,6 +12,7 @@ import RoleAssignmentForm from './forms/RoleAssignmentForm';
 import ContactInformationForm from './forms/ContactInformationForm';
 import StatusToggleForm from './forms/StatusToggleForm';
 import { useUserManagement } from '@/hooks/useUserManagement';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 interface AddUserModalProps {
@@ -21,6 +22,7 @@ interface AddUserModalProps {
 
 const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange }) => {
   const { createUser, isCreating } = useUserManagement();
+  const { profile } = useAuth();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -29,7 +31,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange }) => {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'client' as 'admin' | 'staff' | 'client',
+    role: 'client' as 'admin' | 'staff' | 'client' | 'super_admin',
     phone: '',
     address: '',
     status: true,
@@ -85,6 +87,16 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange }) => {
       toast({
         title: "Validation Error",
         description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Super admin role validation - only super admins can create other super admins
+    if (formData.role === 'super_admin' && profile?.role !== 'super_admin') {
+      toast({
+        title: "Access Denied",
+        description: "Only super admins can create super admin accounts",
         variant: "destructive",
       });
       return;
@@ -152,7 +164,8 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange }) => {
 
           <RoleAssignmentForm
             role={formData.role}
-            onRoleChange={(role) => handleFormDataChange({ role: role as 'admin' | 'staff' | 'client' })}
+            onRoleChange={(role) => handleFormDataChange({ role: role as 'admin' | 'staff' | 'client' | 'super_admin' })}
+            showSuperAdmin={profile?.role === 'super_admin'}
           />
 
           <ContactInformationForm
