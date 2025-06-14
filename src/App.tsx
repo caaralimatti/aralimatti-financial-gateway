@@ -86,7 +86,7 @@ const App = () => {
               <Route 
                 path="/gst-login" 
                 element={
-                  <ProtectedRoute allowedRoles={['staff', 'admin']}>
+                  <ProtectedRoute allowedRoles={['staff', 'admin', 'super_admin']}>
                     <GSTLogin />
                   </ProtectedRoute>
                 } 
@@ -94,7 +94,7 @@ const App = () => {
               <Route 
                 path="/gst-registration" 
                 element={
-                  <ProtectedRoute allowedRoles={['staff', 'admin']}>
+                  <ProtectedRoute allowedRoles={['staff', 'admin', 'super_admin']}>
                     <GSTRegistration />
                   </ProtectedRoute>
                 } 
@@ -102,7 +102,7 @@ const App = () => {
               <Route 
                 path="/gst-reports" 
                 element={
-                  <ProtectedRoute allowedRoles={['staff', 'admin']}>
+                  <ProtectedRoute allowedRoles={['staff', 'admin', 'super_admin']}>
                     <GSTReports />
                   </ProtectedRoute>
                 } 
@@ -110,7 +110,7 @@ const App = () => {
               <Route 
                 path="/admin-dashboard" 
                 element={
-                  <ProtectedRoute allowedRoles={['admin']}>
+                  <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
                     <AdminDashboard />
                   </ProtectedRoute>
                 } 
@@ -119,7 +119,7 @@ const App = () => {
               <Route 
                 path="/task-settings" 
                 element={
-                  <ProtectedRoute allowedRoles={['admin']}>
+                  <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
                     <TaskSettings />
                   </ProtectedRoute>
                 } 
