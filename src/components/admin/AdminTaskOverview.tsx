@@ -1,14 +1,34 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Plus, Users, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useTasks } from '@/hooks/useTasks';
+import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentUserPermissions } from '@/hooks/useAdminPermissions';
 import AddTaskModal from './AddTaskModal';
 
 const AdminTaskOverview = () => {
   const { tasks, loading, refetch } = useTasks();
   const [showAddModal, setShowAddModal] = useState(false);
+  const { profile } = useAuth();
+  const { data: permissions = {} } = useCurrentUserPermissions();
+
+  const isSuperAdmin = profile?.role === 'super_admin';
+  const isAdmin = profile?.role === 'admin';
+
+  // Helper function to check if a module is enabled
+  const isModuleEnabled = (moduleName: string): boolean => {
+    if (isSuperAdmin) return true;
+    if (!isAdmin) return false;
+    return permissions[moduleName] !== false;
+  };
+
+  // Check if user has access to task management overview
+  if (!isModuleEnabled('task_management_overview')) {
+    return null;
+  }
 
   const taskStats = {
     total: tasks.length,
@@ -39,10 +59,13 @@ const AdminTaskOverview = () => {
             Monitor and manage all tasks across the organization
           </p>
         </div>
-        <Button onClick={() => setShowAddModal(true)} className="bg-primary hover:bg-primary/90">
-          <Plus className="h-4 w-4 mr-2" />
-          Create Task
-        </Button>
+        {/* Only show Create Task button if user has access to task management overview */}
+        {isModuleEnabled('task_management_overview') && (
+          <Button onClick={() => setShowAddModal(true)} className="bg-primary hover:bg-primary/90">
+            <Plus className="h-4 w-4 mr-2" />
+            Create Task
+          </Button>
+        )}
       </div>
 
       {/* Task Statistics */}
@@ -152,12 +175,14 @@ const AdminTaskOverview = () => {
         </CardContent>
       </Card>
 
-      {/* Add Task Modal */}
-      <AddTaskModal
-        open={showAddModal}
-        onOpenChange={setShowAddModal}
-        onTaskCreated={refetch}
-      />
+      {/* Add Task Modal - Only show if user has access */}
+      {isModuleEnabled('task_management_overview') && (
+        <AddTaskModal
+          open={showAddModal}
+          onOpenChange={setShowAddModal}
+          onTaskCreated={refetch}
+        />
+      )}
     </div>
   );
 };
