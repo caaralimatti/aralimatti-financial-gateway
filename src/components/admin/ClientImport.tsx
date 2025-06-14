@@ -324,16 +324,19 @@ const ClientImport: React.FC = () => {
                   <div key={column} className="space-y-2">
                     <Label>File Column: {column}</Label>
                     <Select
-                      value={fieldMappings[column] || ''}
+                      value={fieldMappings[column] || 'skip'}
                       onValueChange={(value) => 
-                        setFieldMappings(prev => ({ ...prev, [column]: value }))
+                        setFieldMappings(prev => ({ 
+                          ...prev, 
+                          [column]: value === 'skip' ? '' : value 
+                        }))
                       }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select system field" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Don't import</SelectItem>
+                        <SelectItem value="skip">Don't import</SelectItem>
                         {systemFields.map((field) => (
                           <SelectItem key={field.value} value={field.value}>
                             {field.label}
