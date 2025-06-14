@@ -52,7 +52,8 @@ const ComplianceCalendarUpload = () => {
   };
 
   const parseCSV = (csvText: string): ComplianceUploadData[] => {
-    const lines = csvText.split('\n');
+    const lines = csvText.split('\n').filter(line => line.trim() !== "");
+    if (lines.length < 2) return [];
     const headers = lines[0].split(',').map(h => h.trim());
     const data: ComplianceUploadData[] = [];
 
@@ -61,15 +62,17 @@ const ComplianceCalendarUpload = () => {
       if (!line) continue;
 
       const values = line.split(',').map(v => v.trim());
-      if (values.length >= 2) {
-        data.push({
-          date: values[0] || '',
-          compliance_type: values[1] || '',
-          form_activity: values[2] || undefined,
-          description: values[3] || undefined,
-          relevant_fy_ay: values[4] || undefined,
-        });
-      }
+
+      // Only proceed if first two columns are present
+      if (!values[0] || !values[1]) continue;
+
+      data.push({
+        date: values[0],
+        compliance_type: values[1],
+        form_activity: values[2] || undefined,
+        description: values[3] || undefined,
+        relevant_fy_ay: values[4] || undefined,
+      });
     }
 
     return data;
@@ -89,38 +92,62 @@ const ComplianceCalendarUpload = () => {
     try {
       const csvText = await selectedFile.text();
       const parsedData = parseCSV(csvText);
-      
-      const complianceDeadlines: CreateComplianceDeadlineData[] = parsedData.map(item => {
-        // Parse MM DD format and combine with year
-        const [month, day] = item.date.split(' ').map(str => str.padStart(2, '0'));
+
+      if (parsedData.length === 0) {
+        throw new Error("No valid data rows found in the CSV file.");
+      }
+
+      let errorCount = 0;
+      const complianceDeadlines: CreateComplianceDeadlineData[] = [];
+
+      parsedData.forEach(item => {
+        // Defensive: handle malformed or missing date
+        const dateParts = item.date.split(' ');
+        const month = dateParts[0]?.padStart(2, '0');
+        const day = dateParts[1]?.padStart(2, '0');
+        const yearInt = parseInt(year);
+
+        const isMonthValid = /^\d{2}$/.test(month) && Number(month) >= 1 && Number(month) <= 12;
+        const isDayValid = /^\d{2}$/.test(day) && Number(day) >= 1 && Number(day) <= 31;
+
+        if (!isMonthValid || !isDayValid || isNaN(yearInt)) {
+          errorCount++;
+          return; // Skip malformed date rows
+        }
+
         const deadline_date = `${year}-${month}-${day}`;
-        
-        return {
+
+        complianceDeadlines.push({
           deadline_date,
           compliance_type: item.compliance_type,
           form_activity: item.form_activity || null,
           description: item.description || null,
           relevant_fy_ay: item.relevant_fy_ay || null,
-        };
+        });
       });
 
+      if (complianceDeadlines.length === 0) {
+        throw new Error("No valid data rows to upload. Please check the file format and ensure all dates are provided as 'MM DD'.");
+      }
+
       await complianceService.upsertComplianceDeadlines(complianceDeadlines);
-      
+
       toast({
         title: "Upload Successful",
-        description: `Successfully uploaded ${complianceDeadlines.length} compliance deadlines.`,
+        description: `Successfully uploaded ${complianceDeadlines.length} compliance deadlines.` +
+          (errorCount > 0 ? ` Skipped ${errorCount} invalid record(s).` : ""),
       });
 
       setSelectedFile(null);
       // Reset file input
       const fileInput = document.getElementById('compliance-file-input') as HTMLInputElement;
       if (fileInput) fileInput.value = '';
-      
-    } catch (error) {
+
+    } catch (error: any) {
       console.error('Error uploading compliance deadlines:', error);
       toast({
         title: "Upload Failed",
-        description: "Failed to upload compliance deadlines. Please check the file format.",
+        description: error.message || "Failed to upload compliance deadlines. Please check the file format.",
         variant: "destructive",
       });
     } finally {
