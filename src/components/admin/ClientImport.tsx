@@ -1,57 +1,16 @@
 
-import React, { useState, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
-import { 
-  Upload, 
-  FileSpreadsheet, 
-  Download, 
-  CheckCircle, 
-  AlertCircle,
-  Loader2,
-  Filter,
-  Merge,
-  X,
-  AlertTriangle
-} from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import React, { useState } from 'react';
 import { useClientImport } from '@/hooks/useClientImport';
 import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-
-interface ParsedRow {
-  [key: string]: string;
-  _rowIndex: number;
-  _isValid: boolean;
-  _errors: string[];
-  _isDuplicate?: boolean;
-  _duplicateOf?: string;
-}
-
-interface ValidationResult {
-  isValid: boolean;
-  errors: string[];
-  warnings: string[];
-  duplicates: Array<{ row: number; field: string; value: string; existingRow: number }>;
-}
+import { validateFile } from '@/utils/fileValidation';
+import { parseCSV } from '@/utils/csvParser';
+import { validateData, getMappedRowData } from '@/utils/dataValidation';
+import FileUploadZone from './import/FileUploadZone';
+import FieldMappingCard from './import/FieldMappingCard';
+import FilterOptionsCard from './import/FilterOptionsCard';
+import PreviewDataTable from './import/PreviewDataTable';
+import ImportCompleteCard from './import/ImportCompleteCard';
+import type { ParsedRow, ValidationResult, FilterSettings, SystemField } from '@/types/clientImport';
 
 const ClientImport: React.FC = () => {
   const { importClients, isImporting } = useClientImport();
@@ -64,17 +23,16 @@ const ClientImport: React.FC = () => {
   const [previewData, setPreviewData] = useState<ParsedRow[]>([]);
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
   const [showFilterOptions, setShowFilterOptions] = useState(false);
-  const [filterSettings, setFilterSettings] = useState({
+  const [filterSettings, setFilterSettings] = useState<FilterSettings>({
     skipInvalidRows: true,
     skipDuplicates: false,
     mergeDuplicates: false,
     showWarningsOnly: false
   });
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // System fields for mapping
-  const systemFields = [
+  const systemFields: SystemField[] = [
     { value: 'name', label: 'Client Name', required: true },
     { value: 'email', label: 'Email Address', required: false },
     { value: 'mobile', label: 'Mobile Number', required: false },
@@ -82,102 +40,6 @@ const ClientImport: React.FC = () => {
     { value: 'file_no', label: 'File Number', required: true },
     { value: 'status', label: 'Status', required: false }
   ];
-
-  const validateData = (data: ParsedRow[]): ValidationResult => {
-    const result: ValidationResult = {
-      isValid: true,
-      errors: [],
-      warnings: [],
-      duplicates: []
-    };
-
-    const seenValues: Record<string, number[]> = {};
-    
-    data.forEach((row, index) => {
-      row._errors = [];
-      row._isValid = true;
-      row._rowIndex = index;
-
-      // Check required fields
-      const mappedData = getMappedRowData(row);
-      if (!mappedData.name?.trim()) {
-        row._errors.push('Name is required');
-        row._isValid = false;
-      }
-      if (!mappedData.file_no?.trim()) {
-        row._errors.push('File Number is required');
-        row._isValid = false;
-      }
-
-      // Validate email format
-      if (mappedData.email && !isValidEmail(mappedData.email)) {
-        row._errors.push('Invalid email format');
-        row._isValid = false;
-      }
-
-      // Validate mobile format
-      if (mappedData.mobile && !isValidMobile(mappedData.mobile)) {
-        row._errors.push('Invalid mobile number format');
-        row._isValid = false;
-      }
-
-      // Check for duplicates within the file
-      if (mappedData.file_no) {
-        const key = `file_no_${mappedData.file_no.toLowerCase()}`;
-        if (!seenValues[key]) seenValues[key] = [];
-        seenValues[key].push(index);
-        
-        if (seenValues[key].length > 1) {
-          row._isDuplicate = true;
-          row._duplicateOf = mappedData.file_no;
-          result.duplicates.push({
-            row: index + 1,
-            field: 'File Number',
-            value: mappedData.file_no,
-            existingRow: seenValues[key][0] + 1
-          });
-        }
-      }
-
-      if (mappedData.email) {
-        const key = `email_${mappedData.email.toLowerCase()}`;
-        if (!seenValues[key]) seenValues[key] = [];
-        seenValues[key].push(index);
-        
-        if (seenValues[key].length > 1) {
-          result.warnings.push(`Duplicate email "${mappedData.email}" found in rows ${seenValues[key].map(i => i + 1).join(', ')}`);
-        }
-      }
-
-      if (!row._isValid) {
-        result.isValid = false;
-        result.errors.push(`Row ${index + 1}: ${row._errors.join(', ')}`);
-      }
-    });
-
-    return result;
-  };
-
-  const getMappedRowData = (row: ParsedRow) => {
-    const mapped: any = {};
-    Object.entries(fieldMappings).forEach(([fileCol, systemField]) => {
-      if (systemField && row[fileCol]) {
-        mapped[systemField] = row[fileCol];
-      }
-    });
-    return mapped;
-  };
-
-  const isValidEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const isValidMobile = (mobile: string): boolean => {
-    const mobileRegex = /^[\+]?[1-9][\d]{0,15}$/;
-    const cleanMobile = mobile.replace(/[\s\-\(\)]/g, '');
-    return mobileRegex.test(cleanMobile) && cleanMobile.length >= 10;
-  };
 
   const showError = (title: string, description: string) => {
     toast({
@@ -223,73 +85,12 @@ const ClientImport: React.FC = () => {
     }
   };
 
-  const validateFile = (file: File): boolean => {
-    // Check file type
-    if (!file.name.toLowerCase().endsWith('.csv')) {
-      showError('Invalid File Type', 'Please upload a CSV file only');
-      return false;
-    }
-
-    // Check file size (10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      showError('File Too Large', 'File size should be less than 10MB');
-      return false;
-    }
-
-    // Check if file is empty
-    if (file.size === 0) {
-      showError('Empty File', 'The uploaded file is empty');
-      return false;
-    }
-
-    return true;
-  };
-
-  const parseCSV = (csvText: string): { headers: string[]; rows: string[][] } => {
-    const lines = csvText.split('\n').filter(line => line.trim());
-    
-    if (lines.length < 2) {
-      throw new Error('CSV file should have at least a header row and one data row');
-    }
-
-    // Parse CSV with proper handling of quoted fields
-    const parseCSVLine = (line: string): string[] => {
-      const result: string[] = [];
-      let current = '';
-      let inQuotes = false;
-      
-      for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        
-        if (char === '"') {
-          if (inQuotes && line[i + 1] === '"') {
-            current += '"';
-            i++; // Skip next quote
-          } else {
-            inQuotes = !inQuotes;
-          }
-        } else if (char === ',' && !inQuotes) {
-          result.push(current.trim());
-          current = '';
-        } else {
-          current += char;
-        }
-      }
-      
-      result.push(current.trim());
-      return result;
-    };
-
-    const headers = parseCSVLine(lines[0]).map(h => h.replace(/"/g, '').trim());
-    const rows = lines.slice(1).map(line => parseCSVLine(line).map(v => v.replace(/"/g, '').trim()));
-
-    return { headers, rows };
-  };
-
   const handleFileUpload = (file: File) => {
     console.log('File selected:', file.name, file.type, file.size);
     
-    if (!validateFile(file)) {
+    const validation = validateFile(file);
+    if (!validation.isValid) {
+      showError('Invalid File', validation.error!);
       return;
     }
 
@@ -350,7 +151,7 @@ const ClientImport: React.FC = () => {
         setFieldMappings(autoMappings);
         
         // Initial validation
-        const validation = validateData(parsedData);
+        const validation = validateData(parsedData, autoMappings);
         setValidationResult(validation);
         
         if (validation.errors.length > 0) {
@@ -379,33 +180,19 @@ const ClientImport: React.FC = () => {
     reader.readAsText(file);
   };
 
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileUpload(file);
+  const handleMappingChange = (column: string, value: string) => {
+    const newMappings = { ...fieldMappings, [column]: value };
+    setFieldMappings(newMappings);
+    
+    // Re-validate data when mappings change
+    if (previewData.length > 0) {
+      const validation = validateData(previewData, newMappings);
+      setValidationResult(validation);
     }
   };
 
-  const handleBrowseClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const getFilteredData = (): ParsedRow[] => {
-    let filtered = [...previewData];
-
-    if (filterSettings.skipInvalidRows) {
-      filtered = filtered.filter(row => row._isValid);
-    }
-
-    if (filterSettings.skipDuplicates) {
-      filtered = filtered.filter(row => !row._isDuplicate);
-    }
-
-    if (filterSettings.showWarningsOnly) {
-      filtered = filtered.filter(row => !row._isValid || row._isDuplicate);
-    }
-
-    return filtered;
+  const handleFilterSettingChange = (setting: keyof FilterSettings, value: boolean) => {
+    setFilterSettings(prev => ({ ...prev, [setting]: value }));
   };
 
   const handleRowSelection = (rowIndex: number, selected: boolean) => {
@@ -420,8 +207,8 @@ const ClientImport: React.FC = () => {
 
   const handleSelectAll = (selected: boolean) => {
     if (selected) {
-      const filteredData = getFilteredData();
-      setSelectedRows(new Set(filteredData.map(row => row._rowIndex)));
+      const validData = previewData.filter(row => row._isValid);
+      setSelectedRows(new Set(validData.map(row => row._rowIndex)));
     } else {
       setSelectedRows(new Set());
     }
@@ -443,10 +230,10 @@ const ClientImport: React.FC = () => {
     }
 
     try {
-      const dataToImport = getFilteredData();
+      const validData = previewData.filter(row => row._isValid);
       const selectedData = selectedRows.size > 0 
-        ? dataToImport.filter(row => selectedRows.has(row._rowIndex))
-        : dataToImport;
+        ? validData.filter(row => selectedRows.has(row._rowIndex))
+        : validData;
 
       if (selectedData.length === 0) {
         showError('No Records Selected', 'Please select at least one record to import');
@@ -454,7 +241,7 @@ const ClientImport: React.FC = () => {
       }
 
       const importData = selectedData.map(row => {
-        const mapped = getMappedRowData(row);
+        const mapped = getMappedRowData(row, fieldMappings);
         
         return {
           name: mapped.name,
@@ -501,345 +288,62 @@ const ClientImport: React.FC = () => {
           <p className="text-gray-600">Client data has been successfully imported</p>
         </div>
 
-        <Card>
-          <CardContent className="p-8 text-center">
-            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Import Successful!</h3>
-            <p className="text-gray-600 mb-6">
-              Successfully imported {selectedRows.size || previewData.length} clients from {uploadedFile?.name}
-            </p>
-            <div className="flex justify-center gap-4">
-              <Button onClick={() => window.location.reload()}>
-                Import More Files
-              </Button>
-              <Button variant="outline" onClick={() => setImportComplete(false)}>
-                Back to Import
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <ImportCompleteCard
+          importedCount={selectedRows.size || previewData.length}
+          fileName={uploadedFile?.name || ''}
+          onImportMore={() => window.location.reload()}
+          onBackToImport={() => setImportComplete(false)}
+        />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Import Clients</h2>
-          <p className="text-gray-600">Upload and import client data from CSV files with smart validation</p>
-        </div>
-        <Button variant="outline" onClick={downloadTemplate} className="flex items-center gap-2">
-          <Download className="h-4 w-4" />
-          Download Template
-        </Button>
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900">Import Clients</h2>
+        <p className="text-gray-600">Upload and import client data from CSV files with smart validation</p>
       </div>
 
-      {/* File Upload Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Upload File</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div
-            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-              dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
-            }`}
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-          >
-            {isUploading ? (
-              <div className="flex flex-col items-center">
-                <Loader2 className="h-12 w-12 text-blue-500 animate-spin mb-4" />
-                <p className="text-lg font-medium">Processing file...</p>
-                <p className="text-gray-600">Please wait while we analyze your data</p>
-              </div>
-            ) : uploadedFile ? (
-              <div className="flex flex-col items-center">
-                <FileSpreadsheet className="h-12 w-12 text-green-500 mb-4" />
-                <p className="text-lg font-medium">{uploadedFile.name}</p>
-                <p className="text-gray-600">File uploaded successfully</p>
-                <p className="text-sm text-gray-500 mt-2">{previewData.length} records found</p>
-                {validationResult && (
-                  <div className="mt-4 space-y-2">
-                    {validationResult.errors.length > 0 && (
-                      <Badge variant="destructive" className="mr-2">
-                        {validationResult.errors.length} Errors
-                      </Badge>
-                    )}
-                    {validationResult.warnings.length > 0 && (
-                      <Badge variant="secondary" className="mr-2">
-                        {validationResult.warnings.length} Warnings
-                      </Badge>
-                    )}
-                    {validationResult.duplicates.length > 0 && (
-                      <Badge variant="outline" className="mr-2">
-                        {validationResult.duplicates.length} Duplicates
-                      </Badge>
-                    )}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center">
-                <Upload className="h-12 w-12 text-gray-400 mb-4" />
-                <p className="text-lg font-medium mb-2">Drop your file here, or browse</p>
-                <p className="text-gray-600 mb-4">Supports CSV files up to 10MB</p>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".csv"
-                  onChange={handleFileInputChange}
-                  className="hidden"
-                />
-                <Button variant="outline" onClick={handleBrowseClick}>
-                  Browse Files
-                </Button>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      <FileUploadZone
+        uploadedFile={uploadedFile}
+        isUploading={isUploading}
+        previewDataLength={previewData.length}
+        validationResult={validationResult}
+        dragActive={dragActive}
+        onDrag={handleDrag}
+        onDrop={handleDrop}
+        onFileUpload={handleFileUpload}
+        onDownloadTemplate={downloadTemplate}
+      />
 
-      {/* Field Mapping Section */}
       {uploadedFile && !isUploading && previewData.length > 0 && (
         <>
-          <Card>
-            <CardHeader>
-              <CardTitle>Map Fields</CardTitle>
-              <p className="text-sm text-gray-600">
-                Map the columns from your file to the corresponding system fields
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.keys(previewData[0] || {}).filter(key => !key.startsWith('_')).map((column) => (
-                  <div key={column} className="space-y-2">
-                    <Label>
-                      File Column: {column}
-                      {systemFields.find(f => f.value === fieldMappings[column])?.required && (
-                        <span className="text-red-500 ml-1">*</span>
-                      )}
-                    </Label>
-                    <Select
-                      value={fieldMappings[column] || 'skip'}
-                      onValueChange={(value) => 
-                        setFieldMappings(prev => ({ 
-                          ...prev, 
-                          [column]: value === 'skip' ? '' : value 
-                        }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select system field" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="skip">Don't import</SelectItem>
-                        {systemFields.map((field) => (
-                          <SelectItem key={field.value} value={field.value}>
-                            {field.label} {field.required && <span className="text-red-500">*</span>}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <FieldMappingCard
+            fileColumns={Object.keys(previewData[0] || {}).filter(key => !key.startsWith('_'))}
+            fieldMappings={fieldMappings}
+            systemFields={systemFields}
+            onMappingChange={handleMappingChange}
+          />
 
-          {/* Filter and Smart Options */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Filter className="h-5 w-5" />
-                Smart Filtering & Processing Options
-              </CardTitle>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowFilterOptions(!showFilterOptions)}
-              >
-                {showFilterOptions ? 'Hide Options' : 'Show Options'}
-              </Button>
-            </CardHeader>
-            {showFilterOptions && (
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="skipInvalid"
-                      checked={filterSettings.skipInvalidRows}
-                      onCheckedChange={(checked) =>
-                        setFilterSettings(prev => ({ ...prev, skipInvalidRows: checked as boolean }))
-                      }
-                    />
-                    <Label htmlFor="skipInvalid">Skip invalid rows</Label>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="skipDuplicates"
-                      checked={filterSettings.skipDuplicates}
-                      onCheckedChange={(checked) =>
-                        setFilterSettings(prev => ({ ...prev, skipDuplicates: checked as boolean }))
-                      }
-                    />
-                    <Label htmlFor="skipDuplicates">Skip duplicate records</Label>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="mergeDuplicates"
-                      checked={filterSettings.mergeDuplicates}
-                      onCheckedChange={(checked) =>
-                        setFilterSettings(prev => ({ ...prev, mergeDuplicates: checked as boolean }))
-                      }
-                    />
-                    <Label htmlFor="mergeDuplicates">Merge duplicate records</Label>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="showWarnings"
-                      checked={filterSettings.showWarningsOnly}
-                      onCheckedChange={(checked) =>
-                        setFilterSettings(prev => ({ ...prev, showWarningsOnly: checked as boolean }))
-                      }
-                    />
-                    <Label htmlFor="showWarnings">Show only problematic rows</Label>
-                  </div>
-                </div>
-              </CardContent>
-            )}
-          </Card>
+          <FilterOptionsCard
+            filterSettings={filterSettings}
+            showFilterOptions={showFilterOptions}
+            onToggleOptions={() => setShowFilterOptions(!showFilterOptions)}
+            onSettingChange={handleFilterSettingChange}
+          />
 
-          {/* Preview Section */}
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <div>
-                  <CardTitle>Preview Import Data</CardTitle>
-                  <p className="text-sm text-gray-600">
-                    Review and select records to import
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="selectAll"
-                    checked={selectedRows.size === getFilteredData().length && getFilteredData().length > 0}
-                    onCheckedChange={handleSelectAll}
-                  />
-                  <Label htmlFor="selectAll" className="text-sm">Select All</Label>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-md border max-h-96 overflow-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-12">Select</TableHead>
-                      <TableHead className="w-16">Row</TableHead>
-                      <TableHead className="w-20">Status</TableHead>
-                      {Object.entries(fieldMappings).map(([fileCol, systemField]) => 
-                        systemField && (
-                          <TableHead key={fileCol}>
-                            {systemFields.find(f => f.value === systemField)?.label || systemField}
-                          </TableHead>
-                        )
-                      )}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {getFilteredData().slice(0, 10).map((row) => (
-                      <TableRow key={row._rowIndex} className={!row._isValid ? 'bg-red-50' : row._isDuplicate ? 'bg-yellow-50' : ''}>
-                        <TableCell>
-                          <Checkbox
-                            checked={selectedRows.has(row._rowIndex)}
-                            onCheckedChange={(checked) => handleRowSelection(row._rowIndex, checked as boolean)}
-                          />
-                        </TableCell>
-                        <TableCell>{row._rowIndex + 1}</TableCell>
-                        <TableCell>
-                          {!row._isValid ? (
-                            <Badge variant="destructive" className="text-xs">
-                              <AlertTriangle className="h-3 w-3 mr-1" />
-                              Error
-                            </Badge>
-                          ) : row._isDuplicate ? (
-                            <Badge variant="secondary" className="text-xs">
-                              <Merge className="h-3 w-3 mr-1" />
-                              Duplicate
-                            </Badge>
-                          ) : (
-                            <Badge variant="default" className="text-xs">
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Valid
-                            </Badge>
-                          )}
-                        </TableCell>
-                        {Object.entries(fieldMappings).map(([fileCol, systemField]) => 
-                          systemField && (
-                            <TableCell key={fileCol}>
-                              {row[fileCol]}
-                            </TableCell>
-                          )
-                        )}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {validationResult && (validationResult.errors.length > 0 || validationResult.warnings.length > 0) && (
-                <Alert className="mt-4">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    <div className="space-y-2">
-                      {getFilteredData().length < previewData.length && (
-                        <p>Showing {getFilteredData().length} of {previewData.length} records after filtering.</p>
-                      )}
-                      {validationResult.errors.length > 0 && (
-                        <p className="text-red-600">
-                          Found {validationResult.errors.length} validation errors. 
-                          {filterSettings.skipInvalidRows ? ' Invalid rows will be skipped.' : ' Please fix errors before importing.'}
-                        </p>
-                      )}
-                      {validationResult.duplicates.length > 0 && (
-                        <p className="text-yellow-600">
-                          Found {validationResult.duplicates.length} duplicate records.
-                          {filterSettings.skipDuplicates ? ' Duplicates will be skipped.' : 
-                           filterSettings.mergeDuplicates ? ' Duplicates will be merged.' : 
-                           ' Please review duplicates.'}
-                        </p>
-                      )}
-                    </div>
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              <div className="flex justify-between items-center mt-6">
-                <div className="text-sm text-gray-600">
-                  {selectedRows.size > 0 ? (
-                    `${selectedRows.size} rows selected for import`
-                  ) : (
-                    `${getFilteredData().length} rows ready for import`
-                  )}
-                </div>
-                <Button 
-                  onClick={handleImport} 
-                  disabled={isImporting || getFilteredData().length === 0}
-                  className="flex items-center gap-2"
-                >
-                  {isImporting && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {isImporting ? 'Importing...' : `Import ${selectedRows.size || getFilteredData().length} Records`}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <PreviewDataTable
+            previewData={previewData}
+            fieldMappings={fieldMappings}
+            systemFields={systemFields}
+            validationResult={validationResult}
+            selectedRows={selectedRows}
+            isImporting={isImporting}
+            onRowSelection={handleRowSelection}
+            onSelectAll={handleSelectAll}
+            onImport={handleImport}
+          />
         </>
       )}
     </div>
