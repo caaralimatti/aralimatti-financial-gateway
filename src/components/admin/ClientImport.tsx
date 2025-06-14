@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -38,6 +38,7 @@ const ClientImport: React.FC = () => {
   const [importComplete, setImportComplete] = useState(false);
   const [fieldMappings, setFieldMappings] = useState<Record<string, string>>({});
   const [previewData, setPreviewData] = useState<any[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // System fields for mapping
   const systemFields = [
@@ -71,48 +72,108 @@ const ClientImport: React.FC = () => {
   };
 
   const handleFileUpload = (file: File) => {
+    console.log('File selected:', file.name, file.type, file.size);
+    
+    // Validate file type
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      alert('Please upload a CSV file');
+      return;
+    }
+
+    // Validate file size (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File size should be less than 10MB');
+      return;
+    }
+
     setIsUploading(true);
     setUploadedFile(file);
     
-    // Parse CSV file (simplified for demo)
+    // Parse CSV file
     const reader = new FileReader();
     reader.onload = (e) => {
-      const csv = e.target?.result as string;
-      const lines = csv.split('\n');
-      const headers = lines[0].split(',').map(h => h.trim());
-      
-      // Create sample preview data
-      const sampleData = lines.slice(1, 4).map(line => {
-        const values = line.split(',').map(v => v.trim());
-        const obj: any = {};
-        headers.forEach((header, index) => {
-          obj[header] = values[index] || '';
-        });
-        return obj;
-      }).filter(row => Object.values(row).some(val => val));
+      try {
+        const csv = e.target?.result as string;
+        const lines = csv.split('\n').filter(line => line.trim());
+        
+        if (lines.length < 2) {
+          alert('CSV file should have at least a header row and one data row');
+          setIsUploading(false);
+          return;
+        }
 
-      setPreviewData(sampleData);
-      
-      // Auto-suggest mappings
-      const autoMappings: Record<string, string> = {};
-      headers.forEach(header => {
-        const lowerHeader = header.toLowerCase();
-        if (lowerHeader.includes('name')) autoMappings[header] = 'name';
-        if (lowerHeader.includes('email')) autoMappings[header] = 'email';
-        if (lowerHeader.includes('phone') || lowerHeader.includes('mobile')) autoMappings[header] = 'mobile';
-        if (lowerHeader.includes('type')) autoMappings[header] = 'client_type';
-        if (lowerHeader.includes('file')) autoMappings[header] = 'file_no';
-        if (lowerHeader.includes('status')) autoMappings[header] = 'status';
-      });
-      setFieldMappings(autoMappings);
+        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+        console.log('Headers found:', headers);
+        
+        // Parse all data rows (not just first 3)
+        const allData = lines.slice(1).map(line => {
+          const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+          const obj: any = {};
+          headers.forEach((header, index) => {
+            obj[header] = values[index] || '';
+          });
+          return obj;
+        }).filter(row => Object.values(row).some(val => val));
+
+        console.log('Parsed data:', allData);
+        setPreviewData(allData);
+        
+        // Auto-suggest mappings
+        const autoMappings: Record<string, string> = {};
+        headers.forEach(header => {
+          const lowerHeader = header.toLowerCase();
+          if (lowerHeader.includes('name') && !lowerHeader.includes('file')) autoMappings[header] = 'name';
+          if (lowerHeader.includes('email')) autoMappings[header] = 'email';
+          if (lowerHeader.includes('phone') || lowerHeader.includes('mobile')) autoMappings[header] = 'mobile';
+          if (lowerHeader.includes('type')) autoMappings[header] = 'client_type';
+          if (lowerHeader.includes('file')) autoMappings[header] = 'file_no';
+          if (lowerHeader.includes('status')) autoMappings[header] = 'status';
+        });
+        
+        console.log('Auto mappings:', autoMappings);
+        setFieldMappings(autoMappings);
+        setIsUploading(false);
+      } catch (error) {
+        console.error('Error parsing CSV:', error);
+        alert('Error parsing CSV file. Please check the file format.');
+        setIsUploading(false);
+      }
+    };
+    
+    reader.onerror = () => {
+      console.error('Error reading file');
+      alert('Error reading file');
       setIsUploading(false);
     };
     
     reader.readAsText(file);
   };
 
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  };
+
+  const handleBrowseClick = () => {
+    fileInputRef.current?.click();
+  };
+
   const handleImport = async () => {
-    if (!previewData.length) return;
+    if (!previewData.length) {
+      alert('No data to import');
+      return;
+    }
+
+    // Validate that required fields are mapped
+    const hasNameMapping = Object.values(fieldMappings).includes('name');
+    const hasFileNoMapping = Object.values(fieldMappings).includes('file_no');
+    
+    if (!hasNameMapping || !hasFileNoMapping) {
+      alert('Please map both Name and File Number fields before importing');
+      return;
+    }
 
     try {
       const importData = previewData.map(row => {
@@ -128,23 +189,25 @@ const ClientImport: React.FC = () => {
         
         return {
           name: mapped.name,
-          email: mapped.email,
-          mobile: mapped.mobile,
+          email: mapped.email || null,
+          mobile: mapped.mobile || null,
           file_no: mapped.file_no,
           client_type: mapped.client_type || 'Individual',
           status: mapped.status || 'Active'
         };
       }).filter(Boolean);
 
+      console.log('Importing data:', importData);
       await importClients(importData);
       setImportComplete(true);
     } catch (error) {
       console.error('Import failed:', error);
+      alert('Import failed. Please try again.');
     }
   };
 
   const downloadTemplate = () => {
-    const csvContent = "Name,Email,Mobile,File Number,Client Type,Status\nABC Corporation,contact@abc.com,+91-9876543210,FILE001,Company,Active";
+    const csvContent = "Name,Email,Mobile,File Number,Client Type,Status\nJohn Doe,john@example.com,+91-9876543210,FILE001,Individual,Active\nABC Corporation,contact@abc.com,+91-9876543211,FILE002,Company,Active";
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -173,8 +236,8 @@ const ClientImport: React.FC = () => {
               <Button onClick={() => window.location.reload()}>
                 Import More Files
               </Button>
-              <Button variant="outline">
-                View Imported Clients
+              <Button variant="outline" onClick={() => setImportComplete(false)}>
+                Back to Import
               </Button>
             </div>
           </CardContent>
@@ -188,7 +251,7 @@ const ClientImport: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Import Clients</h2>
-          <p className="text-gray-600">Upload and import client data from CSV or Excel files</p>
+          <p className="text-gray-600">Upload and import client data from CSV files</p>
         </div>
         <Button variant="outline" onClick={downloadTemplate} className="flex items-center gap-2">
           <Download className="h-4 w-4" />
@@ -222,26 +285,23 @@ const ClientImport: React.FC = () => {
                 <FileSpreadsheet className="h-12 w-12 text-green-500 mb-4" />
                 <p className="text-lg font-medium">{uploadedFile.name}</p>
                 <p className="text-gray-600">File uploaded successfully</p>
+                <p className="text-sm text-gray-500 mt-2">{previewData.length} records found</p>
               </div>
             ) : (
               <div className="flex flex-col items-center">
                 <Upload className="h-12 w-12 text-gray-400 mb-4" />
                 <p className="text-lg font-medium mb-2">Drop your file here, or browse</p>
                 <p className="text-gray-600 mb-4">Supports CSV files up to 10MB</p>
-                <Input
+                <input
+                  ref={fileInputRef}
                   type="file"
                   accept=".csv"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      handleFileUpload(e.target.files[0]);
-                    }
-                  }}
+                  onChange={handleFileInputChange}
                   className="hidden"
-                  id="file-upload"
                 />
-                <Label htmlFor="file-upload" className="cursor-pointer">
-                  <Button variant="outline">Browse Files</Button>
-                </Label>
+                <Button variant="outline" onClick={handleBrowseClick}>
+                  Browse Files
+                </Button>
               </div>
             )}
           </div>
@@ -310,7 +370,7 @@ const ClientImport: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {previewData.map((row, index) => (
+                    {previewData.slice(0, 3).map((row, index) => (
                       <TableRow key={index}>
                         {Object.entries(fieldMappings).map(([fileCol, systemField]) => 
                           systemField && (
@@ -339,7 +399,7 @@ const ClientImport: React.FC = () => {
                   className="flex items-center gap-2"
                 >
                   {isImporting && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {isImporting ? 'Importing...' : 'Import Data'}
+                  {isImporting ? 'Importing...' : `Import ${previewData.length} Records`}
                 </Button>
               </div>
             </CardContent>
