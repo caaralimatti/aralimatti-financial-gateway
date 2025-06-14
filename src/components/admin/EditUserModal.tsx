@@ -19,6 +19,7 @@ import {
 import { UserProfile } from '@/types/userManagement';
 import { useUserManagement } from '@/hooks/useUserManagement';
 import { useAuth } from '@/contexts/AuthContext';
+import { RoleAssignmentForm } from '@/components/RoleAssignmentForm';
 
 interface EditUserModalProps {
   open: boolean;
@@ -114,19 +115,11 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ open, onOpenChange, user 
 
           <div className="space-y-2">
             <Label htmlFor="role">User Role *</Label>
-            <Select value={formData.role} onValueChange={(value: 'admin' | 'staff' | 'client' | 'super_admin') => setFormData(prev => ({ ...prev, role: value }))}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select user role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="staff">Staff Member</SelectItem>
-                <SelectItem value="client">Client</SelectItem>
-                {profile?.role === 'super_admin' && (
-                  <SelectItem value="super_admin">Super Admin</SelectItem>
-                )}
-              </SelectContent>
-            </Select>
+            <RoleAssignmentForm
+              role={formData.role}
+              onRoleChange={(role) => setFormData((prev) => ({ ...prev, role }))}
+              showSuperAdmin={profile?.role === 'super_admin'}
+            />
           </div>
 
           <div className="flex items-center space-x-2">

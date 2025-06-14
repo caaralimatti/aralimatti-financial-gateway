@@ -175,7 +175,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange }) => {
             onRoleChange={(role) =>
               setFormData((prev) => ({
                 ...prev,
-                role: role as 'admin' | 'staff' | 'client' | 'super_admin',
+                role,
               }))
             }
             showSuperAdmin={profile?.role === 'super_admin'}
