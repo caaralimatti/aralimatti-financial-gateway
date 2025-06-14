@@ -53,76 +53,64 @@ const ComplianceCalendarUpload = () => {
 
   // Utility: Parse date from various formats to { month: MM, day: DD }
   const parseDateCell = (dateRaw: string): { month: string, day: string } | null => {
-    // Remove quotes and trim
     let value = dateRaw.replace(/"/g, '').trim();
 
-    // Try to handle "04-Jan" or "4-Jan"
-    const dashMonthMatch = value.match(/^(\d{1,2})-([A-Za-z]{3,})$/);
-    if (dashMonthMatch) {
-      const dayStr = dashMonthMatch[1];
-      const monthStr = dashMonthMatch[2];
-      // Map Jan=>01, Feb=>02, etc.
-      const monthMap: { [key: string]: string } = {
+    // Try extended formats with dots, slashes, dashes or spaces (dd-mm, mm/dd, dd/mm etc)
+    // Support mmm (3-letter month, any capitalization, e.g., Jan, JAN, jan)
+    // We try in order from most explicit to least
+
+    // 1. "yyyy-mm-dd"
+    const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (isoMatch) return { month: isoMatch[2], day: isoMatch[3] };
+
+    // 2. "dd-mmm" (e.g. 5-Mar)
+    let match = value.match(/^(\d{1,2})-([A-Za-z]{3,})$/);
+    if (match) {
+      const day = match[1], mon = match[2];
+      const monthNum = {
         jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
         jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12'
-      };
-      const m = monthMap[monthStr.toLowerCase().slice(0,3)];
-      if (m) return { month: m, day: dayStr.padStart(2, '0') };
+      }[mon.toLowerCase().slice(0, 3)];
+      if (monthNum) return { month: monthNum, day: day.padStart(2, "0") };
     }
-
-    // Try "MM-DD" or "M-D"
-    const dashMatch = value.match(/^(\d{1,2})-(\d{1,2})$/);
-    if (dashMatch)
-      return { month: dashMatch[1].padStart(2, '0'), day: dashMatch[2].padStart(2, '0') };
-
-    // Try "MM/DD" or "M/D"
-    const slashMatch = value.match(/^(\d{1,2})\/(\d{1,2})$/);
-    if (slashMatch)
-      return { month: slashMatch[1].padStart(2, '0'), day: slashMatch[2].padStart(2, '0') };
-
-    // Try "MM DD"
-    const spaceMatch = value.match(/^(\d{1,2})\s+(\d{1,2})$/);
-    if (spaceMatch)
-      return { month: spaceMatch[1].padStart(2, '0'), day: spaceMatch[2].padStart(2, '0') };
-
-    // Try "DD-MMM" as "day-month text"
-    const dayTextMonth = value.match(/^(\d{1,2})-([A-Za-z]{3,})$/);
-    if (dayTextMonth) {
-      const dayStr = dayTextMonth[1];
-      const monthStr = dayTextMonth[2];
-      const monthMap: { [key: string]: string } = {
+    // 3. "mmm dd"
+    match = value.match(/^([A-Za-z]{3,})[\s\-\.\/](\d{1,2})$/);
+    if (match) {
+      const mon = match[1], day = match[2];
+      const monthNum = {
         jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
         jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12'
-      };
-      const m = monthMap[monthStr.toLowerCase().slice(0,3)];
-      if (m) return { month: m, day: dayStr.padStart(2, '0') };
+      }[mon.toLowerCase().slice(0, 3)];
+      if (monthNum) return { month: monthNum, day: day.padStart(2, "0") };
+    }
+    // 4. "dd/mm" or "mm/dd" or "dd-mm" or "mm-dd" or "dd.mm"
+    match = value.match(/^(\d{1,2})[\/\-\.\s]{1}(\d{1,2})$/);
+    if (match) {
+      // You may want to control for Indian DMY vs MDY style:
+      // Let's assume first is month, second is day (as per template)
+      return { month: match[1].padStart(2, '0'), day: match[2].padStart(2, '0') };
     }
 
-    // Try Excel native date format as 'yyyy-mm-dd'
-    const isoMatch = value.match(/^\d{4}-\d{2}-\d{2}$/);
-    if (isoMatch) {
-      const iso = value.split('-');
-      return { month: iso[1], day: iso[2] };
-    }
+    // 5. "mm yyyy" or "mm dd"
+    match = value.match(/^(\d{1,2})[\s]{1,2}(\d{1,2})$/);
+    if (match)
+      return { month: match[1].padStart(2, '0'), day: match[2].padStart(2, '0') };
 
+    // Not parsed
     return null;
   };
 
   const parseCSV = (csvText: string): ComplianceUploadData[] => {
     const lines = csvText.split('\n').filter(line => line.trim() !== "");
     if (lines.length < 2) return [];
-    const headers = lines[0].split(',').map(h => h.trim());
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
     const data: ComplianceUploadData[] = [];
-
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].trim();
       if (!line) continue;
-
       const values = line.split(',').map(v => v.trim());
-
       // Only proceed if first two columns are present
       if (!values[0] || !values[1]) continue;
-
       data.push({
         date: values[0],
         compliance_type: values[1],
@@ -131,7 +119,6 @@ const ComplianceCalendarUpload = () => {
         relevant_fy_ay: values[4] || undefined,
       });
     }
-
     return data;
   };
 
@@ -149,55 +136,64 @@ const ComplianceCalendarUpload = () => {
     try {
       const csvText = await selectedFile.text();
       const parsedData = parseCSV(csvText);
-
-      if (parsedData.length === 0) {
-        throw new Error("No valid data rows found in the CSV file.");
-      }
+      if (parsedData.length === 0) throw new Error("No valid data rows found in the CSV file.");
 
       let errorCount = 0;
-      const complianceDeadlines: CreateComplianceDeadlineData[] = [];
+      let duplicateCount = 0;
+      const complianceMap = new Map<string, CreateComplianceDeadlineData>();
 
       parsedData.forEach(item => {
-        // Accept multiple date formats now!
         const parsed = parseDateCell(item.date);
         if (!parsed) {
           errorCount++;
           return;
         }
         const { month, day } = parsed;
-        // Defensive: handle invalid month/day
         const yearInt = parseInt(year);
         const isMonthValid = /^\d{2}$/.test(month) && Number(month) >= 1 && Number(month) <= 12;
         const isDayValid = /^\d{2}$/.test(day) && Number(day) >= 1 && Number(day) <= 31;
-
         if (!isMonthValid || !isDayValid || isNaN(yearInt)) {
           errorCount++;
           return;
         }
-
         const deadline_date = `${year}-${month}-${day}`;
+        const compliance_type = item.compliance_type;
+        const form_activity = item.form_activity || null;
 
-        complianceDeadlines.push({
+        // Key for deduplication
+        const key = `${deadline_date}|${compliance_type}|${form_activity ?? ""}`;
+
+        if (complianceMap.has(key)) {
+          duplicateCount++;
+        }
+        complianceMap.set(key, {
           deadline_date,
-          compliance_type: item.compliance_type,
-          form_activity: item.form_activity || null,
+          compliance_type,
+          form_activity,
           description: item.description || null,
           relevant_fy_ay: item.relevant_fy_ay || null,
         });
       });
 
+      const complianceDeadlines = Array.from(complianceMap.values());
+
       if (complianceDeadlines.length === 0) {
         throw new Error(
-          "No valid data rows to upload. Please check the Date column formats (accepted: '04-Jan', '04-01', '04/01', 'MM DD', 'YYYY-MM-DD')."
+          "No valid data rows to upload. Please check the Date column formats and see help tip."
         );
       }
 
       await complianceService.upsertComplianceDeadlines(complianceDeadlines);
 
+      let description = `Successfully uploaded ${complianceDeadlines.length} compliance deadlines.`;
+      if (errorCount > 0)
+        description += ` Skipped ${errorCount} invalid record(s) (bad date format or missing type).`;
+      if (duplicateCount > 0)
+        description += ` ${duplicateCount} duplicate row(s) were merged by (date, type, activity).`;
+
       toast({
         title: "Upload Successful",
-        description: `Successfully uploaded ${complianceDeadlines.length} compliance deadlines.` +
-          (errorCount > 0 ? ` Skipped ${errorCount} invalid record(s).` : ""),
+        description,
       });
 
       setSelectedFile(null);
@@ -207,9 +203,13 @@ const ComplianceCalendarUpload = () => {
 
     } catch (error: any) {
       console.error('Error uploading compliance deadlines:', error);
+      let description = error.message || "Failed to upload compliance deadlines.";
+      if (description.includes("ON CONFLICT")) {
+        description += " — This usually means your file had duplicate compliance entries with the same date, type, and (optionally) activity. Please check your file for accidental duplicate rows."
+      }
       toast({
         title: "Upload Failed",
-        description: error.message || "Failed to upload compliance deadlines. Please check the file format.",
+        description,
         variant: "destructive",
       });
     } finally {
