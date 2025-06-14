@@ -949,7 +949,7 @@ export type Database = {
         | "Trust"
         | "HUF"
         | "Other"
-      user_role: "client" | "staff" | "admin"
+      user_role: "client" | "staff" | "admin" | "super_admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1075,7 +1075,7 @@ export const Constants = {
         "HUF",
         "Other",
       ],
-      user_role: ["client", "staff", "admin"],
+      user_role: ["client", "staff", "admin", "super_admin"],
     },
   },
 } as const
