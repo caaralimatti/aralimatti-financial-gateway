@@ -628,6 +628,181 @@ export type Database = {
         }
         Relationships: []
       }
+      invoice_line_items: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          invoice_id: string
+          quantity: number
+          rate_type: string | null
+          related_task_id: string | null
+          related_time_entry_id: string | null
+          total_line_item_amount: number
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          invoice_id: string
+          quantity?: number
+          rate_type?: string | null
+          related_task_id?: string | null
+          related_time_entry_id?: string | null
+          total_line_item_amount: number
+          unit_price: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          invoice_id?: string
+          quantity?: number
+          rate_type?: string | null
+          related_task_id?: string | null
+          related_time_entry_id?: string | null
+          total_line_item_amount?: number
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_line_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_line_items_related_task_id_fkey"
+            columns: ["related_task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_line_items_related_time_entry_id_fkey"
+            columns: ["related_time_entry_id"]
+            isOneToOne: false
+            referencedRelation: "time_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          client_id: string
+          created_at: string
+          created_by_profile_id: string
+          discount_amount: number | null
+          due_date: string
+          id: string
+          invoice_date: string
+          invoice_number: string
+          status: string
+          tax_amount: number | null
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          created_by_profile_id: string
+          discount_amount?: number | null
+          due_date: string
+          id?: string
+          invoice_date: string
+          invoice_number: string
+          status?: string
+          tax_amount?: number | null
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          created_by_profile_id?: string
+          discount_amount?: number | null
+          due_date?: string
+          id?: string
+          invoice_date?: string
+          invoice_number?: string
+          status?: string
+          tax_amount?: number | null
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_created_by_profile_id_fkey"
+            columns: ["created_by_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          invoice_id: string
+          payment_date: string
+          payment_method: string
+          received_by_profile_id: string
+          transaction_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          invoice_id: string
+          payment_date: string
+          payment_method: string
+          received_by_profile_id: string
+          transaction_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          invoice_id?: string
+          payment_date?: string
+          payment_method?: string
+          received_by_profile_id?: string
+          transaction_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_received_by_profile_id_fkey"
+            columns: ["received_by_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -891,6 +1066,7 @@ export type Database = {
           deadline_date: string | null
           description: string | null
           estimated_effort_hours: number | null
+          estimated_effort_unit: string | null
           id: string
           is_billable: boolean
           priority: string
@@ -908,6 +1084,7 @@ export type Database = {
           deadline_date?: string | null
           description?: string | null
           estimated_effort_hours?: number | null
+          estimated_effort_unit?: string | null
           id?: string
           is_billable?: boolean
           priority: string
@@ -925,6 +1102,7 @@ export type Database = {
           deadline_date?: string | null
           description?: string | null
           estimated_effort_hours?: number | null
+          estimated_effort_unit?: string | null
           id?: string
           is_billable?: boolean
           priority?: string
@@ -964,11 +1142,85 @@ export type Database = {
           },
         ]
       }
+      time_entries: {
+        Row: {
+          client_id: string
+          created_at: string
+          description: string | null
+          duration_hours: number
+          end_time: string
+          id: string
+          is_billable: boolean
+          profile_id: string
+          rate_type: string
+          rate_value: number
+          start_time: string
+          task_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          description?: string | null
+          duration_hours: number
+          end_time: string
+          id?: string
+          is_billable?: boolean
+          profile_id: string
+          rate_type: string
+          rate_value: number
+          start_time: string
+          task_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          description?: string | null
+          duration_hours?: number
+          end_time?: string
+          id?: string
+          is_billable?: boolean
+          profile_id?: string
+          rate_type?: string
+          rate_value?: number
+          start_time?: string
+          task_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entries_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      generate_invoice_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_manageable_users: {
         Args: Record<PropertyKey, never>
         Returns: {

@@ -1,15 +1,16 @@
 
 import React from 'react';
-import {
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-} from '@/components/ui/sidebar';
-import { LayoutDashboard, Users, Shield, Megaphone, Settings, BarChart3 } from 'lucide-react';
+import { SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
+import { 
+  LayoutDashboard, 
+  Users, 
+  FileText, 
+  BarChart3, 
+  Settings, 
+  Megaphone,
+  KeyRound,
+  Receipt
+} from 'lucide-react';
 import ClientsDropdown from './ClientsDropdown';
 import TaskManagementDropdown from './TaskManagementDropdown';
 
@@ -19,92 +20,35 @@ interface AdminSidebarContentProps {
 }
 
 const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({ activeTab, setActiveTab }) => {
+  const menuItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'users', label: 'User Management', icon: Users },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { id: 'billing', label: 'Billing', icon: Receipt },
+    { id: 'dsc', label: 'DSC Management', icon: KeyRound },
+    { id: 'announcements', label: 'Announcements', icon: Megaphone },
+    { id: 'settings', label: 'Settings', icon: Settings },
+  ];
+
   return (
     <SidebarContent>
-      <SidebarGroup>
-        <SidebarGroupLabel>Management</SidebarGroupLabel>
-        <SidebarGroupContent>
-          <SidebarMenu>
-            {/* Dashboard */}
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => setActiveTab('dashboard')}
-                isActive={activeTab === 'dashboard'}
-                tooltip="Dashboard"
-              >
-                <LayoutDashboard className="h-4 w-4" />
-                <span>Dashboard</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            {/* User Management */}
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => setActiveTab('users')}
-                isActive={activeTab === 'users'}
-                tooltip="User Management"
-              >
-                <Users className="h-4 w-4" />
-                <span>User Management</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            {/* Clients Dropdown */}
-            <ClientsDropdown activeTab={activeTab} setActiveTab={setActiveTab} />
-
-            {/* Task Management Dropdown */}
-            <TaskManagementDropdown activeTab={activeTab} setActiveTab={setActiveTab} />
-
-            {/* Analytics */}
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => setActiveTab('analytics')}
-                isActive={activeTab === 'analytics'}
-                tooltip="Analytics & Reports"
-              >
-                <BarChart3 className="h-4 w-4" />
-                <span>Analytics</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            {/* DSC Management */}
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => setActiveTab('dsc')}
-                isActive={activeTab === 'dsc'}
-                tooltip="DSC Management"
-              >
-                <Shield className="h-4 w-4" />
-                <span>DSC Management</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            {/* Announcements */}
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => setActiveTab('announcements')}
-                isActive={activeTab === 'announcements'}
-                tooltip="Announcements"
-              >
-                <Megaphone className="h-4 w-4" />
-                <span>Announcements</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            {/* System Settings */}
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => setActiveTab('settings')}
-                isActive={activeTab === 'settings'}
-                tooltip="System Settings"
-              >
-                <Settings className="h-4 w-4" />
-                <span>System Settings</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroupContent>
-      </SidebarGroup>
+      <SidebarMenu>
+        {menuItems.map((item) => (
+          <SidebarMenuItem key={item.id}>
+            <SidebarMenuButton
+              onClick={() => setActiveTab(item.id)}
+              isActive={activeTab === item.id}
+              className="w-full justify-start"
+            >
+              <item.icon className="mr-2 h-4 w-4" />
+              {item.label}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        ))}
+        
+        <ClientsDropdown activeTab={activeTab} setActiveTab={setActiveTab} />
+        <TaskManagementDropdown activeTab={activeTab} setActiveTab={setActiveTab} />
+      </SidebarMenu>
     </SidebarContent>
   );
 };

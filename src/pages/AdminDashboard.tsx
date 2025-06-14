@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import AdminSidebar from '@/components/admin/AdminSidebar';
@@ -18,6 +19,7 @@ import AnnouncementsManagement from '@/components/admin/AnnouncementsManagement'
 import SystemSettings from '@/components/admin/SystemSettings';
 import TaskCalendar from '@/components/admin/TaskCalendar';
 import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
+import BillingDashboard from '@/components/admin/BillingDashboard';
 import { Menu } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
@@ -65,6 +67,8 @@ const AdminDashboard: React.FC = () => {
         return <ComplianceCalendarUpload />;
       case 'analytics':
         return <AnalyticsDashboard />;
+      case 'billing':
+        return <BillingDashboard />;
       case 'dsc':
         return <DSCManagement />;
       case 'announcements':
