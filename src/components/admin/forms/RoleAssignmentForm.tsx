@@ -9,9 +9,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+export type UserRole = 'admin' | 'staff' | 'client' | 'super_admin';
+
 interface RoleAssignmentFormProps {
-  role: 'admin' | 'staff' | 'client' | 'super_admin';
-  onRoleChange: (role: 'admin' | 'staff' | 'client' | 'super_admin') => void;
+  role: UserRole;
+  onRoleChange: (role: UserRole) => void;
   showSuperAdmin?: boolean;
 }
 
@@ -40,4 +42,3 @@ const RoleAssignmentForm = ({ role, onRoleChange, showSuperAdmin = false }: Role
 };
 
 export default RoleAssignmentForm;
-

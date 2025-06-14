@@ -19,7 +19,7 @@ import {
 import { UserProfile } from '@/types/userManagement';
 import { useUserManagement } from '@/hooks/useUserManagement';
 import { useAuth } from '@/contexts/AuthContext';
-import { RoleAssignmentForm } from '@/components/RoleAssignmentForm';
+import RoleAssignmentForm from './forms/RoleAssignmentForm';
 
 interface EditUserModalProps {
   open: boolean;
@@ -117,7 +117,9 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ open, onOpenChange, user 
             <Label htmlFor="role">User Role *</Label>
             <RoleAssignmentForm
               role={formData.role}
-              onRoleChange={(role) => setFormData((prev) => ({ ...prev, role }))}
+              onRoleChange={(role) =>
+                setFormData((prev) => ({ ...prev, role }))
+              }
               showSuperAdmin={profile?.role === 'super_admin'}
             />
           </div>
@@ -126,7 +128,12 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ open, onOpenChange, user 
             <Switch
               id="isActive"
               checked={formData.isActive}
-              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isActive: checked }))}
+              onCheckedChange={(checked) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  isActive: checked,
+                }))
+              }
             />
             <Label htmlFor="isActive">Active User</Label>
           </div>
