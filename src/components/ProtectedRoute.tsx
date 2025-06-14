@@ -53,9 +53,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = memo(({
     return <Navigate to="/maintenance" replace />;
   }
 
-  if (allowedRoles.length > 0 && !allowedRoles.includes(profile.role)) {
-    console.log('🔥 ProtectedRoute: Role not allowed, redirecting to unauthorized');
-    return <Navigate to="/unauthorized" replace />;
+  if (allowedRoles.length > 0) {
+    // Super admins can access admin routes
+    const hasAccess = allowedRoles.includes(profile.role) || 
+                     (profile.role === 'super_admin' && allowedRoles.includes('admin'));
+    
+    if (!hasAccess) {
+      console.log('🔥 ProtectedRoute: Role not allowed, redirecting to unauthorized');
+      return <Navigate to="/unauthorized" replace />;
+    }
   }
 
   console.log('🔥 ProtectedRoute: Access granted, rendering children');

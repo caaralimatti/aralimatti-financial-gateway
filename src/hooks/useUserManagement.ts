@@ -11,7 +11,7 @@ import { useSendPasswordReset } from '@/hooks/mutations/useSendPasswordReset';
 export const useUserManagement = () => {
   const { profile } = useAuth();
 
-  // Fetch all users (admin only)
+  // Fetch all users (admin and super_admin)
   const {
     data: users = [],
     isLoading,
@@ -19,7 +19,7 @@ export const useUserManagement = () => {
   } = useQuery({
     queryKey: ['users'],
     queryFn: userService.fetchUsers,
-    enabled: profile?.role === 'admin'
+    enabled: profile?.role === 'admin' || profile?.role === 'super_admin'
   });
 
   // Initialize mutations

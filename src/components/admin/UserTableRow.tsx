@@ -37,6 +37,8 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
+      case 'super_admin':
+        return 'destructive';
       case 'admin':
         return 'default';
       case 'staff':
@@ -49,6 +51,7 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
   };
 
   const formatRole = (role: string) => {
+    if (role === 'super_admin') return 'Super Admin';
     return role.charAt(0).toUpperCase() + role.slice(1);
   };
 

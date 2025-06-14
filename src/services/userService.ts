@@ -4,17 +4,46 @@ import { UserProfile } from '@/types/userManagement';
 
 export const userService = {
   async fetchUsers(): Promise<UserProfile[]> {
-    console.log('Fetching manageable users (excluding super admins)...');
+    console.log('Fetching users based on current user role...');
     
-    // Use the new function that excludes super admins from regular admin view
-    const { data, error } = await supabase.rpc('get_manageable_users');
-
-    if (error) {
-      console.error('Error fetching users:', error);
-      throw error;
+    // First check if current user is super admin
+    const { data: currentUser } = await supabase.auth.getUser();
+    if (!currentUser.user) {
+      throw new Error('Not authenticated');
     }
-    console.log('Fetched manageable users:', data);
-    return data as UserProfile[];
+
+    const { data: currentProfile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', currentUser.user.id)
+      .single();
+
+    if (currentProfile?.role === 'super_admin') {
+      // Super admins can see all users including other super admins
+      console.log('Fetching all users for super admin...');
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching all users:', error);
+        throw error;
+      }
+      console.log('Fetched all users:', data);
+      return data as UserProfile[];
+    } else {
+      // Regular admins use the existing function that excludes super admins
+      console.log('Fetching manageable users (excluding super admins)...');
+      const { data, error } = await supabase.rpc('get_manageable_users');
+
+      if (error) {
+        console.error('Error fetching users:', error);
+        throw error;
+      }
+      console.log('Fetched manageable users:', data);
+      return data as UserProfile[];
+    }
   },
 
   async updateUserProfile(userData: { id: string; fullName?: string; role?: 'admin' | 'staff' | 'client' | 'super_admin'; isActive?: boolean }) {
