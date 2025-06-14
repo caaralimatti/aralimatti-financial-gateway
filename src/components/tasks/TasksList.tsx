@@ -21,8 +21,8 @@ interface TasksListProps {
 
 const TasksList: React.FC<TasksListProps> = ({ filters, searchQuery, viewMode }) => {
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
-  const mockTasks = getMockTasks();
-  const { filteredTasks } = useTasksListFilters(mockTasks, filters, searchQuery);
+  const [tasks, setTasks] = useState(getMockTasks());
+  const { filteredTasks } = useTasksListFilters(tasks, filters, searchQuery);
 
   const handleSelect = (taskId: string, selected: boolean) => {
     if (selected) {
@@ -32,9 +32,8 @@ const TasksList: React.FC<TasksListProps> = ({ filters, searchQuery, viewMode })
     }
   };
 
-  const handleBulkAction = (action: string) => {
-    console.log(`Bulk action: ${action} on tasks:`, selectedTasks);
-    // Implement bulk actions here
+  const handleDelete = (taskId: string) => {
+    setTasks(prev => prev.filter(task => task.id !== taskId));
   };
 
   if (filteredTasks.length === 0) {
@@ -45,7 +44,7 @@ const TasksList: React.FC<TasksListProps> = ({ filters, searchQuery, viewMode })
     <div className="space-y-4">
       <TasksListHeader
         filteredCount={filteredTasks.length}
-        totalCount={mockTasks.length}
+        totalCount={tasks.length}
         selectedCount={selectedTasks.length}
         onBulkAction={handleBulkAction}
       />
@@ -55,6 +54,7 @@ const TasksList: React.FC<TasksListProps> = ({ filters, searchQuery, viewMode })
           tasks={filteredTasks}
           selectedTasks={selectedTasks}
           onSelect={handleSelect}
+          onDelete={handleDelete}
         />
       ) : (
         <TasksListView

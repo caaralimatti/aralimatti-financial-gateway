@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/sidebar';
 import { CheckSquare, ChevronDown, ChevronRight, BarChart3, Calendar, FolderOpen, Wrench } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Link } from 'react-router-dom';
 
 interface TaskManagementDropdownProps {
   activeTab: string;

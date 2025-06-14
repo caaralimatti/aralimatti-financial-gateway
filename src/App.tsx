@@ -21,6 +21,7 @@ import Unauthorized from "./pages/Unauthorized";
 import ResetPassword from "./pages/ResetPassword";
 import MaintenancePage from "./pages/MaintenancePage";
 import NotFound from "./pages/NotFound";
+import TaskSettings from "./components/client/TaskSettings";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -115,6 +116,14 @@ const App = () => {
                 } 
               />
               
+              <Route 
+                path="/task-settings" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <TaskSettings />
+                  </ProtectedRoute>
+                } 
+              />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>

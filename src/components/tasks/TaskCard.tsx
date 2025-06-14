@@ -14,11 +14,27 @@ interface TaskCardProps {
   task: Task;
   isSelected: boolean;
   onSelect: (taskId: string, selected: boolean) => void;
+  onDelete: (taskId: string) => void;
 }
 
-const TaskCard: React.FC<TaskCardProps> = ({ task, isSelected, onSelect }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, isSelected, onSelect, onDelete }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const taskIsOverdue = isOverdue(task.deadline_date);
+  const isCompleted = task.status === 'completed';
+
+  const handleDelete = () => {
+    if (isCompleted) {
+      setShowConfirm(true);
+    } else {
+      onDelete(task.id);
+    }
+  };
+
+  const confirmDelete = () => {
+    setShowConfirm(false);
+    onDelete(task.id);
+  };
 
   return (
     <Card className={`border transition-all duration-200 hover:shadow-lg ${isSelected ? 'ring-2 ring-blue-500 border-blue-300' : 'border-gray-200 dark:border-gray-700'} ${taskIsOverdue ? 'border-red-300 bg-red-50' : ''}`}>
@@ -42,6 +58,25 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, isSelected, onSelect }) => {
         >
           {isExpanded ? 'Show Less' : 'Show More'}
         </Button>
+
+        <div className="flex gap-2 mt-2">
+          <Button variant="outline" size="sm" className="flex-1" onClick={() => alert('View Details')}>View Details</Button>
+          <Button variant="destructive" size="sm" className="flex-1" onClick={handleDelete}>Delete</Button>
+        </div>
+
+        {/* Confirmation Modal for completed task deletion */}
+        {showConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-sm w-full">
+              <h3 className="font-bold text-lg mb-2">Delete Completed Task?</h3>
+              <p className="mb-4 text-gray-600 dark:text-gray-300">Are you sure you want to delete this completed task? This action cannot be undone.</p>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setShowConfirm(false)}>Cancel</Button>
+                <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+              </div>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
