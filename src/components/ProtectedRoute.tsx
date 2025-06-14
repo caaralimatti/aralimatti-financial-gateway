@@ -54,16 +54,19 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = memo(({
   }
 
   if (allowedRoles.length > 0) {
-    // Super admins can access admin routes
-    const hasAccess = allowedRoles.includes(profile.role) || 
-                     (profile.role === 'super_admin' && allowedRoles.includes('admin'));
+    // Super admins can access everything, including admin routes
+    const isSuperAdmin = profile.role === 'super_admin';
+    const hasDirectAccess = allowedRoles.includes(profile.role);
+    
+    // Allow access if user has direct role access OR if they're super admin
+    const hasAccess = hasDirectAccess || isSuperAdmin;
     
     console.log('🔥 ProtectedRoute: Role check -', {
       userRole: profile.role,
       allowedRoles,
-      hasAccess,
-      isSuperAdmin: profile.role === 'super_admin',
-      canAccessAdminRoutes: profile.role === 'super_admin' && allowedRoles.includes('admin')
+      isSuperAdmin,
+      hasDirectAccess,
+      hasAccess
     });
     
     if (!hasAccess) {
