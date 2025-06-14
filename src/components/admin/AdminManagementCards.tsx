@@ -113,16 +113,14 @@ const AdminManagementCards: React.FC<AdminManagementCardsProps> = ({
               Add New Client
             </Button>
           )}
-          {isModuleEnabled('task_management_overview') && (
-            <Button 
-              onClick={() => setActiveTab('task-overview')}
-              className="w-full justify-start"
-              variant="ghost"
-            >
-              <CheckSquare className="h-4 w-4 mr-2" />
-              Create Task
-            </Button>
-          )}
+          <Button 
+            onClick={() => setActiveTab('task-overview')}
+            className="w-full justify-start"
+            variant="ghost"
+          >
+            <CheckSquare className="h-4 w-4 mr-2" />
+            Create Task
+          </Button>
           {isModuleEnabled('user_management') && (
             <Button 
               onClick={() => setActiveTab('users')}
