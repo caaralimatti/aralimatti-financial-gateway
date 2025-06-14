@@ -1,26 +1,24 @@
 
 import React from 'react';
-import { CalendarTask, CalendarCompliance } from '@/services/calendarService';
-
-type CalendarEvent = CalendarTask | CalendarCompliance;
+import { CalendarTask } from '@/services/calendarService';
 import TaskCalendarTask from './TaskCalendarTask';
 
 interface TaskCalendarDayProps {
   date: Date | null;
-  events: CalendarEvent[];
+  tasks: CalendarTask[];
   isToday: boolean;
   isExpanded: boolean;
   onToggleExpansion: (dateString: string) => void;
   onTaskClick: (eventId: string) => void;
 }
 
-const TaskCalendarDay = ({
-  date,
-  events,
-  isToday,
-  isExpanded,
-  onToggleExpansion,
-  onTaskClick
+const TaskCalendarDay = ({ 
+  date, 
+  tasks, 
+  isToday, 
+  isExpanded, 
+  onToggleExpansion, 
+  onTaskClick 
 }: TaskCalendarDayProps) => {
   if (!date) {
     return (
@@ -29,59 +27,54 @@ const TaskCalendarDay = ({
   }
 
   const dateString = date.toISOString().split('T')[0];
-  const visibleEvents = isExpanded ? events : events.slice(0, 3);
-  const hiddenEventsCount = events.length - 3;
+  const visibleTasks = isExpanded ? tasks : tasks.slice(0, 3);
+  const hiddenTasksCount = tasks.length - 3;
 
   return (
-    <div
-      className={`min-h-32 p-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 ${
-        isToday ? 'ring-2 ring-primary bg-blue-50 dark:bg-blue-900/20' : ''
-      }`}
-    >
-      <div className={`text-sm font-medium mb-2 ${
-        isToday ? 'text-primary font-bold' : 'text-gray-900 dark:text-white'
-      }`}>
-        {date.getDate()}
+    <div className={`min-h-[120px] border-r border-b p-2 ${
+      isToday ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700' : 'bg-white dark:bg-gray-900'
+    }`}>
+      <div className="flex items-center justify-between mb-2">
+        <span className={`text-sm font-medium ${
+          isToday ? 'bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center' : 'text-gray-900 dark:text-gray-100'
+        }`}>
+          {day.getDate()}
+        </span>
+        {hasMoreTasks && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onToggleExpansion(dateString)}
+            className="h-6 w-6 p-0"
+          >
+            {isExpanded ? (
+              <ChevronUp className="h-3 w-3" />
+            ) : (
+              <ChevronDown className="h-3 w-3" />
+            )}
+          </Button>
+        )}
       </div>
-      
+
       <div className="space-y-1">
-        {visibleEvents.map(event => {
-          // Distinguish between tasks and compliance deadlines
-          if ('title' in event) {
-            // Task
-            return (
-              <div
-                key={event.id}
-                className={`cursor-pointer px-2 py-1 rounded text-xs mb-1 ${event.priority === 'high' ? 'bg-red-100 text-red-700' : event.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}
-                onClick={() => onTaskClick(event.id)}
-              >
-                <span className="font-semibold">Task:</span> {event.title}
-              </div>
-            );
-          } else {
-            // Compliance Deadline
-            return (
-              <div
-                key={event.id}
-                className="cursor-pointer px-2 py-1 rounded text-xs mb-1 bg-blue-100 text-blue-700"
-                onClick={() => onTaskClick(event.id)}
-              >
-                <span className="font-semibold">Compliance:</span> {event.compliance_type}
-              </div>
-            );
-          }
-        })}
+        {visibleTasks.map(task => (
+          <TaskCalendarTask
+            key={task.id}
+            task={task}
+            onTaskClick={onTaskClick}
+          />
+        ))}
         
-        {!isExpanded && hiddenEventsCount > 0 && (
+        {!isExpanded && hiddenTasksCount > 0 && (
           <button
             onClick={() => onToggleExpansion(dateString)}
             className="text-xs text-primary hover:text-primary/80 underline w-full text-left"
           >
-            +{hiddenEventsCount} more
+            +{hiddenTasksCount} more
           </button>
         )}
         
-        {isExpanded && hiddenEventsCount > 0 && (
+        {isExpanded && hiddenTasksCount > 0 && (
           <button
             onClick={() => onToggleExpansion(dateString)}
             className="text-xs text-gray-500 hover:text-gray-700 underline w-full text-left"
