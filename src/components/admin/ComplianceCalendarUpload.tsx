@@ -1,18 +1,55 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, Download, Calendar } from 'lucide-react';
-import { complianceService } from '@/services/complianceService';
+import { Upload, Download, Calendar, Trash2 } from 'lucide-react';
+import { complianceService, ComplianceUploadBatch } from '@/services/complianceService';
 import { CreateComplianceDeadlineData, ComplianceUploadData } from '@/types/compliance';
 
 const ComplianceCalendarUpload = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [year, setYear] = useState<string>(new Date().getFullYear().toString());
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadBatches, setUploadBatches] = useState<ComplianceUploadBatch[]>([]);
+  const [isLoadingBatches, setIsLoadingBatches] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchUploadBatches();
+  }, []);
+
+  const fetchUploadBatches = async () => {
+    setIsLoadingBatches(true);
+    try {
+      const batches = await complianceService.fetchComplianceUploadBatches();
+      setUploadBatches(batches);
+    } catch (error) {
+      console.error('Error fetching upload batches:', error);
+    } finally {
+      setIsLoadingBatches(false);
+    }
+  };
+
+  const handleDeleteBatch = async (uploadId: string) => {
+    try {
+      await complianceService.deleteComplianceUploadBatch(uploadId);
+      toast({
+        title: "Upload Deleted",
+        description: "The compliance upload and all its data have been successfully deleted.",
+      });
+      await fetchUploadBatches(); // Refresh the list
+    } catch (error: any) {
+      console.error('Error deleting upload batch:', error);
+      toast({
+        title: "Delete Failed",
+        description: error.message || "Failed to delete the upload batch.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const downloadTemplate = () => {
     const csvContent = 'Date (MM DD),Compliance Type,Form/Activity,Description,Relevant FY/AY\n' +
@@ -138,6 +175,9 @@ const ComplianceCalendarUpload = () => {
       const parsedData = parseCSV(csvText);
       if (parsedData.length === 0) throw new Error("No valid data rows found in the CSV file.");
 
+      // Generate a unique upload ID for this batch
+      const uploadId = crypto.randomUUID();
+
       let errorCount = 0;
       let duplicateCount = 0;
       const complianceMap = new Map<string, CreateComplianceDeadlineData>();
@@ -172,6 +212,7 @@ const ComplianceCalendarUpload = () => {
           form_activity,
           description: item.description || null,
           relevant_fy_ay: item.relevant_fy_ay || null,
+          upload_id: uploadId, // Add the upload ID to track this batch
         });
       });
 
@@ -201,6 +242,9 @@ const ComplianceCalendarUpload = () => {
       const fileInput = document.getElementById('compliance-file-input') as HTMLInputElement;
       if (fileInput) fileInput.value = '';
 
+      // Refresh the upload batches list
+      await fetchUploadBatches();
+
     } catch (error: any) {
       console.error('Error uploading compliance deadlines:', error);
       let description = error.message || "Failed to upload compliance deadlines.";
@@ -218,67 +262,105 @@ const ComplianceCalendarUpload = () => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
-          Compliance Calendar Upload
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="year">Year (will be applied to all dates)</Label>
-          <Input
-            id="year"
-            type="number"
-            value={year}
-            onChange={(e) => setYear(e.target.value)}
-            placeholder="2025"
-            min="2020"
-            max="2030"
-            className="w-32"
-          />
-        </div>
-
-        <div className="flex gap-4">
-          <Button onClick={downloadTemplate} variant="outline" className="flex items-center gap-2">
-            <Download className="h-4 w-4" />
-            Download Template
-          </Button>
-          
-          <div className="flex items-center gap-2">
-            <input
-              id="compliance-file-input"
-              type="file"
-              accept=".csv"
-              onChange={handleFileChange}
-              className="hidden"
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Compliance Calendar Upload
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="year">Year (will be applied to all dates)</Label>
+            <Input
+              id="year"
+              type="number"
+              value={year}
+              onChange={(e) => setYear(e.target.value)}
+              placeholder="2025"
+              min="2020"
+              max="2030"
+              className="w-32"
             />
-            <Button
-              onClick={() => document.getElementById('compliance-file-input')?.click()}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <Upload className="h-4 w-4" />
-              Upload File
-            </Button>
-            {selectedFile && (
-              <span className="text-sm text-gray-600">
-                {selectedFile.name}
-              </span>
-            )}
           </div>
-        </div>
 
-        <Button
-          onClick={handleUpload}
-          disabled={!selectedFile || !year || isUploading}
-          className="w-full"
-        >
-          {isUploading ? 'Uploading...' : 'Upload Compliance Deadlines'}
-        </Button>
-      </CardContent>
-    </Card>
+          <div className="flex gap-4">
+            <Button onClick={downloadTemplate} variant="outline" className="flex items-center gap-2">
+              <Download className="h-4 w-4" />
+              Download Template
+            </Button>
+            
+            <div className="flex items-center gap-2">
+              <input
+                id="compliance-file-input"
+                type="file"
+                accept=".csv"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <Button
+                onClick={() => document.getElementById('compliance-file-input')?.click()}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <Upload className="h-4 w-4" />
+                Upload File
+              </Button>
+              {selectedFile && (
+                <span className="text-sm text-gray-600">
+                  {selectedFile.name}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <Button
+            onClick={handleUpload}
+            disabled={!selectedFile || !year || isUploading}
+            className="w-full"
+          >
+            {isUploading ? 'Uploading...' : 'Upload Compliance Deadlines'}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Upload History and Delete Options */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Upload History</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoadingBatches ? (
+            <p className="text-gray-600">Loading upload history...</p>
+          ) : uploadBatches.length === 0 ? (
+            <p className="text-gray-600">No uploads found.</p>
+          ) : (
+            <div className="space-y-2">
+              {uploadBatches.map((batch) => (
+                <div key={batch.upload_id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <p className="font-medium">{batch.file_name}</p>
+                    <p className="text-sm text-gray-600">
+                      {batch.total_records} records • {new Date(batch.uploaded_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => handleDeleteBatch(batch.upload_id)}
+                    variant="destructive"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

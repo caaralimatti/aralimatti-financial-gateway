@@ -2,6 +2,13 @@
 import { supabase } from '@/integrations/supabase/client';
 import { ComplianceDeadline, CreateComplianceDeadlineData } from '@/types/compliance';
 
+export interface ComplianceUploadBatch {
+  upload_id: string;
+  file_name: string;
+  uploaded_at: string;
+  total_records: number;
+}
+
 export const complianceService = {
   async fetchComplianceDeadlines(): Promise<ComplianceDeadline[]> {
     console.log('🔥 Fetching compliance deadlines');
@@ -18,6 +25,55 @@ export const complianceService = {
 
     console.log('🔥 Fetched compliance deadlines:', data);
     return data || [];
+  },
+
+  async fetchComplianceUploadBatches(): Promise<ComplianceUploadBatch[]> {
+    console.log('🔥 Fetching compliance upload batches');
+    
+    const { data, error } = await supabase
+      .from('compliance_deadlines')
+      .select('upload_id, created_at')
+      .not('upload_id', 'is', null)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('🔥 Error fetching upload batches:', error);
+      throw error;
+    }
+
+    // Group by upload_id to get batch info
+    const batches = new Map<string, ComplianceUploadBatch>();
+    data?.forEach(item => {
+      if (item.upload_id && !batches.has(item.upload_id)) {
+        batches.set(item.upload_id, {
+          upload_id: item.upload_id,
+          file_name: `Upload ${item.upload_id.slice(0, 8)}`,
+          uploaded_at: item.created_at,
+          total_records: 1
+        });
+      } else if (item.upload_id && batches.has(item.upload_id)) {
+        const batch = batches.get(item.upload_id)!;
+        batch.total_records++;
+      }
+    });
+
+    return Array.from(batches.values());
+  },
+
+  async deleteComplianceUploadBatch(uploadId: string): Promise<void> {
+    console.log('🔥 Deleting compliance upload batch:', uploadId);
+    
+    const { error } = await supabase
+      .from('compliance_deadlines')
+      .delete()
+      .eq('upload_id', uploadId);
+
+    if (error) {
+      console.error('🔥 Error deleting compliance upload batch:', error);
+      throw error;
+    }
+
+    console.log('🔥 Deleted compliance upload batch successfully');
   },
 
   async createComplianceDeadline(deadlineData: CreateComplianceDeadlineData): Promise<ComplianceDeadline> {

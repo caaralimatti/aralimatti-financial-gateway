@@ -1,15 +1,18 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useTaskCalendar } from '@/hooks/useTaskCalendar';
 import { useTaskCalendarLogic } from '@/hooks/useTaskCalendarLogic';
 import { useClientCalendarData } from '@/hooks/useClientCalendarData';
 import { useTaskModal } from '@/hooks/useTaskModal';
+import { useComplianceTypeFilter } from '@/hooks/useComplianceTypeFilter';
 import TaskCalendarHeader from './calendar/TaskCalendarHeader';
 import TaskCalendarGrid from './calendar/TaskCalendarGrid';
 import TaskCalendarLegend from './calendar/TaskCalendarLegend';
 import TaskDetailModal from './calendar/TaskDetailModal';
+import ComplianceTypeFilter from '../shared/ComplianceTypeFilter';
+import DayTasksModal from '../shared/DayTasksModal';
 
 const TaskCalendar = () => {
   const { calendarData, loading, error, fetchCalendarData } = useTaskCalendar();
@@ -29,6 +32,20 @@ const TaskCalendar = () => {
   // Modal state management
   const { selectedTask, isModalOpen, handleTaskClick, handleCloseModal } = useTaskModal(clientCalendarData);
 
+  // Compliance type filter
+  const { selectedComplianceType, setSelectedComplianceType, complianceTypes, filteredCalendarData } = useComplianceTypeFilter(calendarData);
+
+  // Day tasks modal state
+  const [dayTasksModal, setDayTasksModal] = useState<{
+    isOpen: boolean;
+    date: string;
+    events: any[];
+  }>({
+    isOpen: false,
+    date: '',
+    events: []
+  });
+
   // Fetch data when component mounts or month changes
   useEffect(() => {
     console.log('DEBUG: useEffect fired with currentDate', currentDate);
@@ -45,6 +62,22 @@ const TaskCalendar = () => {
     baseHandleTaskClick(taskId);
   };
 
+  const handleShowMoreTasks = (date: string, events: any[]) => {
+    setDayTasksModal({
+      isOpen: true,
+      date,
+      events
+    });
+  };
+
+  const handleCloseDayTasksModal = () => {
+    setDayTasksModal({
+      isOpen: false,
+      date: '',
+      events: []
+    });
+  };
+
   const days = getDaysInMonth(currentDate);
 
   console.log('DEBUG: clientCalendarData', clientCalendarData);
@@ -59,6 +92,11 @@ const TaskCalendar = () => {
             View your tasks organized by deadline dates
           </p>
         </div>
+        <ComplianceTypeFilter
+          complianceTypes={complianceTypes}
+          selectedType={selectedComplianceType}
+          onTypeChange={setSelectedComplianceType}
+        />
       </div>
 
       <Card>
@@ -99,10 +137,11 @@ const TaskCalendar = () => {
           ) : (
             <TaskCalendarGrid
               days={days}
-              calendarData={clientCalendarData}
+              calendarData={useClientCalendarData(filteredCalendarData)}
               expandedDays={expandedDays}
               onToggleExpansion={toggleDayExpansion}
               onTaskClick={handleTaskClickInternal}
+              onShowMoreTasks={handleShowMoreTasks}
             />
           )}
         </CardContent>
@@ -114,6 +153,13 @@ const TaskCalendar = () => {
         task={selectedTask}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
+      />
+
+      <DayTasksModal
+        isOpen={dayTasksModal.isOpen}
+        onClose={handleCloseDayTasksModal}
+        date={dayTasksModal.date}
+        events={dayTasksModal.events}
       />
     </div>
   );

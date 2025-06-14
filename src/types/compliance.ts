@@ -6,6 +6,7 @@ export interface ComplianceDeadline {
   form_activity?: string | null;
   description?: string | null;
   relevant_fy_ay?: string | null;
+  upload_id?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -16,6 +17,7 @@ export interface CreateComplianceDeadlineData {
   form_activity?: string;
   description?: string;
   relevant_fy_ay?: string;
+  upload_id?: string;
 }
 
 export interface ComplianceUploadData {

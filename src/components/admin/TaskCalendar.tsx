@@ -5,10 +5,13 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 import { useTaskCalendar } from '@/hooks/useTaskCalendar';
 import { useTaskCalendarLogic } from '@/hooks/useTaskCalendarLogic';
+import { useComplianceTypeFilter } from '@/hooks/useComplianceTypeFilter';
 import { CalendarTask, CalendarCompliance } from '@/services/calendarService';
 import TaskCalendarGrid from './calendar/TaskCalendarGrid';
 import TaskCalendarHeader from './calendar/TaskCalendarHeader';
 import TaskEventModal from './calendar/TaskEventModal';
+import ComplianceTypeFilter from '../shared/ComplianceTypeFilter';
+import DayTasksModal from '../shared/DayTasksModal';
 
 const TaskCalendar: React.FC = () => {
   const { calendarData, loading, error, fetchCalendarData } = useTaskCalendar();
@@ -22,8 +25,22 @@ const TaskCalendar: React.FC = () => {
     handleTaskClick
   } = useTaskCalendarLogic();
 
+  // Compliance type filter
+  const { selectedComplianceType, setSelectedComplianceType, complianceTypes, filteredCalendarData } = useComplianceTypeFilter(calendarData);
+
   const [selectedEvent, setSelectedEvent] = useState<CalendarTask | CalendarCompliance | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Day tasks modal state
+  const [dayTasksModal, setDayTasksModal] = useState<{
+    isOpen: boolean;
+    date: string;
+    events: (CalendarTask | CalendarCompliance)[];
+  }>({
+    isOpen: false,
+    date: '',
+    events: []
+  });
 
   useEffect(() => {
     const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -39,6 +56,22 @@ const TaskCalendar: React.FC = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedEvent(null);
+  };
+
+  const handleShowMoreTasks = (date: string, events: (CalendarTask | CalendarCompliance)[]) => {
+    setDayTasksModal({
+      isOpen: true,
+      date,
+      events
+    });
+  };
+
+  const handleCloseDayTasksModal = () => {
+    setDayTasksModal({
+      isOpen: false,
+      date: '',
+      events: []
+    });
   };
 
   if (loading) {
@@ -73,9 +106,16 @@ const TaskCalendar: React.FC = () => {
           <CalendarIcon className="h-6 w-6" />
           <h1 className="text-2xl font-bold">Task Calendar</h1>
         </div>
-        <Button onClick={goToToday} variant="outline">
-          Today
-        </Button>
+        <div className="flex items-center gap-4">
+          <ComplianceTypeFilter
+            complianceTypes={complianceTypes}
+            selectedType={selectedComplianceType}
+            onTypeChange={setSelectedComplianceType}
+          />
+          <Button onClick={goToToday} variant="outline">
+            Today
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -89,10 +129,11 @@ const TaskCalendar: React.FC = () => {
           <TaskCalendarGrid
             days={days}
             currentDate={currentDate}
-            calendarData={calendarData}
+            calendarData={filteredCalendarData}
             expandedDays={expandedDays}
             onToggleDayExpansion={toggleDayExpansion}
             onEventClick={handleEventClick}
+            onShowMoreTasks={handleShowMoreTasks}
           />
         </CardContent>
       </Card>
@@ -101,6 +142,13 @@ const TaskCalendar: React.FC = () => {
         event={selectedEvent}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
+      />
+
+      <DayTasksModal
+        isOpen={dayTasksModal.isOpen}
+        onClose={handleCloseDayTasksModal}
+        date={dayTasksModal.date}
+        events={dayTasksModal.events}
       />
     </div>
   );

@@ -1,14 +1,16 @@
 
 import React from 'react';
-import { ClientCalendarData, ClientCalendarTask } from '@/types/clientCalendar';
+import { Button } from '@/components/ui/button';
+import { ClientCalendarData } from '@/types/clientCalendar';
 import TaskCalendarDay from './TaskCalendarDay';
 
 interface TaskCalendarGridProps {
-  days: (Date | null)[];
+  days: Date[];
   calendarData: ClientCalendarData;
   expandedDays: Set<string>;
-  onToggleExpansion: (dateString: string) => void;
-  onTaskClick: (eventId: string) => void;
+  onToggleExpansion: (date: string) => void;
+  onTaskClick: (taskId: string) => void;
+  onShowMoreTasks?: (date: string, events: any[]) => void;
 }
 
 const TaskCalendarGrid: React.FC<TaskCalendarGridProps> = ({
@@ -16,49 +18,41 @@ const TaskCalendarGrid: React.FC<TaskCalendarGridProps> = ({
   calendarData,
   expandedDays,
   onToggleExpansion,
-  onTaskClick
+  onTaskClick,
+  onShowMoreTasks
 }) => {
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-  const getTasksForDate = (date: Date | null): ClientCalendarTask[] => {
-    if (!date) return [];
-    const dateString = date.toISOString().split('T')[0];
-    return calendarData[dateString] || [];
-  };
-
-  const isToday = (date: Date | null) => {
-    if (!date) return false;
-    const today = new Date();
-    return date.toDateString() === today.toDateString();
-  };
-
+  
   return (
-    <div className="grid grid-cols-7 gap-0 border rounded-lg overflow-hidden">
-      {/* Week day headers */}
+    <div className="grid grid-cols-7 gap-1 p-4">
+      {/* Header row */}
       {weekDays.map((day) => (
-        <div
-          key={day}
-          className="p-3 text-center font-medium bg-gray-50 dark:bg-gray-800 border-b border-r text-gray-700 dark:text-gray-300"
-        >
+        <div key={day} className="p-2 text-center font-medium text-gray-500 dark:text-gray-400">
           {day}
         </div>
       ))}
-
+      
       {/* Calendar days */}
-      {days.map((date, index) => {
-        const tasksForDate = getTasksForDate(date);
-        const dateString = date?.toISOString().split('T')[0] || '';
-        const isExpanded = expandedDays.has(dateString);
-        
+      {days.map((day) => {
+        const dateKey = day.toISOString().split('T')[0];
+        const dayTasks = calendarData[dateKey] || [];
+        const isExpanded = expandedDays.has(dateKey);
+        const maxVisibleTasks = 3;
+        const hasMoreTasks = dayTasks.length > maxVisibleTasks;
+        const visibleTasks = isExpanded ? dayTasks : dayTasks.slice(0, maxVisibleTasks);
+        const hiddenTasksCount = dayTasks.length - maxVisibleTasks;
+
         return (
           <TaskCalendarDay
-            key={index}
-            date={date}
-            tasks={tasksForDate}
-            isToday={isToday(date)}
-            isExpanded={isExpanded}
-            onToggleExpansion={onToggleExpansion}
+            key={dateKey}
+            date={day}
+            tasks={visibleTasks}
+            hasMoreTasks={hasMoreTasks && !isExpanded}
+            hiddenTasksCount={hiddenTasksCount}
             onTaskClick={onTaskClick}
+            onToggleExpansion={onToggleExpansion}
+            onShowMoreTasks={onShowMoreTasks}
+            allTasks={dayTasks}
           />
         );
       })}

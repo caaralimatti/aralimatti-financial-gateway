@@ -448,6 +448,7 @@ export type Database = {
           id: string
           relevant_fy_ay: string | null
           updated_at: string
+          upload_id: string | null
         }
         Insert: {
           compliance_type: string
@@ -458,6 +459,7 @@ export type Database = {
           id?: string
           relevant_fy_ay?: string | null
           updated_at?: string
+          upload_id?: string | null
         }
         Update: {
           compliance_type?: string
@@ -468,6 +470,7 @@ export type Database = {
           id?: string
           relevant_fy_ay?: string | null
           updated_at?: string
+          upload_id?: string | null
         }
         Relationships: []
       }
