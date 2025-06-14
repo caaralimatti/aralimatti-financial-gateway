@@ -49,6 +49,7 @@ export const useAuthForm = () => {
       console.log('User authenticated with role:', profile.role);
       // Redirect based on user role
       switch (profile.role) {
+        case 'super_admin':
         case 'admin':
           navigate('/admin-dashboard');
           break;

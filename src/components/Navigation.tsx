@@ -22,6 +22,7 @@ const Navigation = memo(() => {
   const getDashboardLink = useCallback(() => {
     if (!profile) return '/auth';
     switch (profile.role) {
+      case 'super_admin':
       case 'admin':
         return '/admin-dashboard';
       case 'staff':
