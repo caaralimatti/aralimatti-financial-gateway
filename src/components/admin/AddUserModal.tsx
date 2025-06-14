@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -26,12 +25,22 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange }) => {
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [formData, setFormData] = useState({
+  // Explicitly declare possible roles including "super_admin"
+  const [formData, setFormData] = useState<{
+    fullName: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+    role: 'client' | 'staff' | 'admin' | 'super_admin';
+    phone: string;
+    address: string;
+    status: boolean;
+  }>({
     fullName: '',
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'client' as 'admin' | 'staff' | 'client' | 'super_admin',
+    role: 'client',
     phone: '',
     address: '',
     status: true,

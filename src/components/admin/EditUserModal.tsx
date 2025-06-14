@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -30,9 +29,14 @@ interface EditUserModalProps {
 const EditUserModal: React.FC<EditUserModalProps> = ({ open, onOpenChange, user }) => {
   const { updateUser, sendPasswordReset, isUpdating, isSendingReset } = useUserManagement();
   const { profile } = useAuth();
-  const [formData, setFormData] = useState({
+  // Explicitly declare possible roles including "super_admin"
+  const [formData, setFormData] = useState<{
+    fullName: string;
+    role: 'admin' | 'staff' | 'client' | 'super_admin';
+    isActive: boolean;
+  }>({
     fullName: '',
-    role: 'client' as 'admin' | 'staff' | 'client' | 'super_admin',
+    role: 'client',
     isActive: true,
   });
 
