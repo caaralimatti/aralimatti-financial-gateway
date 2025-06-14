@@ -27,10 +27,15 @@ const AdminRecentActivity = () => {
   }
 
   const formatActivityDescription = (description: string) => {
-    // Remove verbose status change details
+    // Remove user IDs from the description (UUIDs pattern)
+    const uuidPattern = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
+    
+    // Remove verbose status change details and user IDs
     return description
+      .replace(uuidPattern, '[User]') // Replace UUIDs with [User]
       .replace(/\(is_active: true -> false\)/g, '')
       .replace(/\(is_active: false -> true\)/g, '')
+      .replace(/user:\s*\[User\]/gi, 'user') // Clean up "user: [User]" to just "user"
       .replace(/\s+/g, ' ')
       .trim();
   };
