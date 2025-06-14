@@ -1,6 +1,9 @@
 
 export interface ParsedRow {
-  [key: string]: string;
+  // CSV column data - dynamic properties from the CSV file
+  [key: string]: string | number | boolean | string[] | undefined;
+  
+  // Metadata properties for row processing
   _rowIndex: number;
   _isValid: boolean;
   _errors: string[];

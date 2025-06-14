@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useClientImport } from '@/hooks/useClientImport';
 import { useToast } from '@/hooks/use-toast';
@@ -118,7 +117,7 @@ const ClientImport: React.FC = () => {
           const obj: ParsedRow = {
             _rowIndex: index,
             _isValid: true,
-            _errors: []
+            _errors: [] // Initialize as empty array, not undefined array
           };
           
           headers.forEach((header, headerIndex) => {
