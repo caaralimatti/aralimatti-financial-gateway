@@ -45,10 +45,16 @@ export const adminPermissionsService = {
   },
 
   async fetchCurrentUserPermissions(): Promise<Record<string, boolean>> {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error('No authenticated user found');
+    }
+
     const { data, error } = await supabase
       .from('admin_module_permissions')
       .select('module_name, is_enabled')
-      .eq('admin_profile_id', (await supabase.auth.getUser()).data.user?.id);
+      .eq('admin_profile_id', user.id);
 
     if (error) throw error;
     

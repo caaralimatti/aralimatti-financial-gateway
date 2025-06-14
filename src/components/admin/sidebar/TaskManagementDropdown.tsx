@@ -1,15 +1,10 @@
 
-import React, { useState } from 'react';
-import {
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
-} from '@/components/ui/sidebar';
-import { CheckSquare, ChevronDown, ChevronRight, BarChart3, Calendar, FolderOpen, Wrench } from 'lucide-react';
+import React from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Link } from 'react-router-dom';
+import { SidebarMenuItem, SidebarMenuButton, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem } from '@/components/ui/sidebar';
+import { CheckSquare, ChevronDown, BarChart3, Calendar, FolderOpen, Wrench } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentUserPermissions } from '@/hooks/useAdminPermissions';
 
 interface TaskManagementDropdownProps {
   activeTab: string;
@@ -17,69 +12,93 @@ interface TaskManagementDropdownProps {
 }
 
 const TaskManagementDropdown: React.FC<TaskManagementDropdownProps> = ({ activeTab, setActiveTab }) => {
-  const [taskManagementOpen, setTaskManagementOpen] = useState(false);
+  const { profile } = useAuth();
+  const { data: permissions = {} } = useCurrentUserPermissions();
+
+  const isSuperAdmin = profile?.role === 'super_admin';
+  const isAdmin = profile?.role === 'admin';
+
+  // Helper function to check if a module is enabled
+  const isModuleEnabled = (moduleName: string): boolean => {
+    if (isSuperAdmin) return true;
+    if (!isAdmin) return false;
+    return permissions[moduleName] !== false;
+  };
+
+  const taskItems = [
+    { 
+      id: 'task-overview', 
+      label: 'Task Overview', 
+      icon: BarChart3,
+      module: 'task_management_overview'
+    },
+    { 
+      id: 'tasks', 
+      label: 'All Tasks', 
+      icon: CheckSquare,
+      module: 'task_management_overview'
+    },
+    { 
+      id: 'task-calendar', 
+      label: 'Task Calendar', 
+      icon: Calendar,
+      module: 'task_management_calendar'
+    },
+    { 
+      id: 'categories', 
+      label: 'Categories', 
+      icon: FolderOpen,
+      module: 'task_management_categories'
+    },
+    { 
+      id: 'task-settings', 
+      label: 'Task Settings', 
+      icon: Wrench,
+      module: 'task_management_settings'
+    },
+  ];
+
+  // Check if parent module is enabled
+  if (!isModuleEnabled('task_management_parent')) {
+    return null;
+  }
+
+  // Filter items based on permissions
+  const visibleItems = taskItems.filter(item => isModuleEnabled(item.module));
+
+  if (visibleItems.length === 0) return null;
+
+  const isAnyTaskActive = visibleItems.some(item => activeTab === item.id);
 
   return (
-    <SidebarMenuItem>
-      <Collapsible open={taskManagementOpen} onOpenChange={setTaskManagementOpen}>
+    <Collapsible defaultOpen={isAnyTaskActive}>
+      <SidebarMenuItem>
         <CollapsibleTrigger asChild>
-          <SidebarMenuButton tooltip="Task Management">
-            <CheckSquare className="h-4 w-4" />
-            <span>Task Management</span>
-            {taskManagementOpen ? <ChevronDown className="h-4 w-4 ml-auto" /> : <ChevronRight className="h-4 w-4 ml-auto" />}
+          <SidebarMenuButton className="w-full justify-between">
+            <div className="flex items-center">
+              <CheckSquare className="mr-2 h-4 w-4" />
+              Task Management
+            </div>
+            <ChevronDown className="h-4 w-4" />
           </SidebarMenuButton>
         </CollapsibleTrigger>
         <CollapsibleContent>
           <SidebarMenuSub>
-            <SidebarMenuSubItem>
-              <SidebarMenuSubButton
-                onClick={() => setActiveTab('task-overview')}
-                isActive={activeTab === 'task-overview'}
-              >
-                <BarChart3 className="h-4 w-4" />
-                <span>Task Overview</span>
-              </SidebarMenuSubButton>
-            </SidebarMenuSubItem>
-            <SidebarMenuSubItem>
-              <SidebarMenuSubButton
-                onClick={() => setActiveTab('tasks')}
-                isActive={activeTab === 'tasks'}
-              >
-                <CheckSquare className="h-4 w-4" />
-                <span>All Tasks</span>
-              </SidebarMenuSubButton>
-            </SidebarMenuSubItem>
-            <SidebarMenuSubItem>
-              <SidebarMenuSubButton
-                onClick={() => setActiveTab('task-calendar')}
-                isActive={activeTab === 'task-calendar'}
-              >
-                <Calendar className="h-4 w-4" />
-                <span>Task Calendar</span>
-              </SidebarMenuSubButton>
-            </SidebarMenuSubItem>
-            <SidebarMenuSubItem>
-              <SidebarMenuSubButton
-                onClick={() => setActiveTab('categories')}
-                isActive={activeTab === 'categories'}
-              >
-                <FolderOpen className="h-4 w-4" />
-                <span>Categories</span>
-              </SidebarMenuSubButton>
-            </SidebarMenuSubItem>
-            <SidebarMenuSubItem>
-              <SidebarMenuSubButton
-                onClick={() => setActiveTab('task-settings')}
-                isActive={activeTab === 'task-settings'}
-              >
-                <Wrench className="h-4 w-4" />
-                <span>Task Settings</span>
-              </SidebarMenuSubButton>
-            </SidebarMenuSubItem>
+            {visibleItems.map((item) => (
+              <SidebarMenuSubItem key={item.id}>
+                <SidebarMenuSubButton
+                  onClick={() => setActiveTab(item.id)}
+                  isActive={activeTab === item.id}
+                >
+                  <item.icon className="mr-2 h-4 w-4" />
+                  {item.label}
+                </SidebarMenuSubButton>
+              </SidebarMenuSubItem>
+            ))}
           </SidebarMenuSub>
         </CollapsibleContent>
-      </Collapsible>
-    </SidebarMenuItem>
+      </SidebarMenuItem>
+    </Collapsible>
   );
 };
 

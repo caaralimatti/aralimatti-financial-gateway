@@ -1,14 +1,10 @@
 
-import React, { useState } from 'react';
-import {
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
-} from '@/components/ui/sidebar';
-import { Users, ChevronDown, ChevronRight, UserPlus, List, Upload, Edit } from 'lucide-react';
+import React from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { SidebarMenuItem, SidebarMenuButton, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem } from '@/components/ui/sidebar';
+import { Users, ChevronDown, UserPlus, List, Upload, Edit } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentUserPermissions } from '@/hooks/useAdminPermissions';
 
 interface ClientsDropdownProps {
   activeTab: string;
@@ -16,71 +12,93 @@ interface ClientsDropdownProps {
 }
 
 const ClientsDropdown: React.FC<ClientsDropdownProps> = ({ activeTab, setActiveTab }) => {
-  const [clientsOpen, setClientsOpen] = useState(
-    activeTab.startsWith('clients') || activeTab === 'import-clients' || activeTab === 'bulk-edit'
-  );
+  const { profile } = useAuth();
+  const { data: permissions = {} } = useCurrentUserPermissions();
+
+  const isSuperAdmin = profile?.role === 'super_admin';
+  const isAdmin = profile?.role === 'admin';
+
+  // Helper function to check if a module is enabled
+  const isModuleEnabled = (moduleName: string): boolean => {
+    if (isSuperAdmin) return true;
+    if (!isAdmin) return false;
+    return permissions[moduleName] !== false;
+  };
+
+  const clientItems = [
+    { 
+      id: 'clients', 
+      label: 'Client Management', 
+      icon: Users,
+      module: 'client_management_list'
+    },
+    { 
+      id: 'clients-add', 
+      label: 'Add Client', 
+      icon: UserPlus,
+      module: 'client_management_add'
+    },
+    { 
+      id: 'clients-list', 
+      label: 'Client List', 
+      icon: List,
+      module: 'client_management_list'
+    },
+    { 
+      id: 'import-clients', 
+      label: 'Import Clients', 
+      icon: Upload,
+      module: 'client_management_import'
+    },
+    { 
+      id: 'bulk-edit', 
+      label: 'Bulk Edit', 
+      icon: Edit,
+      module: 'client_management_bulk_edit'
+    },
+  ];
+
+  // Check if parent module is enabled
+  if (!isModuleEnabled('client_management_parent')) {
+    return null;
+  }
+
+  // Filter items based on permissions
+  const visibleItems = clientItems.filter(item => isModuleEnabled(item.module));
+
+  if (visibleItems.length === 0) return null;
+
+  const isAnyClientActive = visibleItems.some(item => activeTab === item.id);
 
   return (
-    <SidebarMenuItem>
-      <Collapsible open={clientsOpen} onOpenChange={setClientsOpen}>
+    <Collapsible defaultOpen={isAnyClientActive}>
+      <SidebarMenuItem>
         <CollapsibleTrigger asChild>
-          <SidebarMenuButton tooltip="Clients">
-            <Users className="h-4 w-4" />
-            <span>Clients</span>
-            {clientsOpen ? <ChevronDown className="h-4 w-4 ml-auto" /> : <ChevronRight className="h-4 w-4 ml-auto" />}
+          <SidebarMenuButton className="w-full justify-between">
+            <div className="flex items-center">
+              <Users className="mr-2 h-4 w-4" />
+              Clients
+            </div>
+            <ChevronDown className="h-4 w-4" />
           </SidebarMenuButton>
         </CollapsibleTrigger>
         <CollapsibleContent>
           <SidebarMenuSub>
-            <SidebarMenuSubItem>
-              <SidebarMenuSubButton
-                onClick={() => setActiveTab('clients')}
-                isActive={activeTab === 'clients'}
-              >
-                <Users className="h-4 w-4" />
-                <span>Client Management</span>
-              </SidebarMenuSubButton>
-            </SidebarMenuSubItem>
-            <SidebarMenuSubItem>
-              <SidebarMenuSubButton
-                onClick={() => setActiveTab('clients-add')}
-                isActive={activeTab === 'clients-add'}
-              >
-                <UserPlus className="h-4 w-4" />
-                <span>Add Client</span>
-              </SidebarMenuSubButton>
-            </SidebarMenuSubItem>
-            <SidebarMenuSubItem>
-              <SidebarMenuSubButton
-                onClick={() => setActiveTab('clients-list')}
-                isActive={activeTab === 'clients-list'}
-              >
-                <List className="h-4 w-4" />
-                <span>Client List</span>
-              </SidebarMenuSubButton>
-            </SidebarMenuSubItem>
-            <SidebarMenuSubItem>
-              <SidebarMenuSubButton
-                onClick={() => setActiveTab('import-clients')}
-                isActive={activeTab === 'import-clients'}
-              >
-                <Upload className="h-4 w-4" />
-                <span>Import Clients</span>
-              </SidebarMenuSubButton>
-            </SidebarMenuSubItem>
-            <SidebarMenuSubItem>
-              <SidebarMenuSubButton
-                onClick={() => setActiveTab('bulk-edit')}
-                isActive={activeTab === 'bulk-edit'}
-              >
-                <Edit className="h-4 w-4" />
-                <span>Bulk Edit</span>
-              </SidebarMenuSubButton>
-            </SidebarMenuSubItem>
+            {visibleItems.map((item) => (
+              <SidebarMenuSubItem key={item.id}>
+                <SidebarMenuSubButton
+                  onClick={() => setActiveTab(item.id)}
+                  isActive={activeTab === item.id}
+                >
+                  <item.icon className="mr-2 h-4 w-4" />
+                  {item.label}
+                </SidebarMenuSubButton>
+              </SidebarMenuSubItem>
+            ))}
           </SidebarMenuSub>
         </CollapsibleContent>
-      </Collapsible>
-    </SidebarMenuItem>
+      </SidebarMenuItem>
+    </Collapsible>
   );
 };
 
