@@ -20,7 +20,7 @@ const AddClientModal = ({ open, onOpenChange, editingClient }: AddClientModalPro
     saveClient(() => onOpenChange(false));
   };
 
-  const handleTaxesChange = (taxes: { gst: boolean; incomeTax: boolean; other: boolean }) => {
+  const handleTaxesChange = (taxes: { gst: boolean; incomeTax: boolean; mca: boolean; tdsTcs: boolean; other: boolean }) => {
     setClientForm(prev => ({
       ...prev,
       taxesApplicable: taxes

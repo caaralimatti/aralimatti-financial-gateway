@@ -21,6 +21,10 @@ const TracesLoginSection = ({
   onToggleTracesDeductorPassword,
   onToggleTracesTaxpayerPassword
 }: TracesLoginSectionProps) => {
+  if (!clientForm.taxesApplicable.tdsTcs) {
+    return null;
+  }
+
   return (
     <div className="space-y-4">
       <h4 className="font-medium">Traces Login Details</h4>

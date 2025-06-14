@@ -1,99 +1,113 @@
 
-import type { Tables, TablesInsert } from '@/integrations/supabase/types';
+import type { Tables } from '@/integrations/supabase/types';
 import type { ClientFormData } from '@/types/clientForm';
 
-export const getInitialFormData = (editingClient?: Tables<'clients'> | null): ClientFormData => ({
-  taxesApplicable: {
-    gst: editingClient?.gst_applicable || false,
-    incomeTax: editingClient?.income_tax_applicable !== false,
-    other: editingClient?.other_tax_applicable || false
-  },
-  basicDetails: {
-    fileNo: editingClient?.file_no || '',
-    clientType: editingClient?.client_type || '',
-    name: editingClient?.name || '',
-    tradeName: editingClient?.trade_name || '',
-    dateOfBirth: editingClient?.date_of_birth || '',
-    otherUsers: editingClient?.other_users || '',
-    workingUser: editingClient?.working_user_id || '',
-    tags: editingClient?.tags?.join(', ') || '',
-    notes: editingClient?.notes || ''
-  },
-  incomeTaxDetails: {
-    returns: [],
-    pan: editingClient?.pan || '',
-    tan: editingClient?.tan || ''
-  },
-  contactPersons: [],
-  clientGroups: [],
-  loginDetails: {
-    itPan: editingClient?.it_pan || '',
-    itPassword: editingClient?.it_password || '',
-    itTan: editingClient?.it_tan || '',
-    itDeductorPassword: editingClient?.it_deductor_password || '',
-    tracesUsername: editingClient?.traces_username || '',
-    tracesDeductorPassword: editingClient?.traces_deductor_password || '',
-    tracesTaxpayerPassword: editingClient?.traces_taxpayer_password || '',
-    mcaV2Username: editingClient?.mca_v2_username || '',
-    mcaV2Password: editingClient?.mca_v2_password || '',
-    mcaV3Username: editingClient?.mca_v3_username || '',
-    mcaV3Password: editingClient?.mca_v3_password || '',
-    dgftUsername: editingClient?.dgft_username || '',
-    dgftPassword: editingClient?.dgft_password || '',
-    gstNumber: editingClient?.gst_number || '',
-    gstUsername: editingClient?.gst_username || '',
-    gstPassword: editingClient?.gst_password || '',
-    gstRegistrationType: editingClient?.gst_registration_type || 'Regular',
-    gstReturnFrequency: editingClient?.gst_return_frequency || 'Monthly'
-  },
-  attachments: []
-});
-
-export const transformFormDataToClientData = (clientForm: ClientFormData): TablesInsert<'clients'> => {
+export const getInitialFormData = (editingClient?: Tables<'clients'> | null): ClientFormData => {
   return {
-    file_no: clientForm.basicDetails.fileNo,
-    client_type: clientForm.basicDetails.clientType as any,
-    name: clientForm.basicDetails.name,
-    trade_name: clientForm.basicDetails.tradeName || null,
-    date_of_birth: clientForm.basicDetails.dateOfBirth || null,
-    other_users: clientForm.basicDetails.otherUsers || null,
-    working_user_id: clientForm.basicDetails.workingUser || null,
-    tags: clientForm.basicDetails.tags ? clientForm.basicDetails.tags.split(',').map(tag => tag.trim()).filter(Boolean) : null,
-    notes: clientForm.basicDetails.notes || null,
-    
-    // Taxes applicable
-    gst_applicable: clientForm.taxesApplicable.gst,
-    income_tax_applicable: clientForm.taxesApplicable.incomeTax,
-    other_tax_applicable: clientForm.taxesApplicable.other,
-    
-    // Income tax details
-    pan: clientForm.incomeTaxDetails.pan || null,
-    tan: clientForm.incomeTaxDetails.tan || null,
-    
-    // Login details
-    it_pan: clientForm.loginDetails.itPan || null,
-    it_password: clientForm.loginDetails.itPassword || null,
-    it_tan: clientForm.loginDetails.itTan || null,
-    it_deductor_password: clientForm.loginDetails.itDeductorPassword || null,
-    traces_username: clientForm.loginDetails.tracesUsername || null,
-    traces_deductor_password: clientForm.loginDetails.tracesDeductorPassword || null,
-    traces_taxpayer_password: clientForm.loginDetails.tracesTaxpayerPassword || null,
-    mca_v2_username: clientForm.loginDetails.mcaV2Username || null,
-    mca_v2_password: clientForm.loginDetails.mcaV2Password || null,
-    mca_v3_username: clientForm.loginDetails.mcaV3Username || null,
-    mca_v3_password: clientForm.loginDetails.mcaV3Password || null,
-    dgft_username: clientForm.loginDetails.dgftUsername || null,
-    dgft_password: clientForm.loginDetails.dgftPassword || null,
-    
-    // GST details (only save if GST is applicable)
-    gst_number: clientForm.taxesApplicable.gst ? clientForm.loginDetails.gstNumber || null : null,
-    gst_username: clientForm.taxesApplicable.gst ? clientForm.loginDetails.gstUsername || null : null,
-    gst_password: clientForm.taxesApplicable.gst ? clientForm.loginDetails.gstPassword || null : null,
-    gst_registration_type: clientForm.taxesApplicable.gst ? clientForm.loginDetails.gstRegistrationType || null : null,
-    gst_return_frequency: clientForm.taxesApplicable.gst ? clientForm.loginDetails.gstReturnFrequency || null : null,
+    taxesApplicable: {
+      gst: editingClient?.gst_applicable || false,
+      incomeTax: editingClient?.income_tax_applicable || false,
+      mca: editingClient?.mca_applicable || false,
+      tdsTcs: editingClient?.tds_tcs_applicable || false,
+      other: editingClient?.other_tax_applicable || false,
+    },
+    basicDetails: {
+      fileNo: editingClient?.file_no || '',
+      clientType: editingClient?.client_type || 'individual',
+      name: editingClient?.name || '',
+      tradeName: editingClient?.trade_name || '',
+      dateOfBirth: editingClient?.date_of_birth || '',
+      otherUsers: editingClient?.other_users || '',
+      workingUser: editingClient?.working_user_id || '',
+      tags: editingClient?.tags?.join(', ') || '',
+      notes: editingClient?.notes || '',
+    },
+    incomeTaxDetails: {
+      returns: [],
+      pan: editingClient?.pan || '',
+      tan: editingClient?.tan || '',
+    },
+    contactPersons: [],
+    clientGroups: [],
+    loginDetails: {
+      itPan: editingClient?.it_pan || '',
+      itPassword: editingClient?.it_password || '',
+      itTan: editingClient?.it_tan || '',
+      itDeductorPassword: editingClient?.it_deductor_password || '',
+      tracesUsername: editingClient?.traces_username || '',
+      tracesDeductorPassword: editingClient?.traces_deductor_password || '',
+      tracesTaxpayerPassword: editingClient?.traces_taxpayer_password || '',
+      mcaV2Username: editingClient?.mca_v2_username || '',
+      mcaV2Password: editingClient?.mca_v2_password || '',
+      mcaV3Username: editingClient?.mca_v3_username || '',
+      mcaV3Password: editingClient?.mca_v3_password || '',
+      dgftUsername: editingClient?.dgft_username || '',
+      dgftPassword: editingClient?.dgft_password || '',
+      gstNumber: editingClient?.gst_number || '',
+      gstUsername: editingClient?.gst_username || '',
+      gstPassword: editingClient?.gst_password || '',
+      gstRegistrationType: editingClient?.gst_registration_type || 'Regular',
+      gstReturnFrequency: editingClient?.gst_return_frequency || 'Monthly',
+    },
+    attachments: [],
   };
 };
 
-export const validateRequiredFields = (clientForm: ClientFormData): boolean => {
-  return !!(clientForm.basicDetails.name && clientForm.basicDetails.clientType && clientForm.basicDetails.fileNo);
+export const transformFormDataToClientData = (formData: ClientFormData) => {
+  return {
+    // Basic Details
+    file_no: formData.basicDetails.fileNo,
+    client_type: formData.basicDetails.clientType as 'individual' | 'business' | 'company',
+    name: formData.basicDetails.name,
+    trade_name: formData.basicDetails.tradeName || null,
+    date_of_birth: formData.basicDetails.dateOfBirth || null,
+    other_users: formData.basicDetails.otherUsers || null,
+    notes: formData.basicDetails.notes || null,
+    tags: formData.basicDetails.tags ? formData.basicDetails.tags.split(',').map(tag => tag.trim()).filter(Boolean) : null,
+    
+    // Tax Applicability
+    gst_applicable: formData.taxesApplicable.gst,
+    income_tax_applicable: formData.taxesApplicable.incomeTax,
+    mca_applicable: formData.taxesApplicable.mca,
+    tds_tcs_applicable: formData.taxesApplicable.tdsTcs,
+    other_tax_applicable: formData.taxesApplicable.other,
+    
+    // Income Tax Details
+    pan: formData.incomeTaxDetails.pan || null,
+    tan: formData.incomeTaxDetails.tan || null,
+    
+    // Login Details
+    it_pan: formData.loginDetails.itPan || null,
+    it_password: formData.loginDetails.itPassword || null,
+    it_tan: formData.loginDetails.itTan || null,
+    it_deductor_password: formData.loginDetails.itDeductorPassword || null,
+    traces_username: formData.loginDetails.tracesUsername || null,
+    traces_deductor_password: formData.loginDetails.tracesDeductorPassword || null,
+    traces_taxpayer_password: formData.loginDetails.tracesTaxpayerPassword || null,
+    mca_v2_username: formData.loginDetails.mcaV2Username || null,
+    mca_v2_password: formData.loginDetails.mcaV2Password || null,
+    mca_v3_username: formData.loginDetails.mcaV3Username || null,
+    mca_v3_password: formData.loginDetails.mcaV3Password || null,
+    dgft_username: formData.loginDetails.dgftUsername || null,
+    dgft_password: formData.loginDetails.dgftPassword || null,
+    gst_number: formData.loginDetails.gstNumber || null,
+    gst_username: formData.loginDetails.gstUsername || null,
+    gst_password: formData.loginDetails.gstPassword || null,
+    gst_registration_type: formData.loginDetails.gstRegistrationType || null,
+    gst_return_frequency: formData.loginDetails.gstReturnFrequency || null,
+  };
+};
+
+export const validateRequiredFields = (formData: ClientFormData): boolean => {
+  if (!formData.basicDetails.fileNo.trim()) {
+    console.error('File No is required');
+    return false;
+  }
+  
+  if (!formData.basicDetails.name.trim()) {
+    console.error('Client name is required');
+    return false;
+  }
+  
+  return true;
 };

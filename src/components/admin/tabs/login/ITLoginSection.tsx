@@ -21,6 +21,10 @@ const ITLoginSection = ({
   onToggleItPassword,
   onToggleItDeductorPassword
 }: ITLoginSectionProps) => {
+  if (!clientForm.taxesApplicable.incomeTax) {
+    return null;
+  }
+
   return (
     <div className="space-y-4">
       <h4 className="font-medium">IT Login Details</h4>

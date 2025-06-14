@@ -5,6 +5,8 @@ export interface ClientFormData {
   taxesApplicable: {
     gst: boolean;
     incomeTax: boolean;
+    mca: boolean;
+    tdsTcs: boolean;
     other: boolean;
   };
   basicDetails: {

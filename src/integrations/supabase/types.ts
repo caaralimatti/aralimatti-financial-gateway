@@ -306,6 +306,7 @@ export type Database = {
           it_pan: string | null
           it_password: string | null
           it_tan: string | null
+          mca_applicable: boolean | null
           mca_v2_password: string | null
           mca_v2_username: string | null
           mca_v3_password: string | null
@@ -320,6 +321,7 @@ export type Database = {
           status: Database["public"]["Enums"]["client_status"]
           tags: string[] | null
           tan: string | null
+          tds_tcs_applicable: boolean | null
           traces_deductor_password: string | null
           traces_taxpayer_password: string | null
           traces_username: string | null
@@ -349,6 +351,7 @@ export type Database = {
           it_pan?: string | null
           it_password?: string | null
           it_tan?: string | null
+          mca_applicable?: boolean | null
           mca_v2_password?: string | null
           mca_v2_username?: string | null
           mca_v3_password?: string | null
@@ -363,6 +366,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["client_status"]
           tags?: string[] | null
           tan?: string | null
+          tds_tcs_applicable?: boolean | null
           traces_deductor_password?: string | null
           traces_taxpayer_password?: string | null
           traces_username?: string | null
@@ -392,6 +396,7 @@ export type Database = {
           it_pan?: string | null
           it_password?: string | null
           it_tan?: string | null
+          mca_applicable?: boolean | null
           mca_v2_password?: string | null
           mca_v2_username?: string | null
           mca_v3_password?: string | null
@@ -406,6 +411,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["client_status"]
           tags?: string[] | null
           tan?: string | null
+          tds_tcs_applicable?: boolean | null
           traces_deductor_password?: string | null
           traces_taxpayer_password?: string | null
           traces_username?: string | null

@@ -25,6 +25,10 @@ const OtherLoginSection = ({
   onToggleMcaV3Password,
   onToggleDgftPassword
 }: OtherLoginSectionProps) => {
+  if (!clientForm.taxesApplicable.mca) {
+    return null;
+  }
+
   return (
     <div className="space-y-4">
       <h4 className="font-medium">Other Login Details</h4>

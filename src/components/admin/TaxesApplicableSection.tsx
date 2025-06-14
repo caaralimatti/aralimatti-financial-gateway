@@ -9,13 +9,15 @@ interface TaxesApplicableSectionProps {
   taxesApplicable: {
     gst: boolean;
     incomeTax: boolean;
+    mca: boolean;
+    tdsTcs: boolean;
     other: boolean;
   };
-  onTaxesChange: (taxes: { gst: boolean; incomeTax: boolean; other: boolean }) => void;
+  onTaxesChange: (taxes: { gst: boolean; incomeTax: boolean; mca: boolean; tdsTcs: boolean; other: boolean }) => void;
 }
 
 const TaxesApplicableSection = ({ taxesApplicable, onTaxesChange }: TaxesApplicableSectionProps) => {
-  const handleTaxChange = (taxType: 'gst' | 'incomeTax' | 'other', checked: boolean) => {
+  const handleTaxChange = (taxType: 'gst' | 'incomeTax' | 'mca' | 'tdsTcs' | 'other', checked: boolean) => {
     onTaxesChange({
       ...taxesApplicable,
       [taxType]: checked
@@ -25,7 +27,7 @@ const TaxesApplicableSection = ({ taxesApplicable, onTaxesChange }: TaxesApplica
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Taxes Applicable</h3>
-      <div className="flex gap-6">
+      <div className="flex flex-wrap gap-6">
         <div className="flex items-center space-x-2">
           <Checkbox 
             id="gst" 
@@ -41,6 +43,22 @@ const TaxesApplicableSection = ({ taxesApplicable, onTaxesChange }: TaxesApplica
             onCheckedChange={(checked) => handleTaxChange('incomeTax', !!checked)}
           />
           <Label htmlFor="incomeTax">Income Tax</Label>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Checkbox 
+            id="mca" 
+            checked={taxesApplicable.mca}
+            onCheckedChange={(checked) => handleTaxChange('mca', !!checked)}
+          />
+          <Label htmlFor="mca">MCA</Label>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Checkbox 
+            id="tdsTcs" 
+            checked={taxesApplicable.tdsTcs}
+            onCheckedChange={(checked) => handleTaxChange('tdsTcs', !!checked)}
+          />
+          <Label htmlFor="tdsTcs">TDS/TCS</Label>
         </div>
         <div className="flex items-center space-x-2">
           <Checkbox 
