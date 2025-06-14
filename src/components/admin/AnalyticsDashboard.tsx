@@ -8,7 +8,7 @@ import TaskAnalytics from './analytics/TaskAnalytics';
 import ComplianceAnalytics from './analytics/ComplianceAnalytics';
 import AnalyticsFilters from './analytics/AnalyticsFilters';
 
-interface AnalyticsFilters {
+interface AnalyticsFiltersState {
   dateRange: string;
   staffMember: string;
   clientType: string;
@@ -17,7 +17,7 @@ interface AnalyticsFilters {
 }
 
 const AnalyticsDashboard: React.FC = () => {
-  const [filters, setFilters] = useState<AnalyticsFilters>({
+  const [filters, setFilters] = useState<AnalyticsFiltersState>({
     dateRange: '30',
     staffMember: 'all',
     clientType: 'all',
@@ -25,7 +25,7 @@ const AnalyticsDashboard: React.FC = () => {
     taskCategory: 'all',
   });
 
-  const handleFilterChange = (key: keyof AnalyticsFilters, value: string) => {
+  const handleFilterChange = (key: keyof AnalyticsFiltersState, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
