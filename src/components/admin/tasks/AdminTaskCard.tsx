@@ -17,9 +17,27 @@ import TaskMarkCompleted from '@/components/tasks/TaskMarkCompleted';
 interface AdminTaskCardProps {
   task: Task;
   onTaskUpdated: () => void;
+  onDelete: (taskId: string) => void;
+  onViewDetails: (task: Task) => void;
 }
 
-const AdminTaskCard: React.FC<AdminTaskCardProps> = ({ task, onTaskUpdated }) => {
+const AdminTaskCard: React.FC<AdminTaskCardProps> = ({ task, onTaskUpdated, onDelete, onViewDetails }) => {
+  const [showConfirm, setShowConfirm] = React.useState(false);
+  const isCompleted = (task.status === 'completed' || task.status === 'COMPLETED');
+
+  const handleDelete = () => {
+    if (isCompleted) {
+      setShowConfirm(true);
+    } else {
+      onDelete(task.id);
+    }
+  };
+
+  const confirmDelete = () => {
+    setShowConfirm(false);
+    onDelete(task.id);
+  };
+
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-3">
@@ -72,14 +90,30 @@ const AdminTaskCard: React.FC<AdminTaskCardProps> = ({ task, onTaskUpdated }) =>
             onTaskUpdated={onTaskUpdated}
             size="sm"
           />
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" onClick={() => onViewDetails(task)}>
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </Button>
+          <Button variant="destructive" size="sm" onClick={handleDelete}>
+            Delete
+          </Button>
         </div>
+        {/* Confirmation Modal for completed task deletion */}
+        {showConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-sm w-full">
+              <h3 className="font-bold text-lg mb-2">Delete Completed Task?</h3>
+              <p className="mb-4 text-gray-600 dark:text-gray-300">Are you sure you want to delete this completed task? This action cannot be undone.</p>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setShowConfirm(false)}>Cancel</Button>
+                <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+              </div>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
-};
+};;
 
 export default AdminTaskCard;

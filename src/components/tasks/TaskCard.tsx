@@ -15,9 +15,10 @@ interface TaskCardProps {
   isSelected: boolean;
   onSelect: (taskId: string, selected: boolean) => void;
   onDelete: (taskId: string) => void;
+  onViewDetails: (taskId: string) => void;
 }
 
-const TaskCard: React.FC<TaskCardProps> = ({ task, isSelected, onSelect, onDelete }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, isSelected, onSelect, onDelete, onViewDetails }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const taskIsOverdue = isOverdue(task.deadline_date);
@@ -60,7 +61,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, isSelected, onSelect, onDelet
         </Button>
 
         <div className="flex gap-2 mt-2">
-          <Button variant="outline" size="sm" className="flex-1" onClick={() => alert('View Details')}>View Details</Button>
+          <Button variant="outline" size="sm" className="flex-1" onClick={() => onViewDetails(task.id)}>View Details</Button>
           <Button variant="destructive" size="sm" className="flex-1" onClick={handleDelete}>Delete</Button>
         </div>
 

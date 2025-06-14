@@ -9,11 +9,15 @@ import AdminTaskCard from './AdminTaskCard';
 interface AdminTasksGridProps {
   tasks: Task[];
   onCreateTask: () => void;
+  onDeleteTask: (taskId: string) => void;
+  onViewDetails: (task: Task) => void;
 }
 
 const AdminTasksGrid = ({ 
   tasks, 
-  onCreateTask 
+  onCreateTask,
+  onDeleteTask,
+  onViewDetails
 }: AdminTasksGridProps) => {
   const handleTaskUpdated = () => {
     // This will be handled by the parent component's refetch
@@ -47,6 +51,8 @@ const AdminTasksGrid = ({
           key={task.id}
           task={task}
           onTaskUpdated={handleTaskUpdated}
+          onDelete={onDeleteTask}
+          onViewDetails={onViewDetails}
         />
       ))}
     </div>

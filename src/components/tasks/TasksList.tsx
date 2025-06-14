@@ -36,6 +36,12 @@ const TasksList: React.FC<TasksListProps> = ({ filters, searchQuery, viewMode })
     setTasks(prev => prev.filter(task => task.id !== taskId));
   };
 
+  const handleViewDetails = (taskId: string) => {
+    window.alert(`View details for task: ${taskId}`);
+  };
+
+  // Placeholder for bulk action handler (fixes lint)
+  const handleBulkAction = () => {};
   if (filteredTasks.length === 0) {
     return <TasksListEmpty />;
   }
@@ -55,6 +61,7 @@ const TasksList: React.FC<TasksListProps> = ({ filters, searchQuery, viewMode })
           selectedTasks={selectedTasks}
           onSelect={handleSelect}
           onDelete={handleDelete}
+          onViewDetails={handleViewDetails}
         />
       ) : (
         <TasksListView

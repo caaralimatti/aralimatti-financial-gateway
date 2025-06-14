@@ -23,11 +23,11 @@ const AdminTasksList = () => {
     filteredTasks
   } = useAdminTasksFilters(tasks);
 
-  const handleDeleteTask = async (taskId: string, taskTitle: string) => {
+  const handleDeleteTask = async (taskId: string) => {
     setDeleteLoading(taskId);
     try {
       await deleteTask(taskId);
-      toast.success(`Task "${taskTitle}" deleted successfully`);
+      toast.success(`Task deleted successfully (ID: ${taskId})`);
     } catch (error) {
       console.error('Error deleting task:', error);
       toast.error('Failed to delete task');
@@ -51,6 +51,10 @@ const AdminTasksList = () => {
     );
   }
 
+  const handleViewDetails = (task: any) => {
+    alert(`Task Details\nTitle: ${task.title}\nID: ${task.id}`);
+  };
+
   return (
     <div className="space-y-6">
       <AdminTasksHeader onCreateTask={handleCreateTask} />
@@ -67,6 +71,8 @@ const AdminTasksList = () => {
       <AdminTasksGrid
         tasks={filteredTasks}
         onCreateTask={handleCreateTask}
+        onDeleteTask={handleDeleteTask}
+        onViewDetails={handleViewDetails}
       />
 
       <AddTaskModal
