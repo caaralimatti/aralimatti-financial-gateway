@@ -15,6 +15,7 @@ export interface CreateUserData {
   password: string;
   fullName: string;
   role: 'admin' | 'staff' | 'client' | 'super_admin';
+  isActive?: boolean;
 }
 
 export interface UpdateUserData {
