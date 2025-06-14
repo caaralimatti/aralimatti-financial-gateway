@@ -1,14 +1,16 @@
 
 import React from 'react';
-import { CalendarTask } from '@/services/calendarService';
+import { CalendarTask, CalendarCompliance } from '@/services/calendarService';
 import TaskCalendarDay from './TaskCalendarDay';
+
+type CalendarEvent = CalendarTask | CalendarCompliance;
 
 interface TaskCalendarGridProps {
   days: (Date | null)[];
-  calendarData: { [date: string]: CalendarTask[] };
+  calendarData: { [date: string]: CalendarEvent[] };
   expandedDays: Set<string>;
   onToggleExpansion: (dateString: string) => void;
-  onTaskClick: (taskId: string) => void;
+  onTaskClick: (eventId: string) => void;
 }
 
 const TaskCalendarGrid = ({
@@ -20,7 +22,7 @@ const TaskCalendarGrid = ({
 }: TaskCalendarGridProps) => {
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  const getTasksForDate = (date: Date | null): CalendarTask[] => {
+  const getEventsForDate = (date: Date | null): CalendarEvent[] => {
     if (!date) return [];
     const dateString = date.toISOString().split('T')[0];
     return calendarData[dateString] || [];
@@ -43,7 +45,7 @@ const TaskCalendarGrid = ({
       
       {/* Calendar days */}
       {days.map((date, index) => {
-        const tasksForDate = getTasksForDate(date);
+        const eventsForDate = getEventsForDate(date);
         const dateString = date?.toISOString().split('T')[0] || '';
         const isExpanded = expandedDays.has(dateString);
         
@@ -51,7 +53,7 @@ const TaskCalendarGrid = ({
           <TaskCalendarDay
             key={index}
             date={date}
-            tasks={tasksForDate}
+            events={eventsForDate}
             isToday={isToday(date)}
             isExpanded={isExpanded}
             onToggleExpansion={onToggleExpansion}

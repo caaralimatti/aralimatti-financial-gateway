@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { calendarService, CalendarData } from '@/services/calendarService';
 
 export const useTaskCalendar = () => {
@@ -7,7 +7,7 @@ export const useTaskCalendar = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchCalendarData = async (startDate: Date, endDate: Date) => {
+  const fetchCalendarData = useCallback(async (startDate: Date, endDate: Date) => {
     try {
       setLoading(true);
       setError(null);
@@ -23,8 +23,7 @@ export const useTaskCalendar = () => {
     } finally {
       setLoading(false);
     }
-  };
-
+  }, []);
   return {
     calendarData,
     loading,

@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,23 +20,15 @@ const TaskCalendar = () => {
     handleTaskClick
   } = useTaskCalendarLogic();
 
-  // Convert admin calendar data to client calendar data (tasks only)
+  // Convert admin calendar data to client calendar data (all events)
+  // Show all events (tasks and compliance deadlines)
   const clientCalendarData: ClientCalendarData = React.useMemo(() => {
-    const clientData: ClientCalendarData = {};
-    
-    Object.entries(calendarData).forEach(([date, events]) => {
-      // Filter only task events (not compliance deadlines) for client view
-      const taskEvents = events.filter(event => 'title' in event) as ClientCalendarTask[];
-      if (taskEvents.length > 0) {
-        clientData[date] = taskEvents;
-      }
-    });
-    
-    return clientData;
+    return calendarData;
   }, [calendarData]);
 
   // Fetch data when component mounts or month changes
   useEffect(() => {
+    console.log('DEBUG: useEffect fired with currentDate', currentDate);
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     const startDate = new Date(year, month, 1);
@@ -48,7 +39,10 @@ const TaskCalendar = () => {
 
   const days = getDaysInMonth(currentDate);
 
-  return (
+  console.log('DEBUG: clientCalendarData', clientCalendarData);
+console.log('DEBUG: calendarData', calendarData);
+
+return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
