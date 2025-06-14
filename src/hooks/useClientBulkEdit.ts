@@ -6,9 +6,9 @@ import { useToast } from '@/hooks/use-toast';
 import type { Tables } from '@/integrations/supabase/types';
 
 interface BulkEditData {
-  client_type?: string;
+  client_type?: Tables<'clients'>['client_type'];
   working_user_id?: string;
-  status?: string;
+  status?: Tables<'clients'>['status'];
   tags?: string[];
   notes?: string;
 }
