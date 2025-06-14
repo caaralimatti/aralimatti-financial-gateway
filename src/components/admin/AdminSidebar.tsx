@@ -12,7 +12,7 @@ interface AdminSidebarProps {
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActiveTab }) => {
   return (
-    <Sidebar variant="inset">
+    <Sidebar variant="sidebar" collapsible="offcanvas">
       <AdminSidebarHeader />
       <AdminSidebarContent activeTab={activeTab} setActiveTab={setActiveTab} />
       <AdminSidebarFooter />

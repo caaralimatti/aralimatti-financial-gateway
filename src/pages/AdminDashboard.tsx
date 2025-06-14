@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminDashboardStats from '@/components/admin/AdminDashboardStats';
 import AdminManagementCards from '@/components/admin/AdminManagementCards';
@@ -19,6 +18,7 @@ import AnnouncementsManagement from '@/components/admin/AnnouncementsManagement'
 import SystemSettings from '@/components/admin/SystemSettings';
 import TaskCalendar from '@/components/admin/TaskCalendar';
 import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
+import { Menu } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -93,8 +93,17 @@ const AdminDashboard: React.FC = () => {
     <SidebarProvider>
       <div className="flex h-screen bg-background w-full">
         <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-        <div className="flex-1 p-6 overflow-y-auto">
-          {renderContent()}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Header with toggle button */}
+          <div className="flex items-center gap-2 p-4 border-b bg-background">
+            <SidebarTrigger className="h-8 w-8" />
+            <h1 className="text-lg font-semibold text-foreground">Admin Portal</h1>
+          </div>
+          
+          {/* Main content */}
+          <div className="flex-1 p-6 overflow-y-auto">
+            {renderContent()}
+          </div>
         </div>
       </div>
     </SidebarProvider>
