@@ -19,7 +19,7 @@ import {
 import { UserProfile } from '@/types/userManagement';
 import { useUserManagement } from '@/hooks/useUserManagement';
 import { useAuth } from '@/contexts/AuthContext';
-import RoleAssignmentForm from './forms/RoleAssignmentForm';
+import RoleAssignmentForm, { UserRole } from './forms/RoleAssignmentForm';
 
 interface EditUserModalProps {
   open: boolean;
@@ -30,10 +30,10 @@ interface EditUserModalProps {
 const EditUserModal: React.FC<EditUserModalProps> = ({ open, onOpenChange, user }) => {
   const { updateUser, sendPasswordReset, isUpdating, isSendingReset } = useUserManagement();
   const { profile } = useAuth();
-  // Explicitly declare possible roles including "super_admin"
+  
   const [formData, setFormData] = useState<{
     fullName: string;
-    role: 'admin' | 'staff' | 'client' | 'super_admin';
+    role: UserRole;
     isActive: boolean;
   }>({
     fullName: '',

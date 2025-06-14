@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import BasicDetailsForm from './forms/BasicDetailsForm';
-import RoleAssignmentForm from './forms/RoleAssignmentForm';
+import RoleAssignmentForm, { UserRole } from './forms/RoleAssignmentForm';
 import ContactInformationForm from './forms/ContactInformationForm';
 import StatusToggleForm from './forms/StatusToggleForm';
 import { useUserManagement } from '@/hooks/useUserManagement';
@@ -25,13 +25,13 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ open, onOpenChange }) => {
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  // Explicitly declare possible roles including "super_admin"
+  
   const [formData, setFormData] = useState<{
     fullName: string;
     email: string;
     password: string;
     confirmPassword: string;
-    role: 'client' | 'staff' | 'admin' | 'super_admin';
+    role: UserRole;
     phone: string;
     address: string;
     status: boolean;
