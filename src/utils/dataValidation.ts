@@ -1,16 +1,9 @@
 
-import type { ParsedRow, ValidationResult, SystemField } from '@/types/clientImport';
+import type { ParsedRow, ValidationResult } from '@/types/clientImport';
 import { isValidEmail, isValidMobile } from './fileValidation';
+import { getMappedRowData } from './dataMapping';
 
-export const getMappedRowData = (row: ParsedRow, fieldMappings: Record<string, string>) => {
-  const mapped: any = {};
-  Object.entries(fieldMappings).forEach(([fileCol, systemField]) => {
-    if (systemField && row[fileCol]) {
-      mapped[systemField] = row[fileCol];
-    }
-  });
-  return mapped;
-};
+export { getMappedRowData } from './dataMapping';
 
 export const validateData = (data: ParsedRow[], fieldMappings: Record<string, string>): ValidationResult => {
   const result: ValidationResult = {
