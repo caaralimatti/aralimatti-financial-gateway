@@ -1,4 +1,3 @@
-
 import type { Tables } from '@/integrations/supabase/types';
 
 export interface ClientFormData {
@@ -21,9 +20,11 @@ export interface ClientFormData {
     notes: string;
   };
   incomeTaxDetails: {
-    returns: any[];
     pan: string;
     tan: string;
+    incomeTaxReturns: string[]; // e.g. ITR - Unaudited, SFT, etc.
+    tdsTcsReturns: string[]; // e.g. TDS Return - Salary, etc.
+    gstReturns: boolean; // New checkbox for GST Returns in Tax Details tab
   };
   contactPersons: any[];
   clientGroups: any[];

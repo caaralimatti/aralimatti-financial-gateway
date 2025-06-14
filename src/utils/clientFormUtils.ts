@@ -23,7 +23,9 @@ export const getInitialFormData = (editingClient?: Tables<'clients'> | null): Cl
       notes: editingClient?.notes || '',
     },
     incomeTaxDetails: {
-      returns: [],
+      incomeTaxReturns: editingClient?.income_tax_returns || [],
+      tdsTcsReturns: editingClient?.tds_tcs_returns || [],
+      gstReturns: editingClient?.gst_returns || false,
       pan: editingClient?.pan || '',
       tan: editingClient?.tan || '',
     },
@@ -70,7 +72,7 @@ const mapClientTypeToDatabase = (clientType: string): 'Individual' | 'Company' |
 
 export const transformFormDataToClientData = (formData: ClientFormData) => {
   return {
-    // Basic Details
+    // Basic Details (same as before)
     file_no: formData.basicDetails.fileNo,
     client_type: mapClientTypeToDatabase(formData.basicDetails.clientType),
     name: formData.basicDetails.name,
@@ -79,19 +81,24 @@ export const transformFormDataToClientData = (formData: ClientFormData) => {
     other_users: formData.basicDetails.otherUsers || null,
     notes: formData.basicDetails.notes || null,
     tags: formData.basicDetails.tags ? formData.basicDetails.tags.split(',').map(tag => tag.trim()).filter(Boolean) : null,
-    
+
     // Tax Applicability
     gst_applicable: formData.taxesApplicable.gst,
     income_tax_applicable: formData.taxesApplicable.incomeTax,
     mca_applicable: formData.taxesApplicable.mca,
     tds_tcs_applicable: formData.taxesApplicable.tdsTcs,
     other_tax_applicable: formData.taxesApplicable.other,
-    
+
+    // Tax Returns
+    income_tax_returns: formData.incomeTaxDetails.incomeTaxReturns,
+    tds_tcs_returns: formData.incomeTaxDetails.tdsTcsReturns,
+    gst_returns: formData.incomeTaxDetails.gstReturns,
+
     // Income Tax Details
     pan: formData.incomeTaxDetails.pan || null,
     tan: formData.incomeTaxDetails.tan || null,
-    
-    // Login Details
+
+    // Login Details (same as before)
     it_pan: formData.loginDetails.itPan || null,
     it_password: formData.loginDetails.itPassword || null,
     it_tan: formData.loginDetails.itTan || null,

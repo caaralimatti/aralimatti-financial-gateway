@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import BasicDetailsTab from './tabs/BasicDetailsTab';
-import IncomeTaxTab from './tabs/IncomeTaxTab';
+import TaxDetailsTab from './tabs/TaxDetailsTab';
 import ContactPersonsTab from './tabs/ContactPersonsTab';
 import ClientGroupsTab from './tabs/ClientGroupsTab';
 import CustomFieldsTab from './tabs/CustomFieldsTab';
@@ -19,7 +18,7 @@ const ClientFormTabs = ({ clientForm, setClientForm }: ClientFormTabsProps) => {
     <Tabs defaultValue="basic" className="w-full">
       <TabsList className="grid w-full grid-cols-7">
         <TabsTrigger value="basic">Basic Details</TabsTrigger>
-        <TabsTrigger value="income-tax">Income Tax Details</TabsTrigger>
+        <TabsTrigger value="tax-details">Tax Details</TabsTrigger>
         <TabsTrigger value="contact">Contact Persons</TabsTrigger>
         <TabsTrigger value="groups">Client Groups</TabsTrigger>
         <TabsTrigger value="custom">Custom Fields</TabsTrigger>
@@ -31,8 +30,8 @@ const ClientFormTabs = ({ clientForm, setClientForm }: ClientFormTabsProps) => {
         <BasicDetailsTab clientForm={clientForm} setClientForm={setClientForm} />
       </TabsContent>
 
-      <TabsContent value="income-tax">
-        <IncomeTaxTab clientForm={clientForm} setClientForm={setClientForm} />
+      <TabsContent value="tax-details">
+        <TaxDetailsTab clientForm={clientForm} setClientForm={setClientForm} />
       </TabsContent>
 
       <TabsContent value="contact">
