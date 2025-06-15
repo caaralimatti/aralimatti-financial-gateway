@@ -28,24 +28,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isInitialized = useRef(false);
   const subscriptionRef = useRef<any>(null);
 
-  // Enhanced user change handler with better profile fetching
+  // Remove the validateUserSession function that was causing recursion
+  // Instead, just fetch profile when user changes
   const handleUserChange = useCallback(async (newUser: User | null) => {
     if (newUser && (!user || user.id !== newUser.id)) {
       console.log('🔥 New user detected, fetching profile:', newUser.id);
       setUser(newUser);
-      
-      // Immediately fetch profile for new users to prevent "Access Denied" issues
-      try {
-        await fetchProfile(newUser.id);
-      } catch (error) {
-        console.error('🔥 Error fetching profile for new user:', error);
-      }
+      // Use setTimeout to prevent blocking the auth callback
+      setTimeout(() => {
+        fetchProfile(newUser.id);
+      }, 0);
     } else if (!newUser) {
       console.log('🔥 No user, clearing state');
       setUser(null);
       clearProfile();
     }
-  }, [user?.id, fetchProfile, clearProfile]);
+  }, [user?.id, fetchProfile, clearProfile]); // Only depend on user ID
 
   useEffect(() => {
     // Prevent multiple initializations
@@ -64,7 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('🔥 Auth State Change Event:', event);
         console.log('🔥 Session Object:', session);
         
@@ -77,14 +75,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Update session state
           setSession(session);
           
-          // Handle user change with immediate profile fetching for login events
+          // Handle user change with deferred profile fetching
           if (session?.user) {
-            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-              // For login events, immediately handle user change to prevent redirect issues
-              await handleUserChange(session.user);
-            } else {
-              handleUserChange(session.user);
-            }
+            handleUserChange(session.user);
           } else {
             handleUserChange(null);
           }
@@ -101,13 +94,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Check for existing session only once
     console.log('🔥 Checking initial session...');
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (!mounted) return;
       
       console.log('🔥 Initial session check:', session?.user?.id);
       setSession(session);
       if (session?.user) {
-        await handleUserChange(session.user);
+        handleUserChange(session.user);
       } else {
         setLoading(false);
       }
