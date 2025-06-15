@@ -47,9 +47,10 @@ export const useAuthGuard = () => {
         return;
       }
 
-      // Debounce validation - only run once every 30 minutes
+      // Significantly increased debounce - only run once every 2 hours for existing sessions
+      // This prevents interference with new login flows
       const now = Date.now();
-      if (now - lastValidationTime.current < 1800000) { // 30 minutes
+      if (now - lastValidationTime.current < 7200000) { // 2 hours
         console.log('🔥 Auth guard: Skipping validation - too soon since last check');
         return;
       }
@@ -114,10 +115,15 @@ export const useAuthGuard = () => {
       }
     };
 
-    // Run validation immediately on mount (with debounce)
-    validateUserAccess();
+    // For new sessions, delay the first validation to allow proper profile loading
+    // This prevents interference with the initial login flow
+    const initialDelay = setTimeout(() => {
+      if (user && user.id) {
+        validateUserAccess();
+      }
+    }, 5000); // 5 second delay for initial validation
     
-    // Set up interval for periodic validation (every 45 minutes)
+    // Set up interval for periodic validation (every 3 hours)
     intervalRef.current = setInterval(() => {
       console.log('🔥 Auth guard: Periodic validation triggered');
       // Always check if user still exists before validation
@@ -130,10 +136,11 @@ export const useAuthGuard = () => {
           intervalRef.current = null;
         }
       }
-    }, 2700000); // 45 minutes
+    }, 10800000); // 3 hours
     
     return () => {
       console.log('🔥 Auth guard: Cleaning up interval for user:', user.id);
+      clearTimeout(initialDelay);
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;

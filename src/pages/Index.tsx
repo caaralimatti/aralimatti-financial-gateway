@@ -16,24 +16,29 @@ const Index = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Only redirect if we have both user and profile loaded
+    // Only redirect if we have both user and profile loaded and we're not currently loading
     if (!loading && user && profile) {
       console.log('🔥 Index: Redirecting authenticated user based on role:', profile.role);
       
-      switch (profile.role) {
-        case 'super_admin':
-        case 'admin':
-          navigate('/admin-dashboard');
-          break;
-        case 'staff':
-          navigate('/staff-dashboard');
-          break;
-        case 'client':
-          navigate('/client-dashboard');
-          break;
-        default:
-          console.log('🔥 Index: Unknown role, staying on landing page');
-      }
+      // Add a small delay to ensure smooth transition and prevent race conditions
+      const redirectTimer = setTimeout(() => {
+        switch (profile.role) {
+          case 'super_admin':
+          case 'admin':
+            navigate('/admin-dashboard', { replace: true });
+            break;
+          case 'staff':
+            navigate('/staff-dashboard', { replace: true });
+            break;
+          case 'client':
+            navigate('/client-dashboard', { replace: true });
+            break;
+          default:
+            console.log('🔥 Index: Unknown role, staying on landing page');
+        }
+      }, 100); // Small delay to ensure smooth navigation
+
+      return () => clearTimeout(redirectTimer);
     }
   }, [user, profile, loading, navigate]);
 
