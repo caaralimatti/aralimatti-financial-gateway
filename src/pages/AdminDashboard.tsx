@@ -25,6 +25,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentUserPermissions } from '@/hooks/useAdminPermissions';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield } from 'lucide-react';
+import ClientDocumentsManager from "@/components/admin/ClientDocumentsManager";
 
 const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -184,14 +185,10 @@ const AdminDashboard: React.FC = () => {
             <SystemSettings />
           </ProtectedContent>
         );
-      case 'manage-documents':
-        // Permission check: reuse client_management_list, like Client List.
+      case "manage-documents":
         return (
           <ProtectedContent module="client_management_list">
-            <div className="flex flex-col items-center justify-center h-full p-8">
-              <h1 className="text-2xl font-semibold mb-2">Client Document Management</h1>
-              <p className="text-muted-foreground">This page is under construction, for managing client documents.</p>
-            </div>
+            <ClientDocumentsManager />
           </ProtectedContent>
         );
       default:
