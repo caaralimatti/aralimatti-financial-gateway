@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -18,14 +17,41 @@ const MyDocuments: React.FC = () => {
     queryFn: async () => {
       if (!profile?.id) return [];
       
-      // Get the client_id for the current user
-      const { data: clientData } = await supabase
+      console.log('Fetching documents for profile ID:', profile.id);
+      
+      // Get the client_id for the current user - try multiple approaches
+      let clientData = null;
+      
+      // First try: working_user_id matches profile id
+      const { data: clientByWorkingUser } = await supabase
         .from('clients')
-        .select('id')
+        .select('id, name')
         .eq('working_user_id', profile.id)
-        .single();
+        .maybeSingle();
+      
+      if (clientByWorkingUser) {
+        clientData = clientByWorkingUser;
+        console.log('Found client by working_user_id:', clientData);
+      } else {
+        // Second try: primary_portal_user_profile_id matches profile id
+        const { data: clientByPortalUser } = await supabase
+          .from('clients')
+          .select('id, name')
+          .eq('primary_portal_user_profile_id', profile.id)
+          .maybeSingle();
+        
+        if (clientByPortalUser) {
+          clientData = clientByPortalUser;
+          console.log('Found client by primary_portal_user_profile_id:', clientData);
+        }
+      }
 
-      if (!clientData) return [];
+      if (!clientData) {
+        console.log('No client found for profile ID:', profile.id);
+        return [];
+      }
+
+      console.log('Fetching documents for client ID:', clientData.id);
 
       // Fetch documents shared with this client
       const { data, error } = await supabase
@@ -39,8 +65,13 @@ const MyDocuments: React.FC = () => {
         .eq('is_current_version', true)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error('Error fetching documents:', error);
+        throw error;
+      }
+      
+      console.log('Found documents:', data?.length || 0);
+      return data || [];
     },
     enabled: !!profile?.id
   });
@@ -128,7 +159,7 @@ const MyDocuments: React.FC = () => {
                   ) : (
                     documents.map((doc) => (
                       <TableRow key={doc.id}>
-                        <TableCell className="font-medium">{doc.file_name}</TableCell>
+                        <TableCell className="font-medium">{doc.description || doc.file_name}</TableCell>
                         <TableCell>{doc.file_type || 'Unknown'}</TableCell>
                         <TableCell>{doc.file_size ? formatFileSize(doc.file_size) : 'Unknown'}</TableCell>
                         <TableCell>{getStatusBadge(doc.document_status)}</TableCell>
