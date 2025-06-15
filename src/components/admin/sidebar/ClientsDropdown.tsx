@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { SidebarMenuItem, SidebarMenuButton, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem } from '@/components/ui/sidebar';
-import { Users, ChevronDown, UserPlus, List, Upload, Edit } from 'lucide-react';
+import { Users, ChevronDown, UserPlus, List, Upload, Edit, FileText } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentUserPermissions } from '@/hooks/useAdminPermissions';
 
@@ -43,6 +42,12 @@ const ClientsDropdown: React.FC<ClientsDropdownProps> = ({ activeTab, setActiveT
       label: 'Client List', 
       icon: List,
       module: 'client_management_list'
+    },
+    { 
+      id: 'manage-documents', 
+      label: 'Manage Documents', 
+      icon: FileText, 
+      module: 'client_management_list' // Use same permission as "Client List"
     },
     { 
       id: 'import-clients', 

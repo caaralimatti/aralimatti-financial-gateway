@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import AdminSidebar from '@/components/admin/AdminSidebar';
@@ -183,6 +182,16 @@ const AdminDashboard: React.FC = () => {
         return (
           <ProtectedContent module="system_settings">
             <SystemSettings />
+          </ProtectedContent>
+        );
+      case 'manage-documents':
+        // Permission check: reuse client_management_list, like Client List.
+        return (
+          <ProtectedContent module="client_management_list">
+            <div className="flex flex-col items-center justify-center h-full p-8">
+              <h1 className="text-2xl font-semibold mb-2">Client Document Management</h1>
+              <p className="text-muted-foreground">This page is under construction, for managing client documents.</p>
+            </div>
           </ProtectedContent>
         );
       default:
