@@ -17,11 +17,16 @@ import AdminSidebarHeader from "./sidebar/AdminSidebarHeader";
 import AdminSidebarContent from "./sidebar/AdminSidebarContent";
 import AdminSidebarFooter from "./sidebar/AdminSidebarFooter";
 
-const AdminSidebar = () => {
+interface AdminSidebarProps {
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+}
+
+const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActiveTab }) => {
   return (
     <Sidebar variant="sidebar" collapsible="icon">
       <AdminSidebarHeader />
-      <AdminSidebarContent />
+      <AdminSidebarContent activeTab={activeTab} setActiveTab={setActiveTab} />
       <AdminSidebarFooter />
     </Sidebar>
   );
