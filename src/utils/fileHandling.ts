@@ -39,7 +39,6 @@ export const handleFileView = async (
   viewingFiles.add(fileId);
   console.log(`[FileView] START for ${fileName} (${fileType}) at ${now}`);
 
-  let didOpen = false;
   try {
     if (isViewableInBrowser(fileType)) {
       const response = await fetch(fileUrl);
@@ -48,25 +47,30 @@ export const handleFileView = async (
       const typedBlob = new Blob([blob], { type: getFileContentType(fileType) });
       const blobUrl = URL.createObjectURL(typedBlob);
 
-      // Try window.open first
-      const newWindow = window.open(blobUrl, '_blank', 'noopener,noreferrer');
-      console.log(`[FileView] window.open called:`, !!newWindow, newWindow);
+      // Only try one approach: Try window.open and trust the browser.
+      // If window.open is blocked (returns null), do NOT try fallback.
+      // If window.open is undefined (very rare), try fallback.
+      let newWindow: Window | null | undefined = undefined;
+      try {
+        newWindow = window.open(blobUrl, '_blank', 'noopener,noreferrer');
+        console.log(`[FileView] window.open called:`, typeof newWindow, newWindow);
+      } catch (err) {
+        // Some browsers might throw if blocked by popup blocker
+        console.log(`[FileView] window.open threw:`, err);
+      }
 
-      if (!newWindow) {
-        // Only use fallback ONCE, never twice
-        if (!didOpen) {
-          console.log(`[FileView] Fallback anchor method triggered for ${fileName}`);
-          const link = document.createElement('a');
-          link.href = blobUrl;
-          link.target = '_blank';
-          link.rel = 'noopener noreferrer';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          didOpen = true;
-        }
+      // Fallback only if window.open is literally "undefined"
+      if (typeof newWindow === "undefined") {
+        console.log(`[FileView] Fallback anchor method triggered for ${fileName} (window.open undefined)`);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       } else {
-        didOpen = true;
+        // If null (blocked) or object (success), don't try fallback. Let browser handle.
       }
 
       setTimeout(() => {
