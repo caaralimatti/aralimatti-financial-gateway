@@ -1,18 +1,25 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTasks } from '@/hooks/useTasks';
 import { getStatusColor, getPriorityColor, formatDate } from '@/utils/taskUtils';
 import { Calendar, Building2, Clock } from 'lucide-react';
 import TaskMarkCompleted from '@/components/tasks/TaskMarkCompleted';
+import TaskDetailsModal from '@/components/tasks/TaskDetailsModal';
+import { Task } from '@/types/task';
 
 const StaffTasksList = () => {
   const { profile } = useAuth();
   const { tasks = [], loading, refetch } = useTasks();
 
-  const assignedTasks = tasks.filter(task => 
+  // State for Task Details Modal
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
+  const assignedTasks = tasks.filter(task =>
     task.assigned_to_profile_id === profile?.id
   );
 
@@ -46,6 +53,11 @@ const StaffTasksList = () => {
     );
   }
 
+  const handleViewDetails = (task: Task) => {
+    setSelectedTask(task);
+    setDetailsModalOpen(true);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -72,6 +84,16 @@ const StaffTasksList = () => {
                       {task.priority.toUpperCase()}
                     </Badge>
                   </div>
+                </div>
+                {/* View Details Button */}
+                <div className="ml-4 flex-shrink-0">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleViewDetails(task)}
+                  >
+                    View Details
+                  </Button>
                 </div>
               </div>
 
@@ -106,7 +128,7 @@ const StaffTasksList = () => {
                   onTaskUpdated={refetch}
                   size="sm"
                 />
-                
+
                 {task.sub_tasks.length > 0 && (
                   <span className="text-sm text-gray-500">
                     {task.sub_tasks.filter(st => st.is_completed).length}/{task.sub_tasks.length} subtasks completed
@@ -117,8 +139,19 @@ const StaffTasksList = () => {
           ))}
         </div>
       </CardContent>
+
+      {/* Task Details Modal */}
+      <TaskDetailsModal
+        task={selectedTask}
+        open={detailsModalOpen}
+        onOpenChange={(open) => {
+          setDetailsModalOpen(open);
+          if (!open) setSelectedTask(null);
+        }}
+      />
     </Card>
   );
 };
 
 export default StaffTasksList;
+
