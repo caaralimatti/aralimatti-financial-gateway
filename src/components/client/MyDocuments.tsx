@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Download, FileText, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { handleFileView, handleFileDownload } from '@/utils/fileHandling';
+import DocumentTable from "./DocumentTable";
 
 const MyDocuments: React.FC = () => {
   const { profile } = useAuth();
@@ -77,24 +78,6 @@ const MyDocuments: React.FC = () => {
     enabled: !!profile?.id
   });
 
-  const getStatusBadge = (status: string) => {
-    const colors: Record<string, string> = {
-      'Uploaded': 'bg-blue-100 text-blue-800',
-      'Reviewed': 'bg-yellow-100 text-yellow-800',
-      'Approved': 'bg-green-100 text-green-800',
-      'Rejected': 'bg-red-100 text-red-800',
-      'Client Review': 'bg-purple-100 text-purple-800',
-      'Firm Shared': 'bg-gray-100 text-gray-800'
-    };
-
-    return (
-      <Badge className={colors[status] || 'bg-gray-100 text-gray-800'}>
-        {status}
-      </Badge>
-    );
-  };
-
-  // Prevents double-fire by disabling the button briefly
   const [viewingDocId, setViewingDocId] = React.useState<string | null>(null);
 
   const handleView = async (
@@ -128,11 +111,11 @@ const MyDocuments: React.FC = () => {
   };
 
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   return (
@@ -153,65 +136,13 @@ const MyDocuments: React.FC = () => {
           {isLoading ? (
             <div className="text-center py-8">Loading documents...</div>
           ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Document Name</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Size</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Shared By</TableHead>
-                    <TableHead>Upload Date</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {documents.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                        <div className="flex flex-col items-center gap-2">
-                          <FileText className="h-8 w-8 text-muted-foreground" />
-                          <span>No documents have been shared with you yet</span>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    documents.map((doc) => (
-                      <TableRow key={doc.id}>
-                        <TableCell className="font-medium">{doc.description || doc.file_name}</TableCell>
-                        <TableCell>{doc.file_type || 'Unknown'}</TableCell>
-                        <TableCell>{doc.file_size ? formatFileSize(doc.file_size) : 'Unknown'}</TableCell>
-                        <TableCell>{getStatusBadge(doc.document_status)}</TableCell>
-                        <TableCell>{doc.uploaded_by_profile?.full_name || 'System'}</TableCell>
-                        <TableCell>{format(new Date(doc.created_at), 'MMM dd, yyyy')}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={(e) => handleView(e, doc.file_url, doc.file_name, doc.file_type)}
-                              title="View Document"
-                              disabled={viewingDocId === `${doc.file_url}-${doc.file_name}`}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={(e) => handleDownload(e, doc.file_url, doc.file_name)}
-                              title="Download Document"
-                            >
-                              <Download className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+            <DocumentTable
+              documents={documents}
+              viewingDocId={viewingDocId}
+              handleView={handleView}
+              handleDownload={handleDownload}
+              formatFileSize={formatFileSize}
+            />
           )}
         </CardContent>
       </Card>
