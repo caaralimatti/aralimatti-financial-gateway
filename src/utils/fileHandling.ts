@@ -31,56 +31,58 @@ export const handleFileView = async (
   fileType: string
 ): Promise<void> => {
   const fileId = `${fileUrl}-${fileName}`;
+  const now = Date.now();
   if (viewingFiles.has(fileId)) {
-    console.log('File view already in progress, skipping...', fileName);
+    console.log(`[FileView] Already in progress for ${fileName} @ ${now}`);
     return;
   }
-
   viewingFiles.add(fileId);
+  console.log(`[FileView] START for ${fileName} (${fileType}) at ${now}`);
 
+  let didOpen = false;
   try {
     if (isViewableInBrowser(fileType)) {
-      // For viewable files, fetch the blob and create an object URL
       const response = await fetch(fileUrl);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const blob = await response.blob();
       const typedBlob = new Blob([blob], { type: getFileContentType(fileType) });
       const blobUrl = URL.createObjectURL(typedBlob);
 
-      // Open the blob URL in a new window
+      // Try window.open first
       const newWindow = window.open(blobUrl, '_blank', 'noopener,noreferrer');
-      console.log('window.open called:', !!newWindow);
+      console.log(`[FileView] window.open called:`, !!newWindow, newWindow);
 
-      // If popup blocked or window didn't open, fallback ONLY if window.open returns null
       if (!newWindow) {
-        console.log('window.open failed; using fallback anchor method');
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // Only use fallback ONCE, never twice
+        if (!didOpen) {
+          console.log(`[FileView] Fallback anchor method triggered for ${fileName}`);
+          const link = document.createElement('a');
+          link.href = blobUrl;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          didOpen = true;
+        }
+      } else {
+        didOpen = true;
       }
 
-      // Cleanup the blob URL after a delay
       setTimeout(() => {
         URL.revokeObjectURL(blobUrl);
       }, 10000);
-
     } else {
-      // For non-viewable files, trigger download
+      // Non-viewable — download
       handleFileDownload(fileUrl, fileName);
     }
   } catch (error) {
-    console.error('Error viewing file:', error);
-    // Fallback to download if view fails
+    console.error(`[FileView] Exception:`, error);
     handleFileDownload(fileUrl, fileName);
   } finally {
     setTimeout(() => {
       viewingFiles.delete(fileId);
+      console.log(`[FileView] Cleared debounce for ${fileName} at ${Date.now()}`);
     }, 2000);
   }
 };

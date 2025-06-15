@@ -94,16 +94,37 @@ const MyDocuments: React.FC = () => {
     );
   };
 
+  // Prevents double-fire by disabling the button briefly
+  const [viewingDocId, setViewingDocId] = React.useState<string | null>(null);
+
+  const handleView = async (
+    e: React.MouseEvent,
+    fileUrl: string,
+    fileName: string,
+    fileType: string
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const docId = `${fileUrl}-${fileName}`;
+    if (viewingDocId === docId) {
+      console.log(`[MyDocuments] Ignored double-view click for ${fileName}`);
+      return;
+    }
+    setViewingDocId(docId);
+
+    try {
+      console.log(`[MyDocuments] handleView:`, { fileUrl, fileName, fileType });
+      await handleFileView(fileUrl, fileName, fileType);
+    } finally {
+      setTimeout(() => setViewingDocId(null), 1500);
+    }
+  };
+
   const handleDownload = (e: React.MouseEvent, fileUrl: string, fileName: string) => {
     e.preventDefault();
     e.stopPropagation();
     handleFileDownload(fileUrl, fileName);
-  };
-
-  const handleView = (e: React.MouseEvent, fileUrl: string, fileName: string, fileType: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    handleFileView(fileUrl, fileName, fileType);
   };
 
   const formatFileSize = (bytes: number) => {
@@ -171,6 +192,7 @@ const MyDocuments: React.FC = () => {
                               size="sm"
                               onClick={(e) => handleView(e, doc.file_url, doc.file_name, doc.file_type)}
                               title="View Document"
+                              disabled={viewingDocId === `${doc.file_url}-${doc.file_name}`}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>

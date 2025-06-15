@@ -99,11 +99,32 @@ const ClientDocumentsManager: React.FC<Props> = ({ selectedClientId, onSelectCli
     } catch {}
   };
 
+  // Prevent double-click bug for "view"
+  const [viewingDocId, setViewingDocId] = React.useState<string | null>(null);
+
   // Improved view handler with proper event handling
-  const handleViewDocument = (e: React.MouseEvent, fileUrl: string, fileName: string, fileType: string) => {
+  const handleViewDocument = async (
+    e: React.MouseEvent,
+    fileUrl: string,
+    fileName: string,
+    fileType: string
+  ) => {
     e.preventDefault();
     e.stopPropagation();
-    handleFileView(fileUrl, fileName, fileType);
+
+    const docId = `${fileUrl}-${fileName}`;
+    if (viewingDocId === docId) {
+      console.log(`[ClientDocumentsManager] Ignored double-view click for ${fileName}`);
+      return;
+    }
+    setViewingDocId(docId);
+
+    try {
+      console.log(`[ClientDocumentsManager] handleViewDocument:`, { fileUrl, fileName, fileType });
+      await handleFileView(fileUrl, fileName, fileType);
+    } finally {
+      setTimeout(() => setViewingDocId(null), 1500);
+    }
   };
 
   // Improved download handler with proper event handling
@@ -346,6 +367,7 @@ const ClientDocumentsManager: React.FC<Props> = ({ selectedClientId, onSelectCli
                             <Button size="icon" variant="ghost" 
                               onClick={(e) => handleViewDocument(e, doc.file_url, doc.file_name, doc.file_type)}
                               title="View Document"
+                              disabled={viewingDocId === `${doc.file_url}-${doc.file_name}`}
                             >
                               <Eye className="w-4 h-4" />
                             </Button>
