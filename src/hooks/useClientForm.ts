@@ -16,8 +16,41 @@ export const useClientForm = (editingClient?: Tables<'clients'> | null) => {
     setClientForm(getInitialFormData());
   };
 
+  const checkIfEmailExists = async (email: string): Promise<boolean> => {
+    try {
+      console.log('🔥 Checking if email exists in profiles:', email);
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, email, role')
+        .eq('email', email)
+        .limit(1);
+
+      if (error) {
+        console.error('🔥 Error checking email existence:', error);
+        throw error;
+      }
+
+      const exists = data && data.length > 0;
+      console.log('🔥 Email existence check result:', { email, exists, existingUser: data?.[0] });
+      
+      return exists;
+    } catch (error) {
+      console.error('🔥 Error in checkIfEmailExists:', error);
+      throw error;
+    }
+  };
+
   const createPortalUserViaEdgeFunction = async (email: string, password: string, fullName: string) => {
     try {
+      console.log('🔥 Creating portal user via edge function:', { email, fullName });
+      
+      // First check if email already exists
+      const emailExists = await checkIfEmailExists(email);
+      if (emailExists) {
+        throw new Error(`A user with email ${email} already exists. Please use a different email address for the portal user.`);
+      }
+
       // Use an edge function or API call that doesn't affect the current session
       // This prevents the admin session from being overridden
       const { data, error } = await supabase.functions.invoke('create-client-user', {
@@ -29,35 +62,29 @@ export const useClientForm = (editingClient?: Tables<'clients'> | null) => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('🔥 Edge function error:', error);
+        throw error;
+      }
+      
+      console.log('🔥 Portal user created successfully via edge function:', data?.user?.id);
       return data?.user;
     } catch (error) {
-      console.error('Error creating portal user via edge function:', error);
+      console.error('🔥 Error creating portal user via edge function:', error);
       
-      // Fallback: Create user with admin privileges (requires service role key)
-      // This is a temporary workaround - in production, use edge functions
-      try {
-        const { data: userData, error: userError } = await supabase.auth.admin.createUser({
-          email,
-          password,
-          email_confirm: true,
-          user_metadata: {
-            full_name: fullName,
-            role: 'client'
-          }
-        });
-
-        if (userError) throw userError;
-        return userData.user;
-      } catch (adminError) {
-        console.error('Admin user creation also failed:', adminError);
-        throw adminError;
+      // Provide more specific error messages
+      if (error.message?.includes('already been registered') || error.message?.includes('email')) {
+        throw new Error(`The email ${email} is already registered. Please use a different email address for the portal user.`);
       }
+      
+      throw error;
     }
   };
 
   const saveClient = async (onSuccess: () => void) => {
     try {
+      console.log('🔥 Starting client save process');
+      
       // Validate required fields
       if (!validateRequiredFields(clientForm)) {
         toast({
@@ -72,6 +99,26 @@ export const useClientForm = (editingClient?: Tables<'clients'> | null) => {
 
       // Create portal user if requested - using method that preserves admin session
       if (clientForm.portalUser.createPortalUser) {
+        console.log('🔥 Portal user creation requested');
+        
+        if (!clientForm.portalUser.email) {
+          toast({
+            title: "Validation Error",
+            description: "Please provide an email address for the portal user",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (!clientForm.portalUser.fullName) {
+          toast({
+            title: "Validation Error", 
+            description: "Please provide a full name for the portal user",
+            variant: "destructive",
+          });
+          return;
+        }
+
         try {
           const portalUser = await createPortalUserViaEdgeFunction(
             clientForm.portalUser.email,
@@ -80,15 +127,16 @@ export const useClientForm = (editingClient?: Tables<'clients'> | null) => {
           );
           portalUserId = portalUser?.id;
 
+          console.log('🔥 Portal user created successfully:', portalUserId);
           toast({
             title: "Portal User Created",
             description: `Portal user account created for ${clientForm.portalUser.email}`,
           });
         } catch (error: any) {
-          console.error('Error creating portal user:', error);
+          console.error('🔥 Error creating portal user:', error);
           toast({
             title: "Error Creating Portal User",
-            description: error.message || "Failed to create portal user account",
+            description: error.message || "Failed to create portal user account. Please check if the email is already in use.",
             variant: "destructive",
           });
           return;
@@ -100,7 +148,10 @@ export const useClientForm = (editingClient?: Tables<'clients'> | null) => {
       // Add portal user link if created
       if (portalUserId) {
         clientData.primary_portal_user_profile_id = portalUserId;
+        console.log('🔥 Linking portal user to client:', portalUserId);
       }
+
+      console.log('🔥 Saving client data:', { editing: !!editingClient, hasPortalUser: !!portalUserId });
 
       if (editingClient) {
         await updateClient({ id: editingClient.id, ...clientData });
@@ -108,18 +159,23 @@ export const useClientForm = (editingClient?: Tables<'clients'> | null) => {
         await createClient(clientData);
       }
 
-      // Show password info if portal user was created
-      if (clientForm.portalUser.createPortalUser) {
+      // Show success message with portal user info if created
+      if (clientForm.portalUser.createPortalUser && portalUserId) {
         toast({
           title: "Client Created Successfully",
-          description: `Client saved. Portal user login: ${clientForm.portalUser.email}`,
+          description: `Client saved with portal user login: ${clientForm.portalUser.email}`,
+        });
+      } else {
+        toast({
+          title: editingClient ? "Client Updated" : "Client Created",
+          description: editingClient ? "Client updated successfully" : "Client created successfully",
         });
       }
 
       onSuccess();
       resetForm();
     } catch (error) {
-      console.error('Error saving client:', error);
+      console.error('🔥 Error saving client:', error);
       toast({
         title: "Error",
         description: "Failed to save client. Please try again.",

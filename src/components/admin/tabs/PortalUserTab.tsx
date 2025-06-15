@@ -6,9 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Copy, Eye, EyeOff, User } from 'lucide-react';
+import { Copy, Eye, EyeOff, User, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import type { ClientFormData } from '@/types/clientForm';
 
 interface PortalUserTabProps {
@@ -19,6 +20,7 @@ interface PortalUserTabProps {
 const PortalUserTab = ({ clientForm, setClientForm }: PortalUserTabProps) => {
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
+  const [emailCheckStatus, setEmailCheckStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
 
   const generatePassword = () => {
     const length = 12;
@@ -29,6 +31,52 @@ const PortalUserTab = ({ clientForm, setClientForm }: PortalUserTabProps) => {
     }
     return password;
   };
+
+  const checkEmailAvailability = async (email: string) => {
+    if (!email || !email.includes('@')) {
+      setEmailCheckStatus('idle');
+      return;
+    }
+
+    setEmailCheckStatus('checking');
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .eq('email', email)
+        .limit(1);
+
+      if (error) {
+        console.error('🔥 Error checking email:', error);
+        setEmailCheckStatus('idle');
+        return;
+      }
+
+      if (data && data.length > 0) {
+        setEmailCheckStatus('taken');
+      } else {
+        setEmailCheckStatus('available');
+      }
+    } catch (error) {
+      console.error('🔥 Error in email check:', error);
+      setEmailCheckStatus('idle');
+    }
+  };
+
+  // Debounced email check
+  useEffect(() => {
+    if (!clientForm.portalUser.createPortalUser || !clientForm.portalUser.email) {
+      setEmailCheckStatus('idle');
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      checkEmailAvailability(clientForm.portalUser.email);
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [clientForm.portalUser.email, clientForm.portalUser.createPortalUser]);
 
   const handleCreatePortalUserChange = (checked: boolean) => {
     const newPortalUser = {
@@ -46,6 +94,9 @@ const PortalUserTab = ({ clientForm, setClientForm }: PortalUserTabProps) => {
       newPortalUser.email = email;
       newPortalUser.fullName = fullName;
       newPortalUser.generatedPassword = generatedPassword;
+    } else {
+      // Clear email check status when disabling
+      setEmailCheckStatus('idle');
     }
 
     setClientForm({
@@ -78,6 +129,13 @@ const PortalUserTab = ({ clientForm, setClientForm }: PortalUserTabProps) => {
         ...clientForm.portalUser,
         generatedPassword: newPassword
       }
+    });
+  };
+
+  const handleEmailChange = (email: string) => {
+    setClientForm({
+      ...clientForm,
+      portalUser: { ...clientForm.portalUser, email }
     });
   };
 
@@ -115,16 +173,38 @@ const PortalUserTab = ({ clientForm, setClientForm }: PortalUserTabProps) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="portalEmail">Email Address <span className="text-red-500">*</span></Label>
-                  <Input
-                    id="portalEmail"
-                    type="email"
-                    placeholder="client@example.com"
-                    value={clientForm.portalUser.email}
-                    onChange={(e) => setClientForm({
-                      ...clientForm,
-                      portalUser: { ...clientForm.portalUser, email: e.target.value }
-                    })}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="portalEmail"
+                      type="email"
+                      placeholder="client@example.com"
+                      value={clientForm.portalUser.email}
+                      onChange={(e) => handleEmailChange(e.target.value)}
+                      className={
+                        emailCheckStatus === 'taken' ? 'border-red-500' : 
+                        emailCheckStatus === 'available' ? 'border-green-500' : ''
+                      }
+                    />
+                    {emailCheckStatus === 'checking' && (
+                      <div className="absolute right-3 top-2.5">
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"></div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {emailCheckStatus === 'taken' && (
+                    <div className="flex items-center gap-1 text-red-600 text-sm">
+                      <AlertTriangle className="h-4 w-4" />
+                      This email is already registered. Please use a different email.
+                    </div>
+                  )}
+                  
+                  {emailCheckStatus === 'available' && (
+                    <div className="text-green-600 text-sm">
+                      ✓ Email is available
+                    </div>
+                  )}
+                  
                   <p className="text-xs text-gray-500">
                     This will be the login email for the client portal
                   </p>
@@ -189,6 +269,16 @@ const PortalUserTab = ({ clientForm, setClientForm }: PortalUserTabProps) => {
                     </AlertDescription>
                   </Alert>
                 </div>
+              )}
+
+              {emailCheckStatus === 'taken' && (
+                <Alert className="border-red-200 bg-red-50">
+                  <AlertTriangle className="h-4 w-4 text-red-600" />
+                  <AlertDescription className="text-red-800">
+                    Cannot create portal user: The email address is already in use by another user. 
+                    Please choose a different email address.
+                  </AlertDescription>
+                </Alert>
               )}
             </div>
           )}
