@@ -56,10 +56,13 @@ export const useStaffClientAssignments = () => {
 
       // Then, insert new assignments
       if (clientIds.length > 0) {
+        // Get current user ID first
+        const { data: { user } } = await supabase.auth.getUser();
+        
         const assignments = clientIds.map(clientId => ({
           staff_profile_id: staffProfileId,
           client_id: clientId,
-          assigned_by: (await supabase.auth.getUser()).data.user?.id
+          assigned_by: user?.id
         }));
 
         const { error: insertError } = await supabase
@@ -101,6 +104,9 @@ export const useStaffAssignedClients = () => {
   return useQuery({
     queryKey: ['staff-assigned-clients'],
     queryFn: async () => {
+      // Get current user ID first
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const { data, error } = await supabase
         .from('staff_client_assignments')
         .select(`
@@ -111,7 +117,7 @@ export const useStaffAssignedClients = () => {
             file_no
           )
         `)
-        .eq('staff_profile_id', (await supabase.auth.getUser()).data.user?.id);
+        .eq('staff_profile_id', user?.id);
       
       if (error) throw error;
       return data.map(assignment => assignment.clients).filter(Boolean);
