@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useClientForm } from '@/hooks/useClientForm';
 import ClientFormTabs from './ClientFormTabs';
@@ -7,6 +7,7 @@ import TaxesApplicableSection from './TaxesApplicableSection';
 import ClientModalHeader from './ClientModalHeader';
 import ClientOnboardingProgress from './ClientOnboardingProgress';
 import type { Tables } from '@/integrations/supabase/types';
+import { getInitialFormData } from '@/utils/clientFormUtils';
 
 interface AddClientModalProps {
   open: boolean;
@@ -16,6 +17,15 @@ interface AddClientModalProps {
 
 const AddClientModal = ({ open, onOpenChange, editingClient }: AddClientModalProps) => {
   const { clientForm, setClientForm, saveClient, isLoading } = useClientForm(editingClient);
+
+  // Ensure form is always pre-filled with correct data when editing an existing client
+  useEffect(() => {
+    if (open && editingClient) {
+      setClientForm(getInitialFormData(editingClient));
+    }
+    // Note: if modal is opened without editingClient (for Add), don't reset form
+    // eslint-disable-next-line
+  }, [open, editingClient]); // Only reinitialize on modal open or new client
 
   const handleSave = () => {
     saveClient(() => {
