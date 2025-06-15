@@ -9,10 +9,11 @@ import { Button } from '@/components/ui/button';
 import { Copy, Eye, EyeOff, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
+import type { ClientFormData } from '@/types/clientForm';
 
 interface PortalUserTabProps {
-  clientForm: any;
-  setClientForm: (form: any) => void;
+  clientForm: ClientFormData;
+  setClientForm: (form: ClientFormData) => void;
 }
 
 const PortalUserTab = ({ clientForm, setClientForm }: PortalUserTabProps) => {
@@ -47,10 +48,10 @@ const PortalUserTab = ({ clientForm, setClientForm }: PortalUserTabProps) => {
       newPortalUser.generatedPassword = generatedPassword;
     }
 
-    setClientForm(prev => ({
-      ...prev,
+    setClientForm({
+      ...clientForm,
       portalUser: newPortalUser
-    }));
+    });
   };
 
   const copyToClipboard = async (text: string) => {
@@ -71,13 +72,13 @@ const PortalUserTab = ({ clientForm, setClientForm }: PortalUserTabProps) => {
 
   const regeneratePassword = () => {
     const newPassword = generatePassword();
-    setClientForm(prev => ({
-      ...prev,
+    setClientForm({
+      ...clientForm,
       portalUser: {
-        ...prev.portalUser,
+        ...clientForm.portalUser,
         generatedPassword: newPassword
       }
-    }));
+    });
   };
 
   return (
@@ -118,10 +119,10 @@ const PortalUserTab = ({ clientForm, setClientForm }: PortalUserTabProps) => {
                     type="email"
                     placeholder="client@example.com"
                     value={clientForm.portalUser.email}
-                    onChange={(e) => setClientForm(prev => ({
-                      ...prev,
-                      portalUser: { ...prev.portalUser, email: e.target.value }
-                    }))}
+                    onChange={(e) => setClientForm({
+                      ...clientForm,
+                      portalUser: { ...clientForm.portalUser, email: e.target.value }
+                    })}
                   />
                   <p className="text-xs text-gray-500">
                     This will be the login email for the client portal
@@ -134,10 +135,10 @@ const PortalUserTab = ({ clientForm, setClientForm }: PortalUserTabProps) => {
                     id="portalFullName"
                     placeholder="Client Full Name"
                     value={clientForm.portalUser.fullName}
-                    onChange={(e) => setClientForm(prev => ({
-                      ...prev,
-                      portalUser: { ...prev.portalUser, fullName: e.target.value }
-                    }))}
+                    onChange={(e) => setClientForm({
+                      ...clientForm,
+                      portalUser: { ...clientForm.portalUser, fullName: e.target.value }
+                    })}
                   />
                 </div>
               </div>

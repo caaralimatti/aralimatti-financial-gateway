@@ -1,4 +1,3 @@
-
 import type { ClientFormData, ClientEntity } from '@/types/clientForm';
 
 export const getInitialFormData = (editingClient?: ClientEntity | null): ClientFormData => {
@@ -142,7 +141,7 @@ export const validateRequiredFields = (formData: ClientFormData): boolean => {
 export const transformFormDataToClientData = (formData: ClientFormData) => {
   return {
     file_no: formData.basicDetails.fileNo,
-    client_type: formData.basicDetails.clientType,
+    client_type: formData.basicDetails.clientType as "Individual" | "Company" | "Partnership" | "LLP" | "Trust" | "HUF" | "Other",
     name: formData.basicDetails.name,
     trade_name: formData.basicDetails.tradeName,
     date_of_birth: formData.basicDetails.dateOfBirth || null,
@@ -174,6 +173,7 @@ export const transformFormDataToClientData = (formData: ClientFormData) => {
     gst_password: formData.loginDetails.gstPassword,
     gst_registration_type: formData.loginDetails.gstRegistrationType,
     gst_return_frequency: formData.loginDetails.gstReturnFrequency,
+    primary_portal_user_profile_id: null, // Will be set after user creation
   };
 };
 
