@@ -911,6 +911,52 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_client_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string
+          client_id: string
+          id: string
+          staff_profile_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by: string
+          client_id: string
+          id?: string
+          staff_profile_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string
+          client_id?: string
+          id?: string
+          staff_profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_client_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_client_assignments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_client_assignments_staff_profile_id_fkey"
+            columns: ["staff_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sub_tasks: {
         Row: {
           created_at: string
@@ -1316,6 +1362,10 @@ export type Database = {
       }
       is_current_user_admin: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_staff_assigned_to_client: {
+        Args: { staff_id: string; client_id: string }
         Returns: boolean
       }
       is_super_admin: {

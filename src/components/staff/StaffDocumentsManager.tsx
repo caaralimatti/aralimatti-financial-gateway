@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useClientAttachments } from "@/hooks/useClientAttachments";
@@ -12,7 +11,7 @@ import ClientDocumentDeleteModal from "../admin/ClientDocumentDeleteModal";
 import ClientDocumentTableRow from "../admin/ClientDocumentTableRow";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { handleFileView, handleFileDownload } from "@/utils/fileHandling";
-import { useClients } from "@/hooks/useClients";
+import { useStaffAssignedClients } from "@/hooks/useStaffClientAssignments";
 
 const DOCUMENT_STATUSES = [
   { label: "Uploaded", value: "Uploaded" },
@@ -44,9 +43,8 @@ const StaffDocumentsManager: React.FC = () => {
   const { profile } = useAuth();
   const { toast } = useToast();
 
-  // Get only the clients assigned to this staff
-  const { clients, isLoading: isClientsLoading } = useClients();
-  const assignedClients = clients?.filter(c => c.working_user_id === profile?.id) || [];
+  // Get only the clients assigned to this staff using the new assignment system
+  const { data: assignedClients = [], isLoading: isClientsLoading } = useStaffAssignedClients();
 
   const [clientId, setClientId] = useState<string | null>(null);
 
@@ -54,7 +52,7 @@ const StaffDocumentsManager: React.FC = () => {
   useEffect(() => {
     if (assignedClients.length && !clientId) setClientId(assignedClients[0].id);
     if (!assignedClients.find(c => c.id === clientId)) setClientId(assignedClients[0]?.id ?? null);
-  }, [assignedClients]);
+  }, [assignedClients, clientId]);
 
   const { attachments, isLoading, uploadAttachment, updateAttachment, deleteAttachment, isUploading, isUpdating, isDeleting } = useClientAttachments(clientId ?? undefined);
 
@@ -204,7 +202,9 @@ const StaffDocumentsManager: React.FC = () => {
       {/* Document Table */}
       <div className="mt-6">
         {!clientId && (
-          <div className="text-center text-sm text-muted-foreground py-16">Select a client to view documents.</div>
+          <div className="text-center text-sm text-muted-foreground py-16">
+            {assignedClients.length === 0 ? "No clients assigned to you." : "Select a client to view documents."}
+          </div>
         )}
         {clientId && (
           <>

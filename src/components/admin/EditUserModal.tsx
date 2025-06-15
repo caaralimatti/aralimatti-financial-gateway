@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -9,17 +10,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { UserProfile } from '@/types/userManagement';
 import { useUserManagement } from '@/hooks/useUserManagement';
 import { useAuth } from '@/contexts/AuthContext';
 import RoleAssignmentForm, { UserRole } from './forms/RoleAssignmentForm';
+import StaffClientAssignmentForm from './StaffClientAssignmentForm';
 
 interface EditUserModalProps {
   open: boolean;
@@ -83,9 +78,11 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ open, onOpenChange, user 
 
   if (!user) return null;
 
+  const isStaffUser = formData.role === 'staff';
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit User</DialogTitle>
         </DialogHeader>
@@ -137,6 +134,12 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ open, onOpenChange, user 
             />
             <Label htmlFor="isActive">Active User</Label>
           </div>
+
+          {/* Staff Client Assignment Section */}
+          <StaffClientAssignmentForm
+            staffProfileId={user.id}
+            isVisible={isStaffUser}
+          />
 
           <div className="space-y-2">
             <Label>Password Management</Label>
