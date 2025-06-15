@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useClients } from "@/hooks/useClients";
 import { useClientAttachments } from "@/hooks/useClientAttachments";
@@ -12,6 +11,7 @@ import { Upload, Eye, Download, Edit, Trash2, Plus, CheckCircle2, XCircle, FileI
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { handleFileView, handleFileDownload } from "@/utils/fileHandling";
 
 interface Props {
   selectedClientId?: string;
@@ -63,7 +63,7 @@ const ClientDocumentsManager: React.FC<Props> = ({ selectedClientId, onSelectCli
   // Upload state/fields
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
-  const [documentStatus, setDocumentStatus] = useState("Uploaded"); // Set default to "Uploaded" (first allowed status)
+  const [documentStatus, setDocumentStatus] = useState("Uploaded");
   const [sharedWithClient, setSharedWithClient] = useState(false);
 
   const { toast } = useToast();
@@ -93,10 +93,20 @@ const ClientDocumentsManager: React.FC<Props> = ({ selectedClientId, onSelectCli
         description: title || file.name,
         documentStatus,
         sharedWithClient,
-        uploadedByRole: "admin" // Changed from "firm" to "admin" to match allowed values
+        uploadedByRole: "admin"
       });
       setShowUpload(false);
     } catch {}
+  };
+
+  // Improved view handler
+  const handleViewDocument = (fileUrl: string, fileName: string, fileType: string) => {
+    handleFileView(fileUrl, fileName, fileType);
+  };
+
+  // Improved download handler
+  const handleDownloadDocument = (fileUrl: string, fileName: string) => {
+    handleFileDownload(fileUrl, fileName);
   };
 
   // Render
@@ -329,10 +339,17 @@ const ClientDocumentsManager: React.FC<Props> = ({ selectedClientId, onSelectCli
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
-                            <Button size="icon" variant="ghost" asChild>
-                              <a href={doc.file_url} target="_blank" rel="noopener noreferrer" title="View/Download">
-                                <Eye className="w-4 h-4" />
-                              </a>
+                            <Button size="icon" variant="ghost" 
+                              onClick={() => handleViewDocument(doc.file_url, doc.file_name, doc.file_type)}
+                              title="View Document"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button size="icon" variant="ghost"
+                              onClick={() => handleDownloadDocument(doc.file_url, doc.file_name)}
+                              title="Download Document"
+                            >
+                              <Download className="w-4 h-4" />
                             </Button>
                             <Button size="icon" variant="ghost"
                               onClick={() => setShowEdit({ open: true, attachment: { ...doc } })}

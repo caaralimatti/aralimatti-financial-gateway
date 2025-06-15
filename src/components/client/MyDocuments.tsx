@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Download, FileText, Eye } from 'lucide-react';
 import { format } from 'date-fns';
+import { handleFileView, handleFileDownload } from '@/utils/fileHandling';
 
 const MyDocuments: React.FC = () => {
   const { profile } = useAuth();
@@ -94,17 +95,11 @@ const MyDocuments: React.FC = () => {
   };
 
   const handleDownload = (fileUrl: string, fileName: string) => {
-    const link = document.createElement('a');
-    link.href = fileUrl;
-    link.download = fileName;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    handleFileDownload(fileUrl, fileName);
   };
 
-  const handleView = (fileUrl: string) => {
-    window.open(fileUrl, '_blank');
+  const handleView = (fileUrl: string, fileName: string, fileType: string) => {
+    handleFileView(fileUrl, fileName, fileType);
   };
 
   const formatFileSize = (bytes: number) => {
@@ -170,7 +165,8 @@ const MyDocuments: React.FC = () => {
                             <Button 
                               variant="ghost" 
                               size="sm"
-                              onClick={() => handleView(doc.file_url)}
+                              onClick={() => handleView(doc.file_url, doc.file_name, doc.file_type)}
+                              title="View Document"
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
@@ -178,6 +174,7 @@ const MyDocuments: React.FC = () => {
                               variant="ghost" 
                               size="sm"
                               onClick={() => handleDownload(doc.file_url, doc.file_name)}
+                              title="Download Document"
                             >
                               <Download className="h-4 w-4" />
                             </Button>

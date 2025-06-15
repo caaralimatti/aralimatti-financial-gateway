@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,11 +6,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Trash2, Download, FileText, Edit, History } from 'lucide-react';
+import { Upload, Trash2, Download, FileText, Edit, History, Eye } from 'lucide-react';
 import { useClientAttachments } from '@/hooks/useClientAttachments';
 import { formatFileSize, getFileTypeLabel } from '@/utils/clientFormUtils';
 import { useAuth } from '@/contexts/AuthContext';
 import type { ClientAttachment } from '@/types/clientForm';
+import { handleFileView, handleFileDownload } from '@/utils/fileHandling';
 
 interface AttachmentsTabProps {
   clientForm: any;
@@ -124,13 +124,13 @@ const AttachmentsTab = ({ clientForm, setClientForm, clientId }: AttachmentsTabP
 
   const handleDownload = (attachment: ClientAttachment) => {
     if (attachment.file_url) {
-      const link = document.createElement('a');
-      link.href = attachment.file_url;
-      link.download = attachment.file_name;
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      handleFileDownload(attachment.file_url, attachment.file_name);
+    }
+  };
+
+  const handleView = (attachment: ClientAttachment) => {
+    if (attachment.file_url) {
+      handleFileView(attachment.file_url, attachment.file_name, attachment.file_type);
     }
   };
 
@@ -262,6 +262,14 @@ const AttachmentsTab = ({ clientForm, setClientForm, clientId }: AttachmentsTabP
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleView(attachment)}
+                        title="View"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
                       <Button
                         size="sm"
                         variant="outline"
