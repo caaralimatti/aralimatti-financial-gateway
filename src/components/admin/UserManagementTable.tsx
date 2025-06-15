@@ -23,6 +23,11 @@ const UserManagementTable: React.FC<UserManagementTableProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const handleToggleStatus = (user: UserProfile) => {
+    // This will be handled by the UserTableRow component internally
+    console.log('Toggle status for user:', user.id);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -49,6 +54,7 @@ const UserManagementTable: React.FC<UserManagementTableProps> = ({
                     user={user}
                     onEdit={onEdit}
                     onDelete={onDelete}
+                    onToggleStatus={handleToggleStatus}
                   />
                 ))
               ) : (

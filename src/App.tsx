@@ -1,5 +1,7 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
 import Index from '@/pages/Index';
@@ -10,14 +12,15 @@ import ClientDashboard from '@/pages/ClientDashboard';
 import Unauthorized from '@/pages/Unauthorized';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import ResetPassword from '@/pages/ResetPassword';
-import Maintenance from '@/pages/Maintenance';
+import MaintenancePage from '@/pages/MaintenancePage';
 import WelcomeToast from '@/components/WelcomeToast';
-import { QueryClient } from '@tanstack/react-query';
 import ClientUserProfile from "@/pages/ClientUserProfile";
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClient>
+    <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
           <Toaster />
@@ -27,7 +30,7 @@ function App() {
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/maintenance" element={<Maintenance />} />
+            <Route path="/maintenance" element={<MaintenancePage />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
 
             {/* Admin routes */}
@@ -73,7 +76,7 @@ function App() {
           </Routes>
         </AuthProvider>
       </BrowserRouter>
-    </QueryClient>
+    </QueryClientProvider>
   );
 }
 
