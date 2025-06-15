@@ -5,10 +5,11 @@ import GSTLoginSection from './login/GSTLoginSection';
 import ITLoginSection from './login/ITLoginSection';
 import TracesLoginSection from './login/TracesLoginSection';
 import OtherLoginSection from './login/OtherLoginSection';
+import type { ClientFormData } from '@/types/clientForm';
 
 interface LoginDetailsTabProps {
-  clientForm: any;
-  setClientForm: (form: any) => void;
+  clientForm: ClientFormData;
+  setClientForm: (form: ClientFormData) => void;
 }
 
 const LoginDetailsTab = ({ clientForm, setClientForm }: LoginDetailsTabProps) => {

@@ -9,10 +9,11 @@ import CustomFieldsTab from './tabs/CustomFieldsTab';
 import ClientGroupsTab from './tabs/ClientGroupsTab';
 import AttachmentsTab from './tabs/AttachmentsTab';
 import PortalUserTab from './tabs/PortalUserTab';
+import type { ClientFormData } from '@/types/clientForm';
 
 interface ClientFormTabsProps {
-  clientForm: any;
-  setClientForm: (form: any) => void;
+  clientForm: ClientFormData;
+  setClientForm: (form: ClientFormData) => void;
   clientId?: string;
 }
 

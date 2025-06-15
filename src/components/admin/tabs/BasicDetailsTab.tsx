@@ -6,10 +6,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Info, Calendar } from 'lucide-react';
+import type { ClientFormData } from '@/types/clientForm';
 
 interface BasicDetailsTabProps {
-  clientForm: any;
-  setClientForm: (form: any) => void;
+  clientForm: ClientFormData;
+  setClientForm: (form: ClientFormData) => void;
 }
 
 const BasicDetailsTab = ({ clientForm, setClientForm }: BasicDetailsTabProps) => {
@@ -22,20 +23,20 @@ const BasicDetailsTab = ({ clientForm, setClientForm }: BasicDetailsTabProps) =>
             id="fileNo"
             placeholder="File No."
             value={clientForm.basicDetails.fileNo}
-            onChange={(e) => setClientForm(prev => ({
-              ...prev,
-              basicDetails: { ...prev.basicDetails, fileNo: e.target.value }
-            }))}
+            onChange={(e) => setClientForm({
+              ...clientForm,
+              basicDetails: { ...clientForm.basicDetails, fileNo: e.target.value }
+            })}
           />
         </div>
         <div className="space-y-2">
           <Label htmlFor="clientType">Type of Client <span className="text-red-500">*</span></Label>
           <Select 
             value={clientForm.basicDetails.clientType}
-            onValueChange={(value) => setClientForm(prev => ({
-              ...prev,
-              basicDetails: { ...prev.basicDetails, clientType: value }
-            }))}
+            onValueChange={(value) => setClientForm({
+              ...clientForm,
+              basicDetails: { ...clientForm.basicDetails, clientType: value }
+            })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select Ownership Type" />
@@ -57,10 +58,10 @@ const BasicDetailsTab = ({ clientForm, setClientForm }: BasicDetailsTabProps) =>
             id="name"
             placeholder="Name"
             value={clientForm.basicDetails.name}
-            onChange={(e) => setClientForm(prev => ({
-              ...prev,
-              basicDetails: { ...prev.basicDetails, name: e.target.value }
-            }))}
+            onChange={(e) => setClientForm({
+              ...clientForm,
+              basicDetails: { ...clientForm.basicDetails, name: e.target.value }
+            })}
           />
         </div>
         <div className="space-y-2">
@@ -69,10 +70,10 @@ const BasicDetailsTab = ({ clientForm, setClientForm }: BasicDetailsTabProps) =>
             id="tradeName"
             placeholder="Trade Name"
             value={clientForm.basicDetails.tradeName}
-            onChange={(e) => setClientForm(prev => ({
-              ...prev,
-              basicDetails: { ...prev.basicDetails, tradeName: e.target.value }
-            }))}
+            onChange={(e) => setClientForm({
+              ...clientForm,
+              basicDetails: { ...clientForm.basicDetails, tradeName: e.target.value }
+            })}
           />
         </div>
         <div className="space-y-2">
@@ -82,10 +83,10 @@ const BasicDetailsTab = ({ clientForm, setClientForm }: BasicDetailsTabProps) =>
               id="dateOfBirth"
               type="date"
               value={clientForm.basicDetails.dateOfBirth}
-              onChange={(e) => setClientForm(prev => ({
-                ...prev,
-                basicDetails: { ...prev.basicDetails, dateOfBirth: e.target.value }
-              }))}
+              onChange={(e) => setClientForm({
+                ...clientForm,
+                basicDetails: { ...clientForm.basicDetails, dateOfBirth: e.target.value }
+              })}
             />
             <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
           </div>
@@ -106,10 +107,10 @@ const BasicDetailsTab = ({ clientForm, setClientForm }: BasicDetailsTabProps) =>
             id="otherUsers"
             placeholder="Other Users"
             value={clientForm.basicDetails.otherUsers}
-            onChange={(e) => setClientForm(prev => ({
-              ...prev,
-              basicDetails: { ...prev.basicDetails, otherUsers: e.target.value }
-            }))}
+            onChange={(e) => setClientForm({
+              ...clientForm,
+              basicDetails: { ...clientForm.basicDetails, otherUsers: e.target.value }
+            })}
           />
         </div>
         <div className="space-y-2">
@@ -128,10 +129,10 @@ const BasicDetailsTab = ({ clientForm, setClientForm }: BasicDetailsTabProps) =>
             id="workingUser"
             placeholder="Working User"
             value={clientForm.basicDetails.workingUser}
-            onChange={(e) => setClientForm(prev => ({
-              ...prev,
-              basicDetails: { ...prev.basicDetails, workingUser: e.target.value }
-            }))}
+            onChange={(e) => setClientForm({
+              ...clientForm,
+              basicDetails: { ...clientForm.basicDetails, workingUser: e.target.value }
+            })}
           />
         </div>
         <div className="space-y-2">
@@ -150,10 +151,10 @@ const BasicDetailsTab = ({ clientForm, setClientForm }: BasicDetailsTabProps) =>
             id="tags"
             placeholder="Enter tags separated by commas"
             value={clientForm.basicDetails.tags}
-            onChange={(e) => setClientForm(prev => ({
-              ...prev,
-              basicDetails: { ...prev.basicDetails, tags: e.target.value }
-            }))}
+            onChange={(e) => setClientForm({
+              ...clientForm,
+              basicDetails: { ...clientForm.basicDetails, tags: e.target.value }
+            })}
           />
         </div>
       </div>
@@ -163,10 +164,10 @@ const BasicDetailsTab = ({ clientForm, setClientForm }: BasicDetailsTabProps) =>
           id="notes"
           placeholder="Add Notes..."
           value={clientForm.basicDetails.notes}
-          onChange={(e) => setClientForm(prev => ({
-            ...prev,
-            basicDetails: { ...prev.basicDetails, notes: e.target.value }
-          }))}
+          onChange={(e) => setClientForm({
+            ...clientForm,
+            basicDetails: { ...clientForm.basicDetails, notes: e.target.value }
+          })}
         />
       </div>
     </div>

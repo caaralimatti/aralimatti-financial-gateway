@@ -5,10 +5,11 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Info } from 'lucide-react';
+import type { ClientFormData } from '@/types/clientForm';
 
 interface TaxDetailsTabProps {
-  clientForm: any;
-  setClientForm: (form: any) => void;
+  clientForm: ClientFormData;
+  setClientForm: (form: ClientFormData) => void;
 }
 
 const incomeTypes = [
@@ -32,37 +33,37 @@ const TaxDetailsTab = ({ clientForm, setClientForm }: TaxDetailsTabProps) => {
 
   // Handlers for checkboxes
   const handleITRTypeToggle = (type: string) => {
-    setClientForm((prev: any) => ({
-      ...prev,
+    setClientForm({
+      ...clientForm,
       incomeTaxDetails: {
-        ...prev.incomeTaxDetails,
-        incomeTaxReturns: prev.incomeTaxDetails.incomeTaxReturns.includes(type)
-          ? prev.incomeTaxDetails.incomeTaxReturns.filter((ret: string) => ret !== type)
-          : [...prev.incomeTaxDetails.incomeTaxReturns, type]
+        ...clientForm.incomeTaxDetails,
+        incomeTaxReturns: clientForm.incomeTaxDetails.incomeTaxReturns.includes(type)
+          ? clientForm.incomeTaxDetails.incomeTaxReturns.filter((ret: string) => ret !== type)
+          : [...clientForm.incomeTaxDetails.incomeTaxReturns, type]
       }
-    }));
+    });
   };
 
   const handleTdsTcsTypeToggle = (type: string) => {
-    setClientForm((prev: any) => ({
-      ...prev,
+    setClientForm({
+      ...clientForm,
       incomeTaxDetails: {
-        ...prev.incomeTaxDetails,
-        tdsTcsReturns: prev.incomeTaxDetails.tdsTcsReturns.includes(type)
-          ? prev.incomeTaxDetails.tdsTcsReturns.filter((ret: string) => ret !== type)
-          : [...prev.incomeTaxDetails.tdsTcsReturns, type]
+        ...clientForm.incomeTaxDetails,
+        tdsTcsReturns: clientForm.incomeTaxDetails.tdsTcsReturns.includes(type)
+          ? clientForm.incomeTaxDetails.tdsTcsReturns.filter((ret: string) => ret !== type)
+          : [...clientForm.incomeTaxDetails.tdsTcsReturns, type]
       }
-    }));
+    });
   };
 
   const handleGstReturnsToggle = (checked: boolean) => {
-    setClientForm((prev: any) => ({
-      ...prev,
+    setClientForm({
+      ...clientForm,
       incomeTaxDetails: {
-        ...prev.incomeTaxDetails,
+        ...clientForm.incomeTaxDetails,
         gstReturns: checked
       }
-    }));
+    });
   };
 
   return (
@@ -145,10 +146,10 @@ const TaxDetailsTab = ({ clientForm, setClientForm }: TaxDetailsTabProps) => {
             id="pan"
             placeholder="PAN"
             value={incomeTaxDetails.pan}
-            onChange={(e) => setClientForm((prev: any) => ({
-              ...prev,
-              incomeTaxDetails: { ...prev.incomeTaxDetails, pan: e.target.value }
-            }))}
+            onChange={(e) => setClientForm({
+              ...clientForm,
+              incomeTaxDetails: { ...clientForm.incomeTaxDetails, pan: e.target.value }
+            })}
           />
         </div>
         <div className="space-y-2">
@@ -157,10 +158,10 @@ const TaxDetailsTab = ({ clientForm, setClientForm }: TaxDetailsTabProps) => {
             id="tan"
             placeholder="TAN"
             value={incomeTaxDetails.tan}
-            onChange={(e) => setClientForm((prev: any) => ({
-              ...prev,
-              incomeTaxDetails: { ...prev.incomeTaxDetails, tan: e.target.value }
-            }))}
+            onChange={(e) => setClientForm({
+              ...clientForm,
+              incomeTaxDetails: { ...clientForm.incomeTaxDetails, tan: e.target.value }
+            })}
           />
         </div>
       </div>

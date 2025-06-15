@@ -4,8 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus } from 'lucide-react';
+import type { ClientFormData } from '@/types/clientForm';
 
-const ClientGroupsTab = () => {
+interface ClientGroupsTabProps {
+  clientForm: ClientFormData;
+  setClientForm: (form: ClientFormData) => void;
+}
+
+const ClientGroupsTab = ({ clientForm, setClientForm }: ClientGroupsTabProps) => {
   return (
     <div className="space-y-4">
       <div className="flex gap-2">
