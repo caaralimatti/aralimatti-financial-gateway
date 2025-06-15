@@ -70,6 +70,39 @@ serve(async (req) => {
       )
     }
 
+    // Check if email exists in auth.users table (might be orphaned)
+    console.log('🔥 Checking if email exists in auth.users table')
+    const { data: authUsers, error: authCheckError } = await supabaseAdmin.auth.admin.listUsers()
+    
+    if (authCheckError) {
+      console.error('🔥 Error checking auth users:', authCheckError)
+    } else {
+      const existingAuthUser = authUsers.users.find(user => user.email === email)
+      if (existingAuthUser) {
+        console.log('🔥 Found orphaned auth user, attempting cleanup:', existingAuthUser.id)
+        
+        // Try to delete the orphaned auth user
+        const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(existingAuthUser.id)
+        if (deleteError) {
+          console.error('🔥 Failed to cleanup orphaned auth user:', deleteError)
+          return new Response(
+            JSON.stringify({ 
+              error: 'Email cleanup required',
+              details: `The email ${email} has an orphaned authentication record that needs manual cleanup. Please contact support or try again in a few minutes.`,
+              errorCode: 'ORPHANED_AUTH_RECORD',
+              orphanedUserId: existingAuthUser.id
+            }),
+            { 
+              status: 422, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
+        } else {
+          console.log('🔥 Successfully cleaned up orphaned auth user')
+        }
+      }
+    }
+
     // Create user with admin privileges (doesn't affect current session)
     console.log('🔥 Creating new user account')
     const { data: userData, error: userError } = await supabaseAdmin.auth.admin.createUser({
@@ -92,7 +125,7 @@ serve(async (req) => {
       
       if (userError.message?.includes('already been registered') || userError.message?.includes('email')) {
         errorMessage = 'Email already registered'
-        errorDetails = `The email ${email} is already registered in the system. This could be from a recently deleted user that hasn't been fully cleaned up. Please try a different email address.`
+        errorDetails = `The email ${email} is already registered in the authentication system. This could be from a recently deleted user that hasn't been fully cleaned up. Please wait a few minutes and try again, or use a different email address.`
         errorCode = 'EMAIL_ALREADY_REGISTERED'
       } else if (userError.message?.includes('password')) {
         errorMessage = 'Invalid password'
@@ -105,7 +138,10 @@ serve(async (req) => {
           error: errorMessage,
           details: errorDetails,
           errorCode,
-          originalError: userError.message
+          originalError: userError.message,
+          suggestion: errorCode === 'EMAIL_ALREADY_REGISTERED' ? 
+            'Please wait 5-10 minutes for the system to fully cleanup deleted accounts, then try again.' : 
+            'Please check the input and try again.'
         }),
         { 
           status: 422, 
@@ -134,7 +170,8 @@ serve(async (req) => {
         error: 'Internal server error',
         details: 'An unexpected error occurred while creating the user account',
         errorCode: 'INTERNAL_ERROR',
-        originalError: error.message
+        originalError: error.message,
+        suggestion: 'Please try again in a few minutes. If the problem persists, contact support.'
       }),
       { 
         status: 500, 

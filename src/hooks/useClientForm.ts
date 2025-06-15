@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useClients } from '@/hooks/useClients';
 import { getInitialFormData, transformFormDataToClientData, validateRequiredFields } from '@/utils/clientFormUtils';
@@ -64,7 +63,17 @@ export const useClientForm = (editingClient?: Tables<'clients'> | null) => {
       // Check if the response indicates an error even if no error was thrown
       if (data?.error) {
         console.error('🔥 Edge function returned error:', data);
-        throw new Error(data.details || data.error);
+        
+        // Handle specific error codes with better messaging
+        let userFriendlyMessage = data.details || data.error;
+        
+        if (data.errorCode === 'EMAIL_ALREADY_REGISTERED' || data.errorCode === 'ORPHANED_AUTH_RECORD') {
+          userFriendlyMessage = `The email ${email} appears to be from a recently deleted account. ${data.suggestion || 'Please wait 5-10 minutes and try again, or use a different email address.'}`;
+        } else if (data.errorCode === 'EMAIL_EXISTS_IN_PROFILES') {
+          userFriendlyMessage = `The email ${email} is already registered in the system. Please use a different email address.`;
+        }
+        
+        throw new Error(userFriendlyMessage);
       }
       
       console.log('🔥 Portal user created successfully via edge function:', data?.user?.id);
@@ -75,14 +84,18 @@ export const useClientForm = (editingClient?: Tables<'clients'> | null) => {
       // Provide more specific error messages based on error details
       let errorMessage = `Failed to create portal user account for ${email}.`;
       
-      if (error.message?.includes('EMAIL_EXISTS') || error.message?.includes('already registered') || error.message?.includes('already exists')) {
-        errorMessage = `The email ${email} is already registered in the system. This could be from a recently deleted user that hasn't been fully cleaned up. Please try a different email address.`;
+      if (error.message?.includes('recently deleted account') || error.message?.includes('wait 5-10 minutes')) {
+        errorMessage = error.message; // Use the enhanced message from above
+      } else if (error.message?.includes('EMAIL_EXISTS') || error.message?.includes('already registered') || error.message?.includes('already exists')) {
+        errorMessage = `The email ${email} is already registered in the system. Please use a different email address.`;
       } else if (error.message?.includes('EMAIL_ALREADY_REGISTERED')) {
         errorMessage = `The email ${email} is already registered. Please use a different email address for the portal user.`;
       } else if (error.message?.includes('password')) {
         errorMessage = `Password does not meet security requirements. Please regenerate the password and try again.`;
       } else if (error.message?.includes('Internal server error')) {
         errorMessage = `An internal error occurred while creating the portal user. Please try again or contact support if the issue persists.`;
+      } else if (error.message?.includes('cleanup')) {
+        errorMessage = error.message; // Use the specific cleanup message
       }
       
       throw new Error(errorMessage);
