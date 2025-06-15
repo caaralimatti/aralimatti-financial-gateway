@@ -26,27 +26,38 @@ export const isViewableInBrowser = (fileType: string): boolean => {
 export const handleFileView = async (fileUrl: string, fileName: string, fileType: string): Promise<void> => {
   try {
     if (isViewableInBrowser(fileType)) {
-      // Create a clean URL without any query parameters that might interfere
-      const cleanUrl = fileUrl.split('?')[0];
+      // For viewable files, fetch the blob and create an object URL
+      // This ensures proper content type handling for PDFs and images
+      const response = await fetch(fileUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       
-      // For PDFs and images, we need to ensure they open with proper headers
-      // Instead of direct navigation which might have caching issues, 
-      // we'll create a proper link with download prevention
-      const viewUrl = `${cleanUrl}?response-content-disposition=inline&response-content-type=${encodeURIComponent(getFileContentType(fileType))}`;
+      const blob = await response.blob();
       
-      // Open in new tab with proper settings
-      const newWindow = window.open(viewUrl, '_blank', 'noopener,noreferrer');
+      // Create a new blob with the correct MIME type to ensure proper rendering
+      const typedBlob = new Blob([blob], { type: getFileContentType(fileType) });
+      const blobUrl = URL.createObjectURL(typedBlob);
+      
+      // Open the blob URL in a new window
+      const newWindow = window.open(blobUrl, '_blank', 'noopener,noreferrer');
       
       if (!newWindow) {
         // If popup blocked, fallback to creating a link
         const link = document.createElement('a');
-        link.href = viewUrl;
+        link.href = blobUrl;
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
       }
+      
+      // Clean up the blob URL after a delay to allow the browser to load it
+      setTimeout(() => {
+        URL.revokeObjectURL(blobUrl);
+      }, 10000); // 10 seconds should be enough for the browser to load the file
+      
     } else {
       // For non-viewable files, trigger download
       handleFileDownload(fileUrl, fileName);
