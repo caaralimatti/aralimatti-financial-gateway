@@ -82,18 +82,18 @@ export const useClientMutations = () => {
   // Delete client mutation
   const deleteClientMutation = useMutation({
     mutationFn: async (clientId: string) => {
-      const { error } = await supabase
-        .from('clients')
-        .delete()
-        .eq('id', clientId);
+      const { data, error } = await supabase.rpc('delete_client_with_portal_user', {
+        client_uuid: clientId
+      });
 
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });
       toast({
         title: "Success",
-        description: "Client deleted successfully",
+        description: "Client and all associated data deleted successfully",
       });
     },
     onError: (error) => {

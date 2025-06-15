@@ -1280,6 +1280,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      delete_client_with_portal_user: {
+        Args: { client_uuid: string }
+        Returns: boolean
+      }
       generate_invoice_number: {
         Args: Record<PropertyKey, never>
         Returns: string

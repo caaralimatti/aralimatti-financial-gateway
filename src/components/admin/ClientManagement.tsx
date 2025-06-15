@@ -1,13 +1,13 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Upload, Edit, Users, Search } from 'lucide-react';
+import { Plus, Upload, Edit, Users, Search, Trash } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useClients } from '@/hooks/useClients';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import AddClientModal from './AddClientModal';
+import DeleteClientModal from './DeleteClientModal';
 
 interface ClientManagementProps {
   activeTab: string;
@@ -15,10 +15,11 @@ interface ClientManagementProps {
 }
 
 const ClientManagement: React.FC<ClientManagementProps> = ({ activeTab, setActiveTab }) => {
-  const { clients, isLoading, deleteClient } = useClients();
+  const { clients, isLoading } = useClients();
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
+  const [deletingClient, setDeletingClient] = useState<{ id: string; name: string } | null>(null);
 
   const filteredClients = clients?.filter(client =>
     client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -42,9 +43,17 @@ const ClientManagement: React.FC<ClientManagementProps> = ({ activeTab, setActiv
     setShowAddModal(true);
   };
 
+  const handleDelete = (client: any) => {
+    setDeletingClient({ id: client.id, name: client.name });
+  };
+
   const handleCloseModal = () => {
     setShowAddModal(false);
     setEditingClient(null);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setDeletingClient(null);
   };
 
   const renderContent = () => {
@@ -136,6 +145,14 @@ const ClientManagement: React.FC<ClientManagementProps> = ({ activeTab, setActiv
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleDelete(client)}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <Trash className="h-4 w-4" />
+                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -214,6 +231,11 @@ const ClientManagement: React.FC<ClientManagementProps> = ({ activeTab, setActiv
         open={showAddModal} 
         onOpenChange={handleCloseModal}
         editingClient={editingClient}
+      />
+      <DeleteClientModal
+        open={!!deletingClient}
+        onOpenChange={handleCloseDeleteModal}
+        client={deletingClient}
       />
     </div>
   );
