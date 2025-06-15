@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -14,17 +15,9 @@ import ResetPassword from '@/pages/ResetPassword';
 import MaintenancePage from '@/pages/MaintenancePage';
 import WelcomeToast from '@/components/WelcomeToast';
 import ClientUserProfile from "@/pages/ClientUserProfile";
-import { LogOut } from "lucide-react";
+import ClientTasksPage from "@/pages/ClientTasksPage";
 
-// Dummy/stub components for client sub-pages if not already present
-function ClientTasksPage() {
-  return (
-    <div className="p-8">
-      <h2 className="text-2xl font-bold">My Tasks</h2>
-      <p className="text-gray-600">This page is under construction.</p>
-    </div>
-  );
-}
+// Dummy/stub components for remaining client sub-pages
 function ClientDocumentsPage() {
   return (
     <div className="p-8">
