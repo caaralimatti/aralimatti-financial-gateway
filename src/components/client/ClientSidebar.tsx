@@ -1,166 +1,113 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Home, CheckSquare, FileText, Receipt, Calendar, User, ShieldCheck, LogOut } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
+
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import { 
+  Home, 
+  FileText, 
+  CheckSquare, 
+  CreditCard, 
+  User, 
+  LogOut,
+  Calendar,
+  Settings,
+  Bell
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/contexts/AuthContext";
+import NotificationIcon from "../shared/NotificationIcon";
 
 const ClientSidebar = () => {
   const location = useLocation();
   const { profile, signOut } = useAuth();
-  const { toast } = useToast();
 
-  const menuItems = [
-    {
-      href: '/client-dashboard',
-      icon: Home,
-      label: 'Dashboard',
-      description: 'Overview and quick access'
-    },
-    {
-      href: '/client-dashboard/tasks',
-      icon: CheckSquare,
-      label: 'My Tasks',
-      description: 'View and manage assigned tasks'
-    },
-    {
-      href: '/client-dashboard/documents',
-      icon: FileText,
-      label: 'Documents',
-      description: 'Access your files and documents'
-    },
-    {
-      href: '/client-dashboard/invoices',
-      icon: Receipt,
-      label: 'My Invoices',
-      description: 'View billing and payment history'
-    },
-    {
-      href: '/client-dashboard/calendar',
-      icon: Calendar,
-      label: 'Task Calendar',
-      description: 'View deadlines and schedules'
-    },
-    {
-      href: '/client-dashboard/profile',
-      icon: User,
-      label: 'User Profile',
-      description: 'Manage your account and password'
-    }
+  const navigationItems = [
+    { name: "Dashboard", href: "/client-dashboard", icon: Home },
+    { name: "My Documents", href: "/client-documents", icon: FileText },
+    { name: "My Tasks", href: "/client-tasks", icon: CheckSquare },
+    { name: "Task Calendar", href: "/client-tasks", icon: Calendar },
+    { name: "My Invoices", href: "/client-invoices", icon: CreditCard },
+    { name: "Notifications", href: "/notifications", icon: Bell },
   ];
-
-  const handleEnableDSC = async () => {
-    try {
-      // Simulate enabling DSC (replace with actual logic)
-      toast({
-        title: "DSC Enabled",
-        description: "Your Digital Signature Certificate (DSC) is now enabled.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to enable DSC. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleManageDSC = async () => {
-    try {
-      // Simulate managing DSC (replace with actual logic)
-      toast({
-        title: "Manage DSC",
-        description: "Redirecting to DSC management page...",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to redirect to DSC management. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleLogout = async () => {
     try {
       await signOut();
-      window.location.href = '/';
     } catch (error) {
-      toast({
-        title: "Logout Failed",
-        description: "Could not log out. Please try again.",
-        variant: "destructive"
-      });
+      console.error('Error signing out:', error);
     }
   };
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 min-h-screen flex flex-col">
-      <div className="p-6">
-        <h2 className="text-lg font-semibold text-gray-800">Client Portal</h2>
-        <p className="text-sm text-gray-500 mt-1">Welcome, {profile?.full_name}!</p>
+    <div className="flex flex-col h-screen w-64 bg-white border-r border-gray-200">
+      {/* Logo */}
+      <div className="flex items-center justify-center h-16 px-4 border-b border-gray-200">
+        <h1 className="text-lg font-semibold text-primary">C A Aralimatti & Co</h1>
       </div>
-      
-      <nav className="p-4 flex-1">
-        <div className="space-y-2">
-          {menuItems.map((item) => {
-            const isActive = location.pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                to={item.href}
-                className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                <item.icon className="mr-3 h-4 w-4" />
-                <div>
-                  <div>{item.label}</div>
-                  <div className="text-xs opacity-70">{item.description}</div>
-                </div>
-              </Link>
-            );
-          })}
 
-          {profile?.enable_dsc_tab && (
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <div className="text-sm font-medium text-gray-800 mb-2">
-                Digital Signature Certificate (DSC)
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full justify-start text-sm"
-                onClick={handleEnableDSC}
-              >
-                <ShieldCheck className="mr-2 h-4 w-4" />
-                Enable DSC
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start text-sm text-gray-600 hover:bg-gray-100"
-                onClick={handleManageDSC}
-              >
-                Manage DSC
-              </Button>
-            </div>
-          )}
-        </div>
+      {/* Navigation */}
+      <nav className="flex-1 px-4 py-6 space-y-2">
+        {navigationItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = location.pathname === item.href;
+          
+          return (
+            <Link
+              key={item.name}
+              to={item.href}
+              className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                isActive
+                  ? "bg-primary text-primary-foreground"
+                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+              }`}
+            >
+              <Icon className="mr-3 h-4 w-4" />
+              {item.name}
+            </Link>
+          );
+        })}
       </nav>
 
-      {/* Restore Logout button at the bottom of the sidebar, as per original */}
+      {/* User Profile Section */}
       <div className="p-4 border-t border-gray-200">
-        <Button
-          variant="ghost"
-          className="w-full flex items-center justify-start"
-          onClick={handleLogout}
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          Logout
-        </Button>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-3">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src="/placeholder.svg" />
+              <AvatarFallback>
+                {profile?.full_name?.charAt(0) || profile?.email?.charAt(0) || 'U'}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">
+                {profile?.full_name || 'User'}
+              </p>
+              <p className="text-xs text-gray-500 truncate">
+                {profile?.email}
+              </p>
+            </div>
+          </div>
+          <NotificationIcon />
+        </div>
+
+        <div className="space-y-2">
+          <Link to="/profile">
+            <Button variant="ghost" size="sm" className="w-full justify-start">
+              <User className="mr-2 h-4 w-4" />
+              Profile
+            </Button>
+          </Link>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start"
+            onClick={handleLogout}
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Logout
+          </Button>
+        </div>
       </div>
     </div>
   );

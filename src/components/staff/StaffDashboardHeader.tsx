@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Search, Settings, LogOut } from 'lucide-react';
-import NotificationDropdown from './NotificationDropdown';
+import NotificationIcon from '../shared/NotificationIcon';
 
 interface StaffDashboardHeaderProps {
   profile: any;
@@ -50,8 +50,8 @@ const StaffDashboardHeader: React.FC<StaffDashboardHeaderProps> = ({
             {darkMode ? '☀️' : '🌙'}
           </Button>
 
-          {/* Notifications with Last Login */}
-          <NotificationDropdown />
+          {/* New Comprehensive Notifications */}
+          <NotificationIcon />
 
           {/* User Profile Dropdown */}
           <DropdownMenu>

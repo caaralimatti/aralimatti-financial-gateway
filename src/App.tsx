@@ -1,51 +1,48 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from '@/components/ui/toaster';
-import { AuthProvider } from '@/contexts/AuthContext';
-import Index from '@/pages/Index';
-import Auth from '@/pages/Auth';
-import AdminDashboard from '@/pages/AdminDashboard';
-import StaffDashboard from '@/pages/StaffDashboard';
-import ClientDashboard from '@/pages/ClientDashboard';
-import Unauthorized from '@/pages/Unauthorized';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import ResetPassword from '@/pages/ResetPassword';
-import MaintenancePage from '@/pages/MaintenancePage';
-import WelcomeToast from '@/components/WelcomeToast';
-import ClientUserProfile from "@/pages/ClientUserProfile";
-import ClientTasksPage from "@/pages/ClientTasksPage";
-import ClientInvoicesPage from "@/pages/ClientInvoicesPage";
-import ClientDocumentsPage from "@/pages/ClientDocumentsPage";
 
-// Dummy/stub components for remaining client sub-pages
-function ClientCalendarPage() {
-  return (
-    <div className="p-8">
-      <h2 className="text-2xl font-bold">Task Calendar</h2>
-      <p className="text-gray-600">This page is under construction.</p>
-    </div>
-  );
-}
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import Index from "./pages/Index";
+import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
+import AdminDashboard from "./pages/AdminDashboard";
+import StaffDashboard from "./pages/StaffDashboard";
+import ClientDashboard from "./pages/ClientDashboard";
+import TasksPage from "./pages/TasksPage";
+import DocumentsPage from "./pages/DocumentsPage";
+import ClientDocumentsPage from "./pages/ClientDocumentsPage";
+import ClientTasksPage from "./pages/ClientTasksPage";
+import ClientInvoicesPage from "./pages/ClientInvoicesPage";
+import ClientUserProfile from "./pages/ClientUserProfile";
+import NotFound from "./pages/NotFound";
+import Unauthorized from "./pages/Unauthorized";
+import MaintenancePage from "./pages/MaintenancePage";
+import GSTRegistration from "./pages/GSTRegistration";
+import GSTLogin from "./pages/GSTLogin";
+import GSTReports from "./pages/GSTReports";
+import NotificationsPage from "./pages/NotificationsPage";
 
 const queryClient = new QueryClient();
 
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Toaster />
-          <WelcomeToast />
           <Routes>
-            {/* Public routes */}
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/maintenance" element={<MaintenancePage />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
-
-            {/* Admin routes */}
+            <Route path="/maintenance" element={<MaintenancePage />} />
+            
+            {/* Protected Routes */}
             <Route
               path="/admin-dashboard"
               element={
@@ -54,8 +51,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
-            {/* Staff routes */}
             <Route
               path="/staff-dashboard"
               element={
@@ -64,8 +59,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
-            {/* Client routes */}
             <Route
               path="/client-dashboard"
               element={
@@ -75,23 +68,23 @@ function App() {
               }
             />
             <Route
-              path="/client-dashboard/profile"
+              path="/tasks"
               element={
-                <ProtectedRoute allowedRoles={['client']}>
-                  <ClientUserProfile />
+                <ProtectedRoute allowedRoles={['admin', 'super_admin', 'staff']}>
+                  <TasksPage />
                 </ProtectedRoute>
               }
             />
             <Route
-              path="/client-dashboard/tasks"
+              path="/documents"
               element={
-                <ProtectedRoute allowedRoles={['client']}>
-                  <ClientTasksPage />
+                <ProtectedRoute allowedRoles={['admin', 'super_admin', 'staff']}>
+                  <DocumentsPage />
                 </ProtectedRoute>
               }
             />
             <Route
-              path="/client-dashboard/documents"
+              path="/client-documents"
               element={
                 <ProtectedRoute allowedRoles={['client']}>
                   <ClientDocumentsPage />
@@ -99,7 +92,15 @@ function App() {
               }
             />
             <Route
-              path="/client-dashboard/invoices"
+              path="/client-tasks"
+              element={
+                <ProtectedRoute allowedRoles={['client']}>
+                  <ClientTasksPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/client-invoices"
               element={
                 <ProtectedRoute allowedRoles={['client']}>
                   <ClientInvoicesPage />
@@ -107,21 +108,33 @@ function App() {
               }
             />
             <Route
-              path="/client-dashboard/calendar"
+              path="/profile"
               element={
                 <ProtectedRoute allowedRoles={['client']}>
-                  <ClientCalendarPage />
+                  <ClientUserProfile />
                 </ProtectedRoute>
               }
             />
-
-            {/* Default route */}
-            <Route path="*" element={<Index />} />
+            <Route
+              path="/notifications"
+              element={
+                <ProtectedRoute>
+                  <NotificationsPage />
+                </ProtectedRoute>
+              }
+            />
+            
+            {/* GST Portal Routes */}
+            <Route path="/gst-registration" element={<GSTRegistration />} />
+            <Route path="/gst-login" element={<GSTLogin />} />
+            <Route path="/gst-reports" element={<GSTReports />} />
+            
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
       </BrowserRouter>
-    </QueryClientProvider>
-  );
-}
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;
