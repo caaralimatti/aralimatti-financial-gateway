@@ -1,12 +1,8 @@
 
 import React from 'react';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { Search, User2, LogOut } from 'lucide-react';
-import NotificationIcon from '../shared/NotificationIcon';
+import { Search } from 'lucide-react';
 
 interface StaffDashboardHeaderProps {
   profile: any;
@@ -33,53 +29,6 @@ const StaffDashboardHeader: React.FC<StaffDashboardHeaderProps> = ({
               className="w-80 bg-gray-50 dark:bg-gray-700 border-none"
             />
           </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          {/* Announcements Banner Toggle */}
-          <Button variant="ghost" size="sm" className="text-blue-600">
-            📢 Announcements
-          </Button>
-
-          {/* Dark Mode Toggle */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setDarkMode(!darkMode)}
-          >
-            {darkMode ? '☀️' : '🌙'}
-          </Button>
-
-          {/* Notifications */}
-          <NotificationIcon />
-
-          {/* User Profile Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2 px-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder.svg" />
-                  <AvatarFallback>
-                    {profile?.full_name?.charAt(0) || profile?.email?.charAt(0) || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="text-left">
-                  <p className="text-sm font-medium">{profile?.full_name || 'Staff User'}</p>
-                  <p className="text-xs text-gray-500 capitalize">{profile?.role}</p>
-                </div>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 rounded-lg bg-white shadow-md border">
-              <DropdownMenuItem className="cursor-pointer">
-                <User2 className="mr-2 h-4 w-4" />
-                Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
-                <LogOut className="mr-2 h-4 w-4" />
-                Log out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </div>
     </header>

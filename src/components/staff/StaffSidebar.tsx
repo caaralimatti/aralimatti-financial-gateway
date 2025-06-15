@@ -13,6 +13,8 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { 
   LayoutDashboard, 
   CheckSquare, 
@@ -21,9 +23,11 @@ import {
   Settings, 
   User,
   LogOut,
-  Shield
+  Shield,
+  User2
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import NotificationIcon from '../shared/NotificationIcon';
 
 interface StaffSidebarProps {
   activeTab: string;
@@ -68,7 +72,7 @@ const StaffSidebar: React.FC<StaffSidebarProps> = ({ activeTab, setActiveTab }) 
       key: 'dsc',
     },
     {
-      title: 'Manage Documents', // NEW
+      title: 'Manage Documents',
       icon: FileText,
       key: 'manage-documents',
     },
@@ -131,18 +135,44 @@ const StaffSidebar: React.FC<StaffSidebarProps> = ({ activeTab, setActiveTab }) 
       <SidebarFooter className="border-t border-sidebar-border">
         <SidebarMenu>
           <SidebarMenuItem>
-            <Button
-              variant="ghost"
-              onClick={handleLogout}
-              className="w-full justify-start"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
+            <div className="flex items-center justify-between p-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center space-x-3 p-0 h-auto">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src="/placeholder.svg" />
+                      <AvatarFallback>
+                        {profile?.full_name?.charAt(0) || profile?.email?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0 text-left">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {profile?.full_name || 'Staff User'}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {profile?.email}
+                      </p>
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56 rounded-lg bg-white shadow-md border">
+                  <DropdownMenuItem className="cursor-pointer">
+                    <User2 className="mr-2 h-4 w-4" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <NotificationIcon />
+            </div>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   );
 };
+
 export default StaffSidebar;
