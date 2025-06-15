@@ -10,7 +10,7 @@ export const authService = {
       // Use select without .maybeSingle() to avoid problematic Accept header
       const { data, error } = await supabase
         .from('profiles')
-        .select('is_active')
+        .select('is_active, role, full_name, email')
         .eq('id', userId)
         .limit(1);
 
@@ -24,16 +24,16 @@ export const authService = {
       
       if (!profile) {
         console.log('🔥 No profile found for user');
-        return { isValid: false, reason: 'Profile not found' };
+        return { isValid: false, reason: 'Profile not found - Please contact your administrator' };
       }
 
       if (!profile.is_active) {
         console.log('🔥 User account is inactive');
-        return { isValid: false, reason: 'Account is inactive' };
+        return { isValid: false, reason: 'Your account is currently inactive. Please contact your administrator.' };
       }
 
-      console.log('🔥 User access validated successfully');
-      return { isValid: true };
+      console.log('🔥 User access validated successfully for:', profile.full_name);
+      return { isValid: true, profile };
     } catch (error) {
       console.error('🔥 Error in validateUserAccess:', error);
       return { isValid: false, reason: 'Validation failed' };
@@ -73,6 +73,7 @@ export const authService = {
             full_name: userData.fullName,
             role: userData.role,
           },
+          emailRedirectTo: `${window.location.origin}/auth`
         },
       });
 

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -64,18 +63,29 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ open, onOpenChange, invoice
     },
   });
 
-  // Fetch clients
-  const { data: clients = [] } = useQuery({
-    queryKey: ['clients'],
+  // Fetch clients with better error handling and logging
+  const { data: clients = [], isLoading: clientsLoading, error: clientsError } = useQuery({
+    queryKey: ['clients-for-invoice'],
     queryFn: async () => {
+      console.log('🔥 InvoiceModal: Fetching clients for dropdown');
+      
       const { data, error } = await supabase
         .from('clients')
-        .select('id, name')
+        .select('id, name, file_no, status')
         .eq('status', 'Active')
         .order('name');
-      if (error) throw error;
-      return data;
+      
+      console.log('🔥 InvoiceModal: Clients fetch result:', { data, error });
+      
+      if (error) {
+        console.error('🔥 InvoiceModal: Error fetching clients:', error);
+        throw error;
+      }
+      
+      return data || [];
     },
+    retry: 3,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Fetch tasks for selected client
@@ -238,6 +248,14 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ open, onOpenChange, invoice
     saveInvoiceMutation.mutate(formData);
   };
 
+  // Log client dropdown state for debugging
+  console.log('🔥 InvoiceModal: Client dropdown state:', { 
+    clients, 
+    clientsLoading, 
+    clientsError, 
+    selectedClientId: formData.client_id 
+  });
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -266,18 +284,35 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ open, onOpenChange, invoice
 
               <div className="space-y-2">
                 <Label htmlFor="client_id">Client *</Label>
-                <Select value={formData.client_id} onValueChange={(value) => setFormData(prev => ({ ...prev, client_id: value }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select client" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id}>
-                        {client.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {clientsError ? (
+                  <div className="text-red-600 text-sm">
+                    Error loading clients: {clientsError.message}
+                  </div>
+                ) : (
+                  <Select 
+                    value={formData.client_id} 
+                    onValueChange={(value) => {
+                      console.log('🔥 InvoiceModal: Client selected:', value);
+                      setFormData(prev => ({ ...prev, client_id: value }));
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={clientsLoading ? "Loading clients..." : "Select client"} />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white z-50 max-h-[200px] overflow-y-auto">
+                      {clients.map((client) => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.name} ({client.file_no})
+                        </SelectItem>
+                      ))}
+                      {clients.length === 0 && !clientsLoading && (
+                        <SelectItem value="" disabled>
+                          No active clients found
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -306,7 +341,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ open, onOpenChange, invoice
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white z-50">
                     <SelectItem value="Draft">Draft</SelectItem>
                     <SelectItem value="Sent">Sent</SelectItem>
                     <SelectItem value="Paid">Paid</SelectItem>
@@ -372,7 +407,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ open, onOpenChange, invoice
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-white z-50">
                         <SelectItem value="Hourly">Hourly</SelectItem>
                         <SelectItem value="Daily">Daily</SelectItem>
                         <SelectItem value="Monthly">Monthly</SelectItem>
