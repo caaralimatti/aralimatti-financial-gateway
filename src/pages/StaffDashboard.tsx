@@ -1,6 +1,8 @@
+
 import React from 'react';
-import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import StaffSidebar from '@/components/staff/StaffSidebar';
+import StaffDashboardHeader from '@/components/staff/StaffDashboardHeader';
 import StaffDashboardStats from '@/components/staff/StaffDashboardStats';
 import StaffQuickAccess from '@/components/staff/StaffQuickAccess';
 import StaffAnnouncements from '@/components/staff/StaffAnnouncements';
@@ -12,7 +14,16 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const StaffDashboard = () => {
   const [activeTab, setActiveTab] = React.useState('dashboard');
-  const { profile } = useAuth();
+  const [darkMode, setDarkMode] = React.useState(false);
+  const { profile, signOut } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -73,14 +84,12 @@ const StaffDashboard = () => {
       <div className="min-h-screen flex w-full">
         <StaffSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
         <SidebarInset className="flex-1">
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-            <SidebarTrigger className="-ml-1" />
-            <div className="ml-auto flex items-center space-x-4">
-              <span className="text-sm text-gray-600">
-                Welcome, {profile?.full_name || profile?.email}
-              </span>
-            </div>
-          </header>
+          <StaffDashboardHeader 
+            profile={profile}
+            darkMode={darkMode}
+            setDarkMode={setDarkMode}
+            handleLogout={handleLogout}
+          />
           <main className="flex-1 space-y-4 p-4 md:p-8">
             {renderContent()}
           </main>
