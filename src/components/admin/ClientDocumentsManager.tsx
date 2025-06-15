@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useClients } from "@/hooks/useClients";
 import { useClientAttachments } from "@/hooks/useClientAttachments";
@@ -19,10 +18,12 @@ interface Props {
 }
 
 const DOCUMENT_STATUSES = [
-  { label: "Active", value: "Active" },
-  { label: "Draft", value: "Draft" },
-  { label: "Archived", value: "Archived" },
-  { label: "Uploaded", value: "Uploaded" }
+  { label: "Uploaded", value: "Uploaded" },
+  { label: "Reviewed", value: "Reviewed" },
+  { label: "Approved", value: "Approved" },
+  { label: "Rejected", value: "Rejected" },
+  { label: "Client Review", value: "Client Review" },
+  { label: "Firm Shared", value: "Firm Shared" }
 ];
 
 const allowedFileTypes = [
@@ -61,7 +62,7 @@ const ClientDocumentsManager: React.FC<Props> = ({ selectedClientId, onSelectCli
   // Upload state/fields
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
-  const [documentStatus, setDocumentStatus] = useState("Active");
+  const [documentStatus, setDocumentStatus] = useState("Uploaded"); // Set default to "Uploaded" (first allowed status)
   const [sharedWithClient, setSharedWithClient] = useState(false);
 
   const { toast } = useToast();
@@ -70,7 +71,7 @@ const ClientDocumentsManager: React.FC<Props> = ({ selectedClientId, onSelectCli
     if (!showUpload) {
       setFile(null);
       setTitle("");
-      setDocumentStatus("Active");
+      setDocumentStatus("Uploaded");
       setSharedWithClient(false);
     }
   }, [showUpload]);
@@ -185,7 +186,7 @@ const ClientDocumentsManager: React.FC<Props> = ({ selectedClientId, onSelectCli
                 }))}
                 disabled={isUpdating}
               />
-              <Select value={showEdit.attachment.document_status || "Active"} onValueChange={val =>
+              <Select value={showEdit.attachment.document_status || "Uploaded"} onValueChange={val =>
                 setShowEdit(prev => ({ ...prev, attachment: { ...prev.attachment, document_status: val } }))
               }>
                 <SelectTrigger>
