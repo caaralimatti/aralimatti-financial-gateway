@@ -45,12 +45,6 @@ export const useClientForm = (editingClient?: Tables<'clients'> | null) => {
     try {
       console.log('🔥 Creating portal user via edge function:', { email, fullName });
       
-      // First check if email already exists
-      const emailExists = await checkIfEmailExists(email);
-      if (emailExists) {
-        throw new Error(`A user with email ${email} already exists. Please use a different email address for the portal user.`);
-      }
-
       // Use an edge function or API call that doesn't affect the current session
       // This prevents the admin session from being overridden
       const { data, error } = await supabase.functions.invoke('create-client-user', {
@@ -66,18 +60,32 @@ export const useClientForm = (editingClient?: Tables<'clients'> | null) => {
         console.error('🔥 Edge function error:', error);
         throw error;
       }
+
+      // Check if the response indicates an error even if no error was thrown
+      if (data?.error) {
+        console.error('🔥 Edge function returned error:', data);
+        throw new Error(data.details || data.error);
+      }
       
       console.log('🔥 Portal user created successfully via edge function:', data?.user?.id);
       return data?.user;
     } catch (error) {
       console.error('🔥 Error creating portal user via edge function:', error);
       
-      // Provide more specific error messages
-      if (error.message?.includes('already been registered') || error.message?.includes('email')) {
-        throw new Error(`The email ${email} is already registered. Please use a different email address for the portal user.`);
+      // Provide more specific error messages based on error details
+      let errorMessage = `Failed to create portal user account for ${email}.`;
+      
+      if (error.message?.includes('EMAIL_EXISTS') || error.message?.includes('already registered') || error.message?.includes('already exists')) {
+        errorMessage = `The email ${email} is already registered in the system. This could be from a recently deleted user that hasn't been fully cleaned up. Please try a different email address.`;
+      } else if (error.message?.includes('EMAIL_ALREADY_REGISTERED')) {
+        errorMessage = `The email ${email} is already registered. Please use a different email address for the portal user.`;
+      } else if (error.message?.includes('password')) {
+        errorMessage = `Password does not meet security requirements. Please regenerate the password and try again.`;
+      } else if (error.message?.includes('Internal server error')) {
+        errorMessage = `An internal error occurred while creating the portal user. Please try again or contact support if the issue persists.`;
       }
       
-      throw error;
+      throw new Error(errorMessage);
     }
   };
 
@@ -136,7 +144,7 @@ export const useClientForm = (editingClient?: Tables<'clients'> | null) => {
           console.error('🔥 Error creating portal user:', error);
           toast({
             title: "Error Creating Portal User",
-            description: error.message || "Failed to create portal user account. Please check if the email is already in use.",
+            description: error.message || "Failed to create portal user account. Please try again.",
             variant: "destructive",
           });
           return;

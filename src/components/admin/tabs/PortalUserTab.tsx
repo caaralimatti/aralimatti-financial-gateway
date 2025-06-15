@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -6,21 +5,30 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Copy, Eye, EyeOff, User, AlertTriangle } from 'lucide-react';
+import { Copy, Eye, EyeOff, User, AlertTriangle, CheckCircle, XCircle, UserCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { usePortalUserDetails } from '@/hooks/usePortalUserDetails';
 import type { ClientFormData } from '@/types/clientForm';
 
 interface PortalUserTabProps {
   clientForm: ClientFormData;
   setClientForm: (form: ClientFormData) => void;
+  clientId?: string;
 }
 
-const PortalUserTab = ({ clientForm, setClientForm }: PortalUserTabProps) => {
+const PortalUserTab = ({ clientForm, setClientForm, clientId }: PortalUserTabProps) => {
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [emailCheckStatus, setEmailCheckStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+  
+  // Get existing portal user details if client has one
+  const existingPortalUserId = clientForm.basicDetails?.name ? 
+    // We need to get this from the client data when editing
+    (clientForm as any)?.existingPortalUserId || null : null;
+  
+  const { data: existingPortalUser, isLoading: isLoadingPortalUser } = usePortalUserDetails(existingPortalUserId);
 
   const generatePassword = () => {
     const length = 12;
@@ -110,12 +118,12 @@ const PortalUserTab = ({ clientForm, setClientForm }: PortalUserTabProps) => {
       await navigator.clipboard.writeText(text);
       toast({
         title: "Copied to clipboard",
-        description: "Password has been copied to clipboard",
+        description: "Text has been copied to clipboard",
       });
     } catch (err) {
       toast({
         title: "Failed to copy",
-        description: "Could not copy password to clipboard",
+        description: "Could not copy text to clipboard",
         variant: "destructive",
       });
     }
@@ -139,13 +147,117 @@ const PortalUserTab = ({ clientForm, setClientForm }: PortalUserTabProps) => {
     });
   };
 
+  const unlinkPortalUser = () => {
+    // This would need to be implemented to remove the portal user link
+    toast({
+      title: "Feature Coming Soon",
+      description: "Portal user unlinking will be available in the next update",
+    });
+  };
+
   return (
     <div className="space-y-6">
+      {/* Existing Portal User Display */}
+      {existingPortalUser && (
+        <Card className="border-green-200 bg-green-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-green-800">
+              <UserCheck className="h-5 w-5" />
+              Existing Portal User Account
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Alert className="border-green-200 bg-green-50">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">
+                This client already has a portal user account linked to their profile.
+              </AlertDescription>
+            </Alert>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-green-700">Portal User Email</Label>
+                <div className="flex gap-2">
+                  <Input 
+                    value={existingPortalUser.email}
+                    readOnly
+                    className="bg-white border-green-200"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => copyToClipboard(existingPortalUser.email)}
+                    className="border-green-200"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-green-700">Full Name</Label>
+                <Input 
+                  value={existingPortalUser.full_name || 'Not set'}
+                  readOnly
+                  className="bg-white border-green-200"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-green-700">Account Status</Label>
+                <div className="flex items-center gap-2">
+                  {existingPortalUser.is_active ? (
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <XCircle className="h-4 w-4 text-red-600" />
+                  )}
+                  <span className={existingPortalUser.is_active ? 'text-green-600' : 'text-red-600'}>
+                    {existingPortalUser.is_active ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-green-700">Last Login</Label>
+                <Input 
+                  value={existingPortalUser.last_login_at ? 
+                    new Date(existingPortalUser.last_login_at).toLocaleDateString() : 
+                    'Never logged in'
+                  }
+                  readOnly
+                  className="bg-white border-green-200"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={unlinkPortalUser}
+                className="border-orange-200 text-orange-700 hover:bg-orange-50"
+              >
+                Unlink Portal User
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="border-blue-200 text-blue-700 hover:bg-blue-50"
+              >
+                Reset Password
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Create New Portal User Section */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
-            Client Portal User Account
+            {existingPortalUser ? 'Create New Portal User Account' : 'Client Portal User Account'}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -156,7 +268,7 @@ const PortalUserTab = ({ clientForm, setClientForm }: PortalUserTabProps) => {
               onCheckedChange={handleCreatePortalUserChange}
             />
             <Label htmlFor="createPortalUser" className="text-sm font-medium">
-              Create Client Portal User
+              {existingPortalUser ? 'Create Additional Portal User' : 'Create Client Portal User'}
             </Label>
           </div>
 
@@ -164,9 +276,10 @@ const PortalUserTab = ({ clientForm, setClientForm }: PortalUserTabProps) => {
             <div className="space-y-4 mt-4 p-4 border rounded-lg bg-gray-50">
               <Alert>
                 <AlertDescription>
-                  A new user account will be created for this client to access the client portal. 
-                  The login credentials will be generated automatically. The client will need to log in 
-                  separately using these credentials.
+                  {existingPortalUser ? 
+                    'This will create an additional portal user account for this client. The client will have multiple login options.' :
+                    'A new user account will be created for this client to access the client portal. The login credentials will be generated automatically.'
+                  }
                 </AlertDescription>
               </Alert>
 

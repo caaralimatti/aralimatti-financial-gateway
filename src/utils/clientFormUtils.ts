@@ -1,29 +1,30 @@
-import type { ClientFormData, ClientEntity } from '@/types/clientForm';
+import type { Tables } from '@/integrations/supabase/types';
+import type { ClientFormData, ContactPerson, CustomField } from '@/types/clientForm';
 
-export const getInitialFormData = (editingClient?: ClientEntity | null): ClientFormData => {
-  if (editingClient) {
+export const getInitialFormData = (editingClient?: Tables<'clients'> | null): ClientFormData => {
+  if (!editingClient) {
     return {
       taxesApplicable: {
-        gst: editingClient.gst_applicable || false,
-        incomeTax: editingClient.income_tax_applicable || false,
-        mca: editingClient.mca_applicable || false,
-        tdsTcs: editingClient.tds_tcs_applicable || false,
-        other: editingClient.other_tax_applicable || false,
+        gst: false,
+        incomeTax: true,
+        mca: false,
+        tdsTcs: false,
+        other: false,
       },
       basicDetails: {
-        fileNo: editingClient.file_no || '',
-        clientType: editingClient.client_type || '',
-        name: editingClient.name || '',
-        tradeName: editingClient.trade_name || '',
-        dateOfBirth: editingClient.date_of_birth || '',
-        otherUsers: editingClient.other_users || '',
-        workingUser: '', // Will be populated from relation
-        tags: editingClient.tags?.join(', ') || '',
-        notes: editingClient.notes || '',
+        fileNo: '',
+        clientType: '',
+        name: '',
+        tradeName: '',
+        dateOfBirth: '',
+        otherUsers: '',
+        workingUser: '',
+        tags: '',
+        notes: '',
       },
       incomeTaxDetails: {
-        pan: editingClient.pan || '',
-        tan: editingClient.tan || '',
+        pan: '',
+        tan: '',
         incomeTaxReturns: [],
         tdsTcsReturns: [],
         gstReturns: false,
@@ -32,92 +33,101 @@ export const getInitialFormData = (editingClient?: ClientEntity | null): ClientF
       clientGroups: [],
       customFields: [],
       loginDetails: {
-        itPan: editingClient.it_pan || '',
-        itPassword: editingClient.it_password || '',
-        itTan: editingClient.it_tan || '',
-        itDeductorPassword: editingClient.it_deductor_password || '',
-        tracesUsername: editingClient.traces_username || '',
-        tracesDeductorPassword: editingClient.traces_deductor_password || '',
-        tracesTaxpayerPassword: editingClient.traces_taxpayer_password || '',
-        mcaV2Username: editingClient.mca_v2_username || '',
-        mcaV2Password: editingClient.mca_v2_password || '',
-        mcaV3Username: editingClient.mca_v3_username || '',
-        mcaV3Password: editingClient.mca_v3_password || '',
-        dgftUsername: editingClient.dgft_username || '',
-        dgftPassword: editingClient.dgft_password || '',
-        gstNumber: editingClient.gst_number || '',
-        gstUsername: editingClient.gst_username || '',
-        gstPassword: editingClient.gst_password || '',
-        gstRegistrationType: editingClient.gst_registration_type || '',
-        gstReturnFrequency: editingClient.gst_return_frequency || '',
+        itPan: '',
+        itPassword: '',
+        itTan: '',
+        itDeductorPassword: '',
+        tracesUsername: '',
+        tracesDeductorPassword: '',
+        tracesTaxpayerPassword: '',
+        mcaV2Username: '',
+        mcaV2Password: '',
+        mcaV3Username: '',
+        mcaV3Password: '',
+        dgftUsername: '',
+        dgftPassword: '',
+        gstNumber: '',
+        gstUsername: '',
+        gstPassword: '',
+        gstRegistrationType: 'Regular',
+        gstReturnFrequency: 'Monthly',
       },
       attachments: [],
       portalUser: {
         createPortalUser: false,
         email: '',
         fullName: '',
-        generatedPassword: ''
-      }
+        generatedPassword: '',
+      },
     };
   }
 
-  return {
+  // Map client data to form structure
+  const formData: ClientFormData = {
     taxesApplicable: {
-      gst: false,
-      incomeTax: true,
-      mca: false,
-      tdsTcs: false,
-      other: false,
+      gst: editingClient.gst_applicable || false,
+      incomeTax: editingClient.income_tax_applicable || true,
+      mca: editingClient.mca_applicable || false,
+      tdsTcs: editingClient.tds_tcs_applicable || false,
+      other: editingClient.other_tax_applicable || false,
     },
     basicDetails: {
-      fileNo: '',
-      clientType: '',
-      name: '',
-      tradeName: '',
-      dateOfBirth: '',
-      otherUsers: '',
-      workingUser: '',
-      tags: '',
-      notes: '',
+      fileNo: editingClient.file_no || '',
+      clientType: editingClient.client_type || '',
+      name: editingClient.name || '',
+      tradeName: editingClient.trade_name || '',
+      dateOfBirth: editingClient.date_of_birth || '',
+      otherUsers: editingClient.other_users || '',
+      workingUser: editingClient.working_user_id || '',
+      tags: Array.isArray(editingClient.tags) ? editingClient.tags.join(', ') : '',
+      notes: editingClient.notes || '',
     },
     incomeTaxDetails: {
-      pan: '',
-      tan: '',
+      pan: editingClient.pan || '',
+      tan: editingClient.tan || '',
       incomeTaxReturns: [],
       tdsTcsReturns: [],
-      gstReturns: false,
+      gstReturns: editingClient.gst_applicable || false,
     },
     contactPersons: [],
     clientGroups: [],
     customFields: [],
     loginDetails: {
-      itPan: '',
-      itPassword: '',
-      itTan: '',
-      itDeductorPassword: '',
-      tracesUsername: '',
-      tracesDeductorPassword: '',
-      tracesTaxpayerPassword: '',
-      mcaV2Username: '',
-      mcaV2Password: '',
-      mcaV3Username: '',
-      mcaV3Password: '',
-      dgftUsername: '',
-      dgftPassword: '',
-      gstNumber: '',
-      gstUsername: '',
-      gstPassword: '',
-      gstRegistrationType: 'Regular',
-      gstReturnFrequency: 'Monthly',
+      itPan: editingClient.it_pan || '',
+      itPassword: editingClient.it_password || '',
+      itTan: editingClient.it_tan || '',
+      itDeductorPassword: editingClient.it_deductor_password || '',
+      tracesUsername: editingClient.traces_username || '',
+      tracesDeductorPassword: editingClient.traces_deductor_password || '',
+      tracesTaxpayerPassword: editingClient.traces_taxpayer_password || '',
+      mcaV2Username: editingClient.mca_v2_username || '',
+      mcaV2Password: editingClient.mca_v2_password || '',
+      mcaV3Username: editingClient.mca_v3_username || '',
+      mcaV3Password: editingClient.mca_v3_password || '',
+      dgftUsername: editingClient.dgft_username || '',
+      dgftPassword: editingClient.dgft_password || '',
+      gstNumber: editingClient.gst_number || '',
+      gstUsername: editingClient.gst_username || '',
+      gstPassword: editingClient.gst_password || '',
+      gstRegistrationType: editingClient.gst_registration_type || 'Regular',
+      gstReturnFrequency: editingClient.gst_return_frequency || 'Monthly',
     },
     attachments: [],
     portalUser: {
       createPortalUser: false,
       email: '',
       fullName: '',
-      generatedPassword: ''
-    }
+      generatedPassword: '',
+    },
   };
+
+  // If client has a portal user, we'll handle this in the PortalUserTab component
+  // Store the portal user ID for reference
+  if (editingClient.primary_portal_user_profile_id) {
+    (formData as any).existingPortalUserId = editingClient.primary_portal_user_profile_id;
+  }
+
+  return formData;
 };
 
 export const validateRequiredFields = (formData: ClientFormData): boolean => {

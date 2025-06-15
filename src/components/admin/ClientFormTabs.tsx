@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import BasicDetailsTab from './tabs/BasicDetailsTab';
@@ -56,7 +55,11 @@ const ClientFormTabs = ({ clientForm, setClientForm, clientId }: ClientFormTabsP
       </TabsContent>
 
       <TabsContent value="portal">
-        <PortalUserTab clientForm={clientForm} setClientForm={setClientForm} />
+        <PortalUserTab 
+          clientForm={clientForm} 
+          setClientForm={setClientForm}
+          clientId={clientId}
+        />
       </TabsContent>
       
       <TabsContent value="attachments">
