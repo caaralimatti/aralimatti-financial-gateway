@@ -70,25 +70,6 @@ serve(async (req) => {
       )
     }
 
-    // Check if email exists in auth.users (this checks both active and soft-deleted users)
-    console.log('🔥 Checking if email exists in auth.users')
-    const { data: existingAuthUser, error: authCheckError } = await supabaseAdmin.auth.admin.getUserByEmail(email)
-    
-    if (!authCheckError && existingAuthUser.user) {
-      console.error('🔥 Email already exists in auth.users:', existingAuthUser.user.id)
-      return new Response(
-        JSON.stringify({ 
-          error: 'Email already registered',
-          details: `A user account with email ${email} already exists in the authentication system. This could be a recently deleted user that hasn't been fully cleaned up. Please try a different email address or contact support.`,
-          errorCode: 'EMAIL_EXISTS_IN_AUTH'
-        }),
-        { 
-          status: 422, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      )
-    }
-
     // Create user with admin privileges (doesn't affect current session)
     console.log('🔥 Creating new user account')
     const { data: userData, error: userError } = await supabaseAdmin.auth.admin.createUser({
@@ -111,7 +92,7 @@ serve(async (req) => {
       
       if (userError.message?.includes('already been registered') || userError.message?.includes('email')) {
         errorMessage = 'Email already registered'
-        errorDetails = `The email ${email} is already registered in the system. Please use a different email address.`
+        errorDetails = `The email ${email} is already registered in the system. This could be from a recently deleted user that hasn't been fully cleaned up. Please try a different email address.`
         errorCode = 'EMAIL_ALREADY_REGISTERED'
       } else if (userError.message?.includes('password')) {
         errorMessage = 'Invalid password'
