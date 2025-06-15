@@ -1,17 +1,13 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useClientAttachments } from "@/hooks/useClientAttachments";
 import { useToast } from "@/hooks/use-toast";
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Upload } from "lucide-react";
-import ClientDocumentUploadModal from "../admin/ClientDocumentUploadModal";
-import ClientDocumentEditModal from "../admin/ClientDocumentEditModal";
-import ClientDocumentDeleteModal from "../admin/ClientDocumentDeleteModal";
-import ClientDocumentTableRow from "../admin/ClientDocumentTableRow";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { handleFileView, handleFileDownload } from "@/utils/fileHandling";
 import { useStaffAssignedClients } from "@/hooks/useStaffClientAssignments";
+import StaffDocumentHeader from "./StaffDocumentHeader";
+import StaffDocumentModals from "./StaffDocumentModals";
+import StaffDocumentTable from "./StaffDocumentTable";
 
 const DOCUMENT_STATUSES = [
   { label: "Uploaded", value: "Uploaded" },
@@ -121,35 +117,50 @@ const StaffDocumentsManager: React.FC = () => {
     handleFileDownload(fileUrl, fileName);
   };
 
+  const handleEditDocument = (attachment: any) => {
+    setShowEdit({ open: true, attachment: { ...attachment } });
+  };
+
+  const handleDeleteDocument = (attachment: any) => {
+    setShowDelete({ open: true, attachment });
+  };
+
+  const handleEditSave = async () => {
+    if (!showEdit.attachment) return;
+    await updateAttachment({
+      attachmentId: showEdit.attachment.id,
+      updates: {
+        description: showEdit.attachment.description,
+        document_status: showEdit.attachment.document_status,
+        shared_with_client: !!showEdit.attachment.shared_with_client,
+      }
+    });
+    setShowEdit({ open: false, attachment: null });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!showDelete.attachment) return;
+    await deleteAttachment(showDelete.attachment);
+    setShowDelete({ open: false, attachment: null });
+  };
+
+  const handleShareChange = async (attachmentId: string, shared: boolean) => {
+    await updateAttachment({ attachmentId, updates: { shared_with_client: shared } });
+  };
+
   return (
     <div className="max-w-5xl mx-auto w-full">
-      <div className="flex flex-col gap-2 md:flex-row md:items-center justify-between py-2 mb-4">
-        <div className="w-full md:w-96">
-          <Select value={clientId ?? ""} onValueChange={val => setClientId(val || null)}>
-            <SelectTrigger>
-              <SelectValue placeholder={isClientsLoading ? "Loading clients..." : (assignedClients.length ? "Select a client" : "No assigned clients")} />
-            </SelectTrigger>
-            <SelectContent>
-              {assignedClients.map((c) => (
-                <SelectItem key={c.id} value={c.id}>{c.name} {c.file_no ? `(${c.file_no})` : ""}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <Button
-          onClick={() => setShowUpload(true)}
-          className="w-full md:w-auto"
-          disabled={!clientId}
-        >
-          <Upload className="w-4 h-4 mr-2" />
-          Upload Document
-        </Button>
-      </div>
+      <StaffDocumentHeader
+        clients={assignedClients}
+        isClientsLoading={isClientsLoading}
+        clientId={clientId}
+        onClientChange={setClientId}
+        onUploadClick={() => setShowUpload(true)}
+      />
 
-      {/* Upload Modal */}
-      <ClientDocumentUploadModal
-        open={showUpload}
-        onOpenChange={setShowUpload}
+      <StaffDocumentModals
+        showUpload={showUpload}
+        onUploadOpenChange={setShowUpload}
         allowedFileTypes={allowedFileTypes}
         file={file}
         setFile={setFile}
@@ -162,95 +173,32 @@ const StaffDocumentsManager: React.FC = () => {
         isUploading={isUploading}
         onUpload={handleUpload}
         statuses={DOCUMENT_STATUSES}
-      />
-
-      {/* Edit Modal */}
-      <ClientDocumentEditModal
-        open={showEdit.open}
-        onOpenChange={(open) => setShowEdit({ ...showEdit, open })}
-        attachment={showEdit.attachment}
-        setAttachment={(att) => setShowEdit(prev => ({ ...prev, attachment: att }))}
+        showEdit={showEdit}
+        onEditOpenChange={(open) => setShowEdit({ ...showEdit, open })}
+        onEditAttachmentChange={(att) => setShowEdit(prev => ({ ...prev, attachment: att }))}
         isUpdating={isUpdating}
-        onSave={async () => {
-          if (!showEdit.attachment) return;
-          await updateAttachment({
-            attachmentId: showEdit.attachment.id,
-            updates: {
-              description: showEdit.attachment.description,
-              document_status: showEdit.attachment.document_status,
-              shared_with_client: !!showEdit.attachment.shared_with_client,
-            }
-          });
-          setShowEdit({ open: false, attachment: null });
-        }}
-        statuses={DOCUMENT_STATUSES}
-      />
-
-      {/* Delete Modal */}
-      <ClientDocumentDeleteModal
-        open={showDelete.open}
-        onOpenChange={(open) => setShowDelete({ ...showDelete, open })}
-        attachment={showDelete.attachment}
+        onEditSave={handleEditSave}
+        showDelete={showDelete}
+        onDeleteOpenChange={(open) => setShowDelete({ ...showDelete, open })}
         isDeleting={isDeleting}
-        onDelete={async () => {
-          if (!showDelete.attachment) return;
-          await deleteAttachment(showDelete.attachment);
-          setShowDelete({ open: false, attachment: null });
-        }}
+        onDelete={handleDeleteConfirm}
       />
 
       {/* Document Table */}
       <div className="mt-6">
-        {!clientId && (
-          <div className="text-center text-sm text-muted-foreground py-16">
-            {assignedClients.length === 0 ? "No clients assigned to you." : "Select a client to view documents."}
-          </div>
-        )}
-        {clientId && (
-          <>
-            {isLoading && (
-              <div className="text-center py-16">Loading documents...</div>
-            )}
-            {!isLoading && attachments?.length === 0 && (
-              <div className="text-center py-16 text-muted-foreground">No documents for this client.</div>
-            )}
-            {!isLoading && attachments && attachments.length > 0 && (
-              <div className="border rounded-lg overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Title</TableHead>
-                      <TableHead>File Name</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Version</TableHead>
-                      <TableHead>Current</TableHead>
-                      <TableHead>Uploaded By</TableHead>
-                      <TableHead>Uploaded At</TableHead>
-                      <TableHead>Shared?</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {attachments.map((doc) => (
-                      <ClientDocumentTableRow
-                        key={doc.id}
-                        doc={doc}
-                        fileTypeLabel={fileTypeLabel}
-                        viewingDocId={viewingDocId}
-                        handleView={handleViewDocument}
-                        handleDownload={handleDownloadDocument}
-                        handleEdit={() => setShowEdit({ open: true, attachment: { ...doc } })}
-                        handleDelete={() => setShowDelete({ open: true, attachment: doc })}
-                        handleShareChange={async (val) => await updateAttachment({ attachmentId: doc.id, updates: { shared_with_client: val } })}
-                      />
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </>
-        )}
+        <StaffDocumentTable
+          clientId={clientId}
+          assignedClientsCount={assignedClients.length}
+          isLoading={isLoading}
+          attachments={attachments}
+          fileTypeLabel={fileTypeLabel}
+          viewingDocId={viewingDocId}
+          onView={handleViewDocument}
+          onDownload={handleDownloadDocument}
+          onEdit={handleEditDocument}
+          onDelete={handleDeleteDocument}
+          onShareChange={handleShareChange}
+        />
       </div>
     </div>
   );
