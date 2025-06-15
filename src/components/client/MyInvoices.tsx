@@ -6,26 +6,68 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Eye } from 'lucide-react';
 import { format } from 'date-fns';
 
 const MyInvoices: React.FC = () => {
-  const { data: invoices = [], isLoading } = useQuery({
-    queryKey: ['my-invoices'],
+  const { profile } = useAuth();
+
+  const { data: invoices = [], isLoading, error } = useQuery({
+    queryKey: ['my-invoices', profile?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      if (!profile?.id) {
+        console.log('🔥 MyInvoices: No profile ID available');
+        return [];
+      }
+
+      console.log('🔥 MyInvoices: Starting invoice fetch for profile:', profile.id);
+      
+      // First, let's check if there's a client record for this user
+      const { data: clientData, error: clientError } = await supabase
+        .from('clients')
+        .select('id, name, file_no')
+        .eq('working_user_id', profile.id);
+
+      console.log('🔥 MyInvoices: Client lookup result:', { clientData, clientError });
+
+      if (clientError) {
+        console.error('🔥 MyInvoices: Error fetching client:', clientError);
+        throw clientError;
+      }
+
+      if (!clientData || clientData.length === 0) {
+        console.log('🔥 MyInvoices: No client found for user:', profile.id);
+        return [];
+      }
+
+      const client = clientData[0];
+      console.log('🔥 MyInvoices: Found client:', client);
+
+      // Now fetch invoices for this client
+      const { data: invoicesData, error: invoicesError } = await supabase
         .from('invoices')
         .select(`
           *,
           clients!inner(name),
           invoice_line_items(*)
         `)
+        .eq('client_id', client.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data;
+      console.log('🔥 MyInvoices: Invoices query result:', { invoicesData, invoicesError });
+
+      if (invoicesError) {
+        console.error('🔥 MyInvoices: Error fetching invoices:', invoicesError);
+        throw invoicesError;
+      }
+
+      return invoicesData || [];
     },
+    enabled: !!profile?.id
   });
+
+  console.log('🔥 MyInvoices: Final data:', { invoices, isLoading, error, profileId: profile?.id });
 
   const getStatusBadge = (status: string) => {
     const colors: Record<string, string> = {
@@ -51,6 +93,10 @@ const MyInvoices: React.FC = () => {
     return Number(invoice.total_amount);
   };
 
+  if (error) {
+    console.error('🔥 MyInvoices: Query error:', error);
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -68,6 +114,11 @@ const MyInvoices: React.FC = () => {
         <CardContent>
           {isLoading ? (
             <div className="text-center py-8">Loading invoices...</div>
+          ) : error ? (
+            <div className="text-center py-8 text-red-600">
+              <p>Error loading invoices: {error.message}</p>
+              <p className="text-sm text-gray-500 mt-2">Check console for details</p>
+            </div>
           ) : (
             <div className="rounded-md border">
               <Table>
@@ -86,7 +137,15 @@ const MyInvoices: React.FC = () => {
                   {invoices.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                        No invoices found
+                        <div className="space-y-2">
+                          <p>No invoices found</p>
+                          <p className="text-sm">
+                            {profile?.id ? 
+                              `Profile ID: ${profile.id}` : 
+                              'No profile loaded'
+                            }
+                          </p>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ) : (
