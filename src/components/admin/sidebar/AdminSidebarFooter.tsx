@@ -49,20 +49,20 @@ const AdminSidebarFooter = () => {
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent
-                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                className="w-56 rounded-lg bg-white shadow-md border"
                 side="bottom"
                 align="end"
                 sideOffset={4}
               >
-                <DropdownMenuItem onClick={() => navigate('/admin-dashboard')}>
+                <DropdownMenuItem onClick={() => navigate('/admin-dashboard')} className="cursor-pointer">
                   <User2 className="mr-2 h-4 w-4" />
                   Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/admin-dashboard')}>
+                <DropdownMenuItem onClick={() => navigate('/admin-dashboard')} className="cursor-pointer">
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLogout}>
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
                   <LogOut className="mr-2 h-4 w-4" />
                   Log out
                 </DropdownMenuItem>

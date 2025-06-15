@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { Search, Settings, LogOut } from 'lucide-react';
+import { Search, User2, LogOut } from 'lucide-react';
 import NotificationIcon from '../shared/NotificationIcon';
 
 interface StaffDashboardHeaderProps {
@@ -50,7 +50,7 @@ const StaffDashboardHeader: React.FC<StaffDashboardHeaderProps> = ({
             {darkMode ? '☀️' : '🌙'}
           </Button>
 
-          {/* New Comprehensive Notifications */}
+          {/* Notifications */}
           <NotificationIcon />
 
           {/* User Profile Dropdown */}
@@ -69,14 +69,14 @@ const StaffDashboardHeader: React.FC<StaffDashboardHeaderProps> = ({
                 </div>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                Profile Settings
+            <DropdownMenuContent align="end" className="w-56 rounded-lg bg-white shadow-md border">
+              <DropdownMenuItem className="cursor-pointer">
+                <User2 className="mr-2 h-4 w-4" />
+                Profile
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleLogout}>
+              <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
                 <LogOut className="mr-2 h-4 w-4" />
-                Logout
+                Log out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

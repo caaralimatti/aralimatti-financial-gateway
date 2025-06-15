@@ -9,11 +9,11 @@ import {
   User, 
   LogOut,
   Calendar,
-  Settings,
   Bell
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import NotificationIcon from "../shared/NotificationIcon";
 
@@ -71,42 +71,39 @@ const ClientSidebar = () => {
       {/* User Profile Section */}
       <div className="p-4 border-t border-gray-200">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src="/placeholder.svg" />
-              <AvatarFallback>
-                {profile?.full_name?.charAt(0) || profile?.email?.charAt(0) || 'U'}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
-                {profile?.full_name || 'User'}
-              </p>
-              <p className="text-xs text-gray-500 truncate">
-                {profile?.email}
-              </p>
-            </div>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="flex items-center space-x-3 p-0 h-auto">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src="/placeholder.svg" />
+                  <AvatarFallback>
+                    {profile?.full_name?.charAt(0) || profile?.email?.charAt(0) || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0 text-left">
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {profile?.full_name || 'User'}
+                  </p>
+                  <p className="text-xs text-gray-500 truncate">
+                    {profile?.email}
+                  </p>
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56 rounded-lg bg-white shadow-md border">
+              <DropdownMenuItem asChild className="cursor-pointer">
+                <Link to="/profile" className="flex items-center w-full">
+                  <User className="mr-2 h-4 w-4" />
+                  Profile
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                <LogOut className="mr-2 h-4 w-4" />
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <NotificationIcon />
-        </div>
-
-        <div className="space-y-2">
-          <Link to="/profile">
-            <Button variant="ghost" size="sm" className="w-full justify-start">
-              <User className="mr-2 h-4 w-4" />
-              Profile
-            </Button>
-          </Link>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start"
-            onClick={handleLogout}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-          </Button>
         </div>
       </div>
     </div>
