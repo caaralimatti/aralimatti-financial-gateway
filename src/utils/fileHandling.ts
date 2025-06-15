@@ -26,18 +26,27 @@ export const isViewableInBrowser = (fileType: string): boolean => {
 export const handleFileView = async (fileUrl: string, fileName: string, fileType: string): Promise<void> => {
   try {
     if (isViewableInBrowser(fileType)) {
-      // For viewable files (PDFs, images), open the direct Supabase URL in a new tab
-      // This ensures proper Content-Type headers are served by Supabase Storage
-      // and allows the browser to render the file inline
-      const link = document.createElement('a');
-      link.href = fileUrl;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
+      // Create a clean URL without any query parameters that might interfere
+      const cleanUrl = fileUrl.split('?')[0];
       
-      // Add a temporary click handler to ensure the link opens
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // For PDFs and images, we need to ensure they open with proper headers
+      // Instead of direct navigation which might have caching issues, 
+      // we'll create a proper link with download prevention
+      const viewUrl = `${cleanUrl}?response-content-disposition=inline&response-content-type=${encodeURIComponent(getFileContentType(fileType))}`;
+      
+      // Open in new tab with proper settings
+      const newWindow = window.open(viewUrl, '_blank', 'noopener,noreferrer');
+      
+      if (!newWindow) {
+        // If popup blocked, fallback to creating a link
+        const link = document.createElement('a');
+        link.href = viewUrl;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
     } else {
       // For non-viewable files, trigger download
       handleFileDownload(fileUrl, fileName);
