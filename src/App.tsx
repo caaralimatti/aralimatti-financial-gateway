@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -15,6 +14,41 @@ import ResetPassword from '@/pages/ResetPassword';
 import MaintenancePage from '@/pages/MaintenancePage';
 import WelcomeToast from '@/components/WelcomeToast';
 import ClientUserProfile from "@/pages/ClientUserProfile";
+import { LogOut } from "lucide-react";
+
+// Dummy/stub components for client sub-pages if not already present
+function ClientTasksPage() {
+  return (
+    <div className="p-8">
+      <h2 className="text-2xl font-bold">My Tasks</h2>
+      <p className="text-gray-600">This page is under construction.</p>
+    </div>
+  );
+}
+function ClientDocumentsPage() {
+  return (
+    <div className="p-8">
+      <h2 className="text-2xl font-bold">Documents</h2>
+      <p className="text-gray-600">This page is under construction.</p>
+    </div>
+  );
+}
+function ClientInvoicesPage() {
+  return (
+    <div className="p-8">
+      <h2 className="text-2xl font-bold">My Invoices</h2>
+      <p className="text-gray-600">This page is under construction.</p>
+    </div>
+  );
+}
+function ClientCalendarPage() {
+  return (
+    <div className="p-8">
+      <h2 className="text-2xl font-bold">Task Calendar</h2>
+      <p className="text-gray-600">This page is under construction.</p>
+    </div>
+  );
+}
 
 const queryClient = new QueryClient();
 
@@ -67,6 +101,38 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['client']}>
                   <ClientUserProfile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/client-dashboard/tasks"
+              element={
+                <ProtectedRoute allowedRoles={['client']}>
+                  <ClientTasksPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/client-dashboard/documents"
+              element={
+                <ProtectedRoute allowedRoles={['client']}>
+                  <ClientDocumentsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/client-dashboard/invoices"
+              element={
+                <ProtectedRoute allowedRoles={['client']}>
+                  <ClientInvoicesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/client-dashboard/calendar"
+              element={
+                <ProtectedRoute allowedRoles={['client']}>
+                  <ClientCalendarPage />
                 </ProtectedRoute>
               }
             />

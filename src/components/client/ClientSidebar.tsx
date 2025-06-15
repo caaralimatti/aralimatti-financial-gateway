@@ -1,13 +1,13 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, CheckSquare, FileText, Receipt, Calendar, User, ShieldCheck } from 'lucide-react';
+import { Home, CheckSquare, FileText, Receipt, Calendar, User, ShieldCheck, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 
 const ClientSidebar = () => {
   const location = useLocation();
-  const { profile } = useAuth();
+  const { profile, signOut } = useAuth();
   const { toast } = useToast();
 
   const menuItems = [
@@ -81,14 +81,27 @@ const ClientSidebar = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      window.location.href = '/';
+    } catch (error) {
+      toast({
+        title: "Logout Failed",
+        description: "Could not log out. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
-    <div className="w-64 bg-white border-r border-gray-200 min-h-screen">
+    <div className="w-64 bg-white border-r border-gray-200 min-h-screen flex flex-col">
       <div className="p-6">
         <h2 className="text-lg font-semibold text-gray-800">Client Portal</h2>
         <p className="text-sm text-gray-500 mt-1">Welcome, {profile?.full_name}!</p>
       </div>
       
-      <nav className="p-4">
+      <nav className="p-4 flex-1">
         <div className="space-y-2">
           {menuItems.map((item) => {
             const isActive = location.pathname === item.href;
@@ -137,6 +150,18 @@ const ClientSidebar = () => {
           )}
         </div>
       </nav>
+
+      {/* Restore Logout button at the bottom of the sidebar, as per original */}
+      <div className="p-4 border-t border-gray-200">
+        <Button
+          variant="ghost"
+          className="w-full flex items-center justify-start"
+          onClick={handleLogout}
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Logout
+        </Button>
+      </div>
     </div>
   );
 };
