@@ -122,13 +122,17 @@ const AttachmentsTab = ({ clientForm, setClientForm, clientId }: AttachmentsTabP
     }
   };
 
-  const handleDownload = (attachment: ClientAttachment) => {
+  const handleDownload = (e: React.MouseEvent, attachment: ClientAttachment) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (attachment.file_url) {
       handleFileDownload(attachment.file_url, attachment.file_name);
     }
   };
 
-  const handleView = (attachment: ClientAttachment) => {
+  const handleView = (e: React.MouseEvent, attachment: ClientAttachment) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (attachment.file_url) {
       handleFileView(attachment.file_url, attachment.file_name, attachment.file_type);
     }
@@ -265,7 +269,7 @@ const AttachmentsTab = ({ clientForm, setClientForm, clientId }: AttachmentsTabP
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleView(attachment)}
+                        onClick={(e) => handleView(e, attachment)}
                         title="View"
                       >
                         <Eye className="h-4 w-4" />
@@ -273,7 +277,7 @@ const AttachmentsTab = ({ clientForm, setClientForm, clientId }: AttachmentsTabP
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleDownload(attachment)}
+                        onClick={(e) => handleDownload(e, attachment)}
                         title="Download"
                       >
                         <Download className="h-4 w-4" />

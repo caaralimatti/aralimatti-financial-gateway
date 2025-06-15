@@ -94,11 +94,15 @@ const MyDocuments: React.FC = () => {
     );
   };
 
-  const handleDownload = (fileUrl: string, fileName: string) => {
+  const handleDownload = (e: React.MouseEvent, fileUrl: string, fileName: string) => {
+    e.preventDefault();
+    e.stopPropagation();
     handleFileDownload(fileUrl, fileName);
   };
 
-  const handleView = (fileUrl: string, fileName: string, fileType: string) => {
+  const handleView = (e: React.MouseEvent, fileUrl: string, fileName: string, fileType: string) => {
+    e.preventDefault();
+    e.stopPropagation();
     handleFileView(fileUrl, fileName, fileType);
   };
 
@@ -165,7 +169,7 @@ const MyDocuments: React.FC = () => {
                             <Button 
                               variant="ghost" 
                               size="sm"
-                              onClick={() => handleView(doc.file_url, doc.file_name, doc.file_type)}
+                              onClick={(e) => handleView(e, doc.file_url, doc.file_name, doc.file_type)}
                               title="View Document"
                             >
                               <Eye className="h-4 w-4" />
@@ -173,7 +177,7 @@ const MyDocuments: React.FC = () => {
                             <Button 
                               variant="ghost" 
                               size="sm"
-                              onClick={() => handleDownload(doc.file_url, doc.file_name)}
+                              onClick={(e) => handleDownload(e, doc.file_url, doc.file_name)}
                               title="Download Document"
                             >
                               <Download className="h-4 w-4" />

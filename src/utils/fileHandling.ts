@@ -23,7 +23,18 @@ export const isViewableInBrowser = (fileType: string): boolean => {
   return viewableTypes.includes(fileType);
 };
 
+// Track if a file is currently being viewed to prevent double execution
+let isViewingFile = false;
+
 export const handleFileView = async (fileUrl: string, fileName: string, fileType: string): Promise<void> => {
+  // Prevent double execution
+  if (isViewingFile) {
+    console.log('File view already in progress, skipping...');
+    return;
+  }
+  
+  isViewingFile = true;
+  
   try {
     if (isViewableInBrowser(fileType)) {
       // For viewable files, fetch the blob and create an object URL
@@ -66,6 +77,11 @@ export const handleFileView = async (fileUrl: string, fileName: string, fileType
     console.error('Error viewing file:', error);
     // Fallback to download if view fails
     handleFileDownload(fileUrl, fileName);
+  } finally {
+    // Reset the flag after a short delay
+    setTimeout(() => {
+      isViewingFile = false;
+    }, 1000);
   }
 };
 
