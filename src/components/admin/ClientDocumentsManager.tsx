@@ -12,6 +12,10 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { handleFileView, handleFileDownload } from "@/utils/fileHandling";
+import ClientDocumentUploadModal from "./ClientDocumentUploadModal";
+import ClientDocumentEditModal from "./ClientDocumentEditModal";
+import ClientDocumentDeleteModal from "./ClientDocumentDeleteModal";
+import ClientDocumentTableRow from "./ClientDocumentTableRow";
 
 interface Props {
   selectedClientId?: string;
@@ -161,145 +165,57 @@ const ClientDocumentsManager: React.FC<Props> = ({ selectedClientId, onSelectCli
       </div>
 
       {/* Upload Modal */}
-      <Dialog open={showUpload} onOpenChange={setShowUpload}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Upload Document</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <Input
-              type="file"
-              accept={allowedFileTypes.join(",")}
-              onChange={e => setFile((e.target.files && e.target.files[0]) || null)}
-              disabled={isUploading}
-            />
-            <Input
-              placeholder="Document Title (optional)"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              disabled={isUploading}
-            />
-            <Select value={documentStatus} onValueChange={setDocumentStatus}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {DOCUMENT_STATUSES.map(opt => (
-                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <div className="flex items-center gap-2">
-              <Switch checked={sharedWithClient} onCheckedChange={setSharedWithClient} />
-              <span>Share with client</span>
-            </div>
-          </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="ghost">Cancel</Button>
-            </DialogClose>
-            <Button onClick={handleUpload} disabled={!file || isUploading || !clientId}>
-              {isUploading ? "Uploading..." : "Upload"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ClientDocumentUploadModal
+        open={showUpload}
+        onOpenChange={setShowUpload}
+        allowedFileTypes={allowedFileTypes}
+        file={file}
+        setFile={setFile}
+        title={title}
+        setTitle={setTitle}
+        documentStatus={documentStatus}
+        setDocumentStatus={setDocumentStatus}
+        sharedWithClient={sharedWithClient}
+        setSharedWithClient={setSharedWithClient}
+        isUploading={isUploading}
+        onUpload={handleUpload}
+        statuses={DOCUMENT_STATUSES}
+      />
 
       {/* Edit Metadata Modal */}
-      <Dialog open={showEdit.open} onOpenChange={open => setShowEdit({ ...showEdit, open })}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Document Metadata</DialogTitle>
-          </DialogHeader>
-          {showEdit.attachment && (
-            <div className="space-y-3">
-              <Input
-                placeholder="Document Title"
-                value={showEdit.attachment.description || ""}
-                onChange={e => setShowEdit(prev => ({
-                  ...prev,
-                  attachment: { ...prev.attachment, description: e.target.value }
-                }))}
-                disabled={isUpdating}
-              />
-              <Select value={showEdit.attachment.document_status || "Uploaded"} onValueChange={val =>
-                setShowEdit(prev => ({ ...prev, attachment: { ...prev.attachment, document_status: val } }))
-              }>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {DOCUMENT_STATUSES.map(opt => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={!!showEdit.attachment.shared_with_client}
-                  onCheckedChange={val => setShowEdit(prev => ({
-                    ...prev,
-                    attachment: { ...prev.attachment, shared_with_client: val }
-                  }))}
-                />
-                <span>Share with client</span>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="ghost">Cancel</Button>
-            </DialogClose>
-            <Button
-              onClick={async () => {
-                if (!showEdit.attachment) return;
-                await updateAttachment({
-                  attachmentId: showEdit.attachment.id,
-                  updates: {
-                    description: showEdit.attachment.description,
-                    document_status: showEdit.attachment.document_status,
-                    shared_with_client: !!showEdit.attachment.shared_with_client
-                  }
-                });
-                setShowEdit({ open: false, attachment: null });
-              }}
-              disabled={isUpdating}
-            >
-              {isUpdating ? "Saving..." : "Save"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ClientDocumentEditModal
+        open={showEdit.open}
+        onOpenChange={(open) => setShowEdit({ ...showEdit, open })}
+        attachment={showEdit.attachment}
+        setAttachment={(att) => setShowEdit(prev => ({ ...prev, attachment: att }))}
+        isUpdating={isUpdating}
+        onSave={async () => {
+          if (!showEdit.attachment) return;
+          await updateAttachment({
+            attachmentId: showEdit.attachment.id,
+            updates: {
+              description: showEdit.attachment.description,
+              document_status: showEdit.attachment.document_status,
+              shared_with_client: !!showEdit.attachment.shared_with_client
+            }
+          });
+          setShowEdit({ open: false, attachment: null });
+        }}
+        statuses={DOCUMENT_STATUSES}
+      />
 
       {/* Delete Modal */}
-      <Dialog open={showDelete.open} onOpenChange={open => setShowDelete({ ...showDelete, open })}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Delete Document</DialogTitle>
-          </DialogHeader>
-          {showDelete.attachment && (
-            <div>
-              Are you sure you want to delete &quot;{showDelete.attachment.description || showDelete.attachment.file_name}&quot;?
-            </div>
-          )}
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="ghost">Cancel</Button>
-            </DialogClose>
-            <Button
-              variant="destructive"
-              onClick={async () => {
-                if (!showDelete.attachment) return;
-                await deleteAttachment(showDelete.attachment);
-                setShowDelete({ open: false, attachment: null });
-              }}
-              disabled={isDeleting}
-            >
-              {isDeleting ? "Deleting..." : "Delete"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ClientDocumentDeleteModal
+        open={showDelete.open}
+        onOpenChange={(open) => setShowDelete({ ...showDelete, open })}
+        attachment={showDelete.attachment}
+        isDeleting={isDeleting}
+        onDelete={async () => {
+          if (!showDelete.attachment) return;
+          await deleteAttachment(showDelete.attachment);
+          setShowDelete({ open: false, attachment: null });
+        }}
+      />
 
       {/* Document Table */}
       <div className="mt-6">
@@ -332,66 +248,18 @@ const ClientDocumentsManager: React.FC<Props> = ({ selectedClientId, onSelectCli
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {attachments.map(doc => (
-                      <TableRow key={doc.id}>
-                        <TableCell>{doc.description || doc.file_name}</TableCell>
-                        <TableCell>{doc.file_name}</TableCell>
-                        <TableCell><Badge>{fileTypeLabel(doc.file_type)}</Badge></TableCell>
-                        <TableCell>
-                          <Badge variant={doc.document_status === "Active" ? "default" : "secondary"}>
-                            {doc.document_status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{doc.version_number}</TableCell>
-                        <TableCell>
-                          {doc.is_current_version
-                            ? <CheckCircle2 className="text-green-500" />
-                            : <XCircle className="text-muted-foreground" />}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{doc.uploaded_by_role || "—"}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          {doc.created_at ? format(new Date(doc.created_at), "yyyy-MM-dd") : "—"}
-                        </TableCell>
-                        <TableCell>
-                          <Switch
-                            checked={!!doc.shared_with_client}
-                            onCheckedChange={async (val) => {
-                              await updateAttachment({ attachmentId: doc.id, updates: { shared_with_client: val } });
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button size="icon" variant="ghost" 
-                              onClick={(e) => handleViewDocument(e, doc.file_url, doc.file_name, doc.file_type)}
-                              title="View Document"
-                              disabled={viewingDocId === `${doc.file_url}-${doc.file_name}`}
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button size="icon" variant="ghost"
-                              onClick={(e) => handleDownloadDocument(e, doc.file_url, doc.file_name)}
-                              title="Download Document"
-                            >
-                              <Download className="w-4 h-4" />
-                            </Button>
-                            <Button size="icon" variant="ghost"
-                              onClick={() => setShowEdit({ open: true, attachment: { ...doc } })}
-                              title="Edit Metadata"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button size="icon" variant="ghost"
-                              onClick={() => setShowDelete({ open: true, attachment: doc })}
-                              title="Delete"
-                            >
-                              <Trash2 className="w-4 h-4 text-destructive" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
+                    {attachments.map((doc) => (
+                      <ClientDocumentTableRow
+                        key={doc.id}
+                        doc={doc}
+                        fileTypeLabel={fileTypeLabel}
+                        viewingDocId={viewingDocId}
+                        handleView={handleViewDocument}
+                        handleDownload={handleDownloadDocument}
+                        handleEdit={() => setShowEdit({ open: true, attachment: { ...doc } })}
+                        handleDelete={() => setShowDelete({ open: true, attachment: doc })}
+                        handleShareChange={async (val) => await updateAttachment({ attachmentId: doc.id, updates: { shared_with_client: val } })}
+                      />
                     ))}
                   </TableBody>
                 </Table>
