@@ -93,7 +93,7 @@ const ClientDocumentsManager: React.FC<Props> = ({ selectedClientId, onSelectCli
         description: title || file.name,
         documentStatus,
         sharedWithClient,
-        uploadedByRole: "firm" // Changed from "Admin" to "firm" to match allowed values
+        uploadedByRole: "admin" // Changed from "firm" to "admin" to match allowed values
       });
       setShowUpload(false);
     } catch {}

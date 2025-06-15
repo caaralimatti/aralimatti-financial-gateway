@@ -36,7 +36,7 @@ export const useClientAttachments = (clientId?: string) => {
       description,
       documentStatus = 'Uploaded',
       sharedWithClient = false,
-      uploadedByRole = 'firm'
+      uploadedByRole = 'admin'
     }: { 
       clientId: string; 
       file: File; 

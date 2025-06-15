@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Upload, Edit, Users, Search, Trash } from 'lucide-react';
+import { Plus, Upload, Edit, Users, Search, Trash, FileText } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useClients } from '@/hooks/useClients';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -45,6 +46,12 @@ const ClientManagement: React.FC<ClientManagementProps> = ({ activeTab, setActiv
 
   const handleDelete = (client: any) => {
     setDeletingClient({ id: client.id, name: client.name });
+  };
+
+  const handleManageDocuments = (client: any) => {
+    // Navigate to manage documents with the selected client
+    setActiveTab('manage-documents');
+    // You could also store the selected client ID in a parent state if needed
   };
 
   const handleCloseModal = () => {
@@ -142,14 +149,24 @@ const ClientManagement: React.FC<ClientManagementProps> = ({ activeTab, setActiv
                                 variant="outline" 
                                 size="sm"
                                 onClick={() => handleEdit(client)}
+                                title="Edit Client"
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
                               <Button 
                                 variant="outline" 
                                 size="sm"
+                                onClick={() => handleManageDocuments(client)}
+                                title="Manage Documents"
+                              >
+                                <FileText className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
                                 onClick={() => handleDelete(client)}
                                 className="text-destructive hover:text-destructive"
+                                title="Delete Client"
                               >
                                 <Trash className="h-4 w-4" />
                               </Button>
