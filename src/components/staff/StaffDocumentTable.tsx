@@ -2,6 +2,7 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import ClientDocumentTableRow from '../admin/ClientDocumentTableRow';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Attachment {
   id: string;
@@ -12,6 +13,7 @@ interface Attachment {
   version_number: number;
   is_current_version: boolean;
   uploaded_by_role?: string;
+  uploaded_by?: string;
   created_at: string;
   shared_with_client?: boolean;
   file_url: string;
@@ -44,6 +46,8 @@ const StaffDocumentTable: React.FC<StaffDocumentTableProps> = ({
   onDelete,
   onShareChange
 }) => {
+  const { profile } = useAuth();
+
   if (!clientId) {
     return (
       <div className="text-center text-sm text-muted-foreground py-16">
@@ -78,19 +82,24 @@ const StaffDocumentTable: React.FC<StaffDocumentTableProps> = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {attachments.map((doc) => (
-            <ClientDocumentTableRow
-              key={doc.id}
-              doc={doc}
-              fileTypeLabel={fileTypeLabel}
-              viewingDocId={viewingDocId}
-              handleView={onView}
-              handleDownload={onDownload}
-              handleEdit={() => onEdit(doc)}
-              handleDelete={() => onDelete(doc)}
-              handleShareChange={async (val) => onShareChange(doc.id, val)}
-            />
-          ))}
+          {attachments.map((doc) => {
+            // Check if current staff user can delete this document
+            const canDelete = doc.uploaded_by === profile?.id && doc.uploaded_by_role === 'staff';
+            
+            return (
+              <ClientDocumentTableRow
+                key={doc.id}
+                doc={doc}
+                fileTypeLabel={fileTypeLabel}
+                viewingDocId={viewingDocId}
+                handleView={onView}
+                handleDownload={onDownload}
+                handleEdit={() => onEdit(doc)}
+                handleDelete={canDelete ? () => onDelete(doc) : undefined}
+                handleShareChange={async (val) => onShareChange(doc.id, val)}
+              />
+            );
+          })}
         </TableBody>
       </Table>
     </div>

@@ -14,7 +14,7 @@ interface Props {
   handleView: (e: React.MouseEvent, fileUrl: string, fileName: string, fileType: string) => void;
   handleDownload: (e: React.MouseEvent, fileUrl: string, fileName: string) => void;
   handleEdit: () => void;
-  handleDelete: () => void;
+  handleDelete?: () => void; // Make delete optional
   handleShareChange: (val: boolean) => void;
 }
 
@@ -76,12 +76,15 @@ const ClientDocumentTableRow: React.FC<Props> = ({
         >
           <Edit className="w-4 h-4" />
         </Button>
-        <Button size="icon" variant="ghost"
-          onClick={handleDelete}
-          title="Delete"
-        >
-          <Trash2 className="w-4 h-4 text-destructive" />
-        </Button>
+        {/* Only show delete button if handleDelete is provided */}
+        {handleDelete && (
+          <Button size="icon" variant="ghost"
+            onClick={handleDelete}
+            title="Delete"
+          >
+            <Trash2 className="w-4 h-4 text-destructive" />
+          </Button>
+        )}
       </div>
     </TableCell>
   </TableRow>
