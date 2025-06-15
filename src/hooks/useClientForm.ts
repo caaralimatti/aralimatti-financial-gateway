@@ -2,26 +2,86 @@
 import { useState } from 'react';
 import { useClients } from '@/hooks/useClients';
 import { getInitialFormData, transformFormDataToClientData, validateRequiredFields } from '@/utils/clientFormUtils';
+import { authService } from '@/services/authService';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import type { Tables } from '@/integrations/supabase/types';
 import type { ClientFormData } from '@/types/clientForm';
 
 export const useClientForm = (editingClient?: Tables<'clients'> | null) => {
   const { createClient, updateClient, isCreating, isUpdating } = useClients();
+  const { toast } = useToast();
   const [clientForm, setClientForm] = useState<ClientFormData>(getInitialFormData(editingClient));
 
   const resetForm = () => {
     setClientForm(getInitialFormData());
   };
 
+  const createPortalUser = async (email: string, password: string, fullName: string) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            role: 'client',
+          },
+        },
+      });
+
+      if (error) throw error;
+      return data.user;
+    } catch (error) {
+      console.error('Error creating portal user:', error);
+      throw error;
+    }
+  };
+
   const saveClient = async (onSuccess: () => void) => {
     try {
       // Validate required fields
       if (!validateRequiredFields(clientForm)) {
-        console.error('Missing required fields');
+        toast({
+          title: "Validation Error",
+          description: "Please fill in all required fields",
+          variant: "destructive",
+        });
         return;
       }
 
+      let portalUserId = null;
+
+      // Create portal user if requested
+      if (clientForm.portalUser.createPortalUser) {
+        try {
+          const portalUser = await createPortalUser(
+            clientForm.portalUser.email,
+            clientForm.portalUser.generatedPassword!,
+            clientForm.portalUser.fullName
+          );
+          portalUserId = portalUser?.id;
+
+          toast({
+            title: "Portal User Created",
+            description: `Portal user account created for ${clientForm.portalUser.email}`,
+          });
+        } catch (error: any) {
+          toast({
+            title: "Error Creating Portal User",
+            description: error.message || "Failed to create portal user account",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
       const clientData = transformFormDataToClientData(clientForm);
+
+      // Add portal user link if created
+      if (portalUserId) {
+        clientData.primary_portal_user_profile_id = portalUserId;
+      }
 
       if (editingClient) {
         await updateClient({ id: editingClient.id, ...clientData });
@@ -29,10 +89,23 @@ export const useClientForm = (editingClient?: Tables<'clients'> | null) => {
         await createClient(clientData);
       }
 
+      // Show password info if portal user was created
+      if (clientForm.portalUser.createPortalUser) {
+        toast({
+          title: "Client Created Successfully",
+          description: `Client saved. Portal user login: ${clientForm.portalUser.email}`,
+        });
+      }
+
       onSuccess();
       resetForm();
     } catch (error) {
       console.error('Error saving client:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save client. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 

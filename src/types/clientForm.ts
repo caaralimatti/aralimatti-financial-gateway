@@ -1,3 +1,4 @@
+
 import type { Tables } from '@/integrations/supabase/types';
 
 export interface CustomField {
@@ -32,6 +33,13 @@ export interface ClientAttachment {
   is_current_version: boolean;
   created_at: string;
   updated_at?: string;
+}
+
+export interface ClientPortalUser {
+  createPortalUser: boolean;
+  email: string;
+  fullName: string;
+  generatedPassword?: string;
 }
 
 export interface ClientFormData {
@@ -84,6 +92,7 @@ export interface ClientFormData {
     gstReturnFrequency: string;
   };
   attachments: ClientAttachment[];
+  portalUser: ClientPortalUser;
 }
 
 export type ClientEntity = Tables<'clients'>;

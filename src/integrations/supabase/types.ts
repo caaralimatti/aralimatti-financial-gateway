@@ -412,6 +412,7 @@ export type Database = {
           pan: string | null
           primary_email: string | null
           primary_mobile: string | null
+          primary_portal_user_profile_id: string | null
           status: Database["public"]["Enums"]["client_status"]
           tags: string[] | null
           tan: string | null
@@ -457,6 +458,7 @@ export type Database = {
           pan?: string | null
           primary_email?: string | null
           primary_mobile?: string | null
+          primary_portal_user_profile_id?: string | null
           status?: Database["public"]["Enums"]["client_status"]
           tags?: string[] | null
           tan?: string | null
@@ -502,6 +504,7 @@ export type Database = {
           pan?: string | null
           primary_email?: string | null
           primary_mobile?: string | null
+          primary_portal_user_profile_id?: string | null
           status?: Database["public"]["Enums"]["client_status"]
           tags?: string[] | null
           tan?: string | null
@@ -519,6 +522,13 @@ export type Database = {
             foreignKeyName: "clients_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_primary_portal_user_profile_id_fkey"
+            columns: ["primary_portal_user_profile_id"]
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
