@@ -67,6 +67,11 @@ const StaffSidebar: React.FC<StaffSidebarProps> = ({ activeTab, setActiveTab }) 
       icon: Shield,
       key: 'dsc',
     },
+    {
+      title: 'Manage Documents', // NEW
+      icon: FileText,
+      key: 'manage-documents',
+    },
   ];
 
   return (
@@ -140,5 +145,4 @@ const StaffSidebar: React.FC<StaffSidebarProps> = ({ activeTab, setActiveTab }) 
     </Sidebar>
   );
 };
-
 export default StaffSidebar;

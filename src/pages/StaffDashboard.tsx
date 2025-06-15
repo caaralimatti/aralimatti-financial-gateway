@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import StaffSidebar from '@/components/staff/StaffSidebar';
@@ -8,6 +7,7 @@ import StaffAnnouncements from '@/components/staff/StaffAnnouncements';
 import StaffRecentMessages from '@/components/staff/StaffRecentMessages';
 import StaffTasksList from '@/components/staff/StaffTasksList';
 import DSCManagement from '@/components/admin/DSCManagement';
+import StaffDocumentsManager from "@/components/staff/StaffDocumentsManager";
 import { useAuth } from '@/contexts/AuthContext';
 
 const StaffDashboard = () => {
@@ -41,6 +41,8 @@ const StaffDashboard = () => {
             <p className="text-gray-600">Profile management coming soon...</p>
           </div>
         );
+      case 'manage-documents':
+        return <StaffDocumentsManager />;
       default:
         return (
           <div className="space-y-6">
