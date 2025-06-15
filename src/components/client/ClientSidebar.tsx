@@ -1,115 +1,143 @@
-
 import React from 'react';
-import { 
-  Sidebar, 
-  SidebarContent, 
-  SidebarHeader, 
-  SidebarMenu, 
-  SidebarMenuItem, 
-  SidebarMenuButton,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  useSidebar
-} from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
-import { 
-  LayoutDashboard, 
-  FileText, 
-  CheckSquare, 
-  Calendar,
-  User,
-  Award,
-  LogOut
-} from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { Home, CheckSquare, FileText, Receipt, Calendar, User, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 
-interface ClientSidebarProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
-}
+const ClientSidebar = () => {
+  const location = useLocation();
+  const { profile } = useAuth();
+  const { toast } = useToast();
 
-const ClientSidebar: React.FC<ClientSidebarProps> = ({ activeTab, setActiveTab }) => {
-  const { state } = useSidebar();
-  const { profile, signOut } = useAuth();
+  const menuItems = [
+    {
+      href: '/client-dashboard',
+      icon: Home,
+      label: 'Dashboard',
+      description: 'Overview and quick access'
+    },
+    {
+      href: '/client-dashboard/tasks',
+      icon: CheckSquare,
+      label: 'My Tasks',
+      description: 'View and manage assigned tasks'
+    },
+    {
+      href: '/client-dashboard/documents',
+      icon: FileText,
+      label: 'Documents',
+      description: 'Access your files and documents'
+    },
+    {
+      href: '/client-dashboard/invoices',
+      icon: Receipt,
+      label: 'My Invoices',
+      description: 'View billing and payment history'
+    },
+    {
+      href: '/client-dashboard/calendar',
+      icon: Calendar,
+      label: 'Task Calendar',
+      description: 'View deadlines and schedules'
+    },
+    {
+      href: '/client-dashboard/profile',
+      icon: User,
+      label: 'User Profile',
+      description: 'Manage your account and password'
+    }
+  ];
 
-  const handleLogout = async () => {
+  const handleEnableDSC = async () => {
     try {
-      await signOut();
+      // Simulate enabling DSC (replace with actual logic)
+      toast({
+        title: "DSC Enabled",
+        description: "Your Digital Signature Certificate (DSC) is now enabled.",
+      });
     } catch (error) {
-      console.error('Error logging out:', error);
+      toast({
+        title: "Error",
+        description: "Failed to enable DSC. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
-  const sidebarItems = [
-    { id: 'dashboard', title: 'Dashboard', icon: LayoutDashboard },
-    { id: 'documents', title: 'Documents', icon: FileText },
-    { id: 'tasks', title: 'My Tasks', icon: CheckSquare },
-    { id: 'calendar', title: 'Calendar', icon: Calendar },
-    { id: 'profile', title: 'Profile', icon: User },
-  ];
-
-  // Conditionally add DSC tab if enabled for this client
-  if (profile?.enable_dsc_tab) {
-    sidebarItems.push({ id: 'dsc', title: 'DSC', icon: Award });
-  }
+  const handleManageDSC = async () => {
+    try {
+      // Simulate managing DSC (replace with actual logic)
+      toast({
+        title: "Manage DSC",
+        description: "Redirecting to DSC management page...",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to redirect to DSC management. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
-    <Sidebar className="border-r border-gray-200 dark:border-gray-700" collapsible="icon">
-      <SidebarHeader className="p-4">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
-            <User className="text-white text-sm font-bold h-4 w-4" />
-          </div>
-          {state === 'expanded' && (
-            <span className="font-semibold text-gray-900 dark:text-white whitespace-nowrap">
-              Client Portal
-            </span>
+    <div className="w-64 bg-white border-r border-gray-200 min-h-screen">
+      <div className="p-6">
+        <h2 className="text-lg font-semibold text-gray-800">Client Portal</h2>
+        <p className="text-sm text-gray-500 mt-1">Welcome, {profile?.full_name}!</p>
+      </div>
+      
+      <nav className="p-4">
+        <div className="space-y-2">
+          {menuItems.map((item) => {
+            const isActive = location.pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                to={item.href}
+                className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  isActive
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <item.icon className="mr-3 h-4 w-4" />
+                <div>
+                  <div>{item.label}</div>
+                  <div className="text-xs opacity-70">{item.description}</div>
+                </div>
+              </Link>
+            );
+          })}
+
+          {profile?.enable_dsc_tab && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="text-sm font-medium text-gray-800 mb-2">
+                Digital Signature Certificate (DSC)
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start text-sm"
+                onClick={handleEnableDSC}
+              >
+                <ShieldCheck className="mr-2 h-4 w-4" />
+                Enable DSC
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start text-sm text-gray-600 hover:bg-gray-100"
+                onClick={handleManageDSC}
+              >
+                Manage DSC
+              </Button>
+            </div>
           )}
         </div>
-      </SidebarHeader>
-      
-      <SidebarContent className="px-2">
-        <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {sidebarItems.map((item) => (
-                <SidebarMenuItem key={item.id}>
-                  <SidebarMenuButton 
-                    isActive={activeTab === item.id}
-                    onClick={() => setActiveTab(item.id)}
-                    className="w-full justify-start"
-                    tooltip={state === 'collapsed' ? item.title : undefined}
-                  >
-                    <item.icon className="h-4 w-4 flex-shrink-0" />
-                    <span className="truncate">{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-
-      <SidebarFooter className="p-4">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-            <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-            {state === 'expanded' && <span className="truncate">Online</span>}
-          </div>
-          <Button
-            variant="ghost"
-            onClick={handleLogout}
-            className="w-full justify-start text-sm"
-          >
-            <LogOut className="h-4 w-4 mr-2 flex-shrink-0" />
-            {state === 'expanded' ? 'Logout' : ''}
-          </Button>
-        </div>
-      </SidebarFooter>
-    </Sidebar>
+      </nav>
+    </div>
   );
 };
 

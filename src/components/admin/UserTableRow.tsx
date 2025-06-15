@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { TableCell, TableRow } from '@/components/ui/table';
@@ -10,19 +9,27 @@ import {
 } from 'lucide-react';
 import { UserProfile } from '@/types/userManagement';
 import { useUserManagement } from '@/hooks/useUserManagement';
+import { useAdminPasswordManagement } from '@/hooks/useAdminPasswordManagement';
+import TempPasswordModal from './TempPasswordModal';
+import { KeyRound, RotateCcw } from 'lucide-react';
 
 interface UserTableRowProps {
   user: UserProfile;
   onEdit: (user: UserProfile) => void;
   onDelete: (user: UserProfile) => void;
+  onToggleStatus: (user: UserProfile) => void;
 }
 
 const UserTableRow: React.FC<UserTableRowProps> = ({
   user,
   onEdit,
   onDelete,
+  onToggleStatus,
 }) => {
   const { toggleUserStatus, isToggling } = useUserManagement();
+  const { sendPasswordReset, generateTempPassword, isLoading: isPasswordLoading } = useAdminPasswordManagement();
+  const [tempPasswordData, setTempPasswordData] = useState<any>(null);
+  const [showTempPasswordModal, setShowTempPasswordModal] = useState(false);
 
   const handleToggleStatus = async (checked: boolean) => {
     try {
@@ -76,50 +83,76 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
     }
   };
 
+  const handlePasswordReset = async () => {
+    try {
+      await sendPasswordReset(user.email);
+    } catch (error) {
+      console.error('Password reset failed:', error);
+    }
+  };
+
+  const handleGenerateTempPassword = async () => {
+    try {
+      const data = await generateTempPassword(user.id);
+      setTempPasswordData(data);
+      setShowTempPasswordModal(true);
+    } catch (error) {
+      console.error('Temp password generation failed:', error);
+    }
+  };
+
   return (
-    <TableRow>
-      <TableCell className="font-medium">
-        {user.full_name || 'No name provided'}
-      </TableCell>
-      <TableCell>{user.email}</TableCell>
-      <TableCell>
-        <Badge variant={getRoleBadgeVariant(user.role)}>
-          {formatRole(user.role)}
-        </Badge>
-      </TableCell>
-      <TableCell>
-        <Badge variant={user.is_active ? 'default' : 'secondary'}>
-          {user.is_active ? 'Active' : 'Inactive'}
-        </Badge>
-      </TableCell>
-      <TableCell>
-        {formatLastLogin(user.last_login_at)}
-      </TableCell>
-      <TableCell className="text-right">
-        <div className="flex justify-end items-center gap-2">
-          <Switch
-            checked={user.is_active}
-            onCheckedChange={handleToggleStatus}
-            disabled={isToggling}
-            className="data-[state=checked]:bg-green-600"
-          />
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => onEdit(user)}
-          >
-            <Edit className="h-4 w-4" />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => onDelete(user)}
-          >
-            <Trash2 className="h-4 w-4 text-red-600" />
-          </Button>
-        </div>
-      </TableCell>
-    </TableRow>
+    <>
+      <tr className="hover:bg-gray-50">
+        <TableCell className="font-medium">
+          {user.full_name || 'No name provided'}
+        </TableCell>
+        <TableCell>{user.email}</TableCell>
+        <TableCell>
+          <Badge variant={getRoleBadgeVariant(user.role)}>
+            {formatRole(user.role)}
+          </Badge>
+        </TableCell>
+        <TableCell>
+          <Badge variant={user.is_active ? 'default' : 'secondary'}>
+            {user.is_active ? 'Active' : 'Inactive'}
+          </Badge>
+        </TableCell>
+        <TableCell>
+          {formatLastLogin(user.last_login_at)}
+        </TableCell>
+        <TableCell className="text-right">
+          <div className="flex justify-end items-center gap-2">
+            <Switch
+              checked={user.is_active}
+              onCheckedChange={handleToggleStatus}
+              disabled={isToggling}
+              className="data-[state=checked]:bg-green-600"
+            />
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => onEdit(user)}
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => onDelete(user)}
+            >
+              <Trash2 className="h-4 w-4 text-red-600" />
+            </Button>
+          </div>
+        </TableCell>
+      </tr>
+
+      <TempPasswordModal
+        open={showTempPasswordModal}
+        onOpenChange={setShowTempPasswordModal}
+        tempPasswordData={tempPasswordData}
+      />
+    </>
   );
 };
 

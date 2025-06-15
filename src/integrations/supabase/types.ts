@@ -875,7 +875,10 @@ export type Database = {
           id: string
           is_active: boolean
           last_login_at: string | null
+          last_password_change: string | null
           role: Database["public"]["Enums"]["user_role"]
+          temp_password_expires_at: string | null
+          temporary_password_hash: string | null
           updated_at: string
         }
         Insert: {
@@ -886,7 +889,10 @@ export type Database = {
           id: string
           is_active?: boolean
           last_login_at?: string | null
+          last_password_change?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          temp_password_expires_at?: string | null
+          temporary_password_hash?: string | null
           updated_at?: string
         }
         Update: {
@@ -897,7 +903,10 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_login_at?: string | null
+          last_password_change?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          temp_password_expires_at?: string | null
+          temporary_password_hash?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1280,6 +1289,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_expired_temp_passwords: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       delete_client_with_portal_user: {
         Args: { client_uuid: string }
         Returns: boolean
