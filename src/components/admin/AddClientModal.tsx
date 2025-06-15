@@ -18,7 +18,11 @@ const AddClientModal = ({ open, onOpenChange, editingClient }: AddClientModalPro
   const { clientForm, setClientForm, saveClient, isLoading } = useClientForm(editingClient);
 
   const handleSave = () => {
-    saveClient(() => onOpenChange(false));
+    saveClient(() => {
+      // Ensure we close the modal and stay in admin context
+      onOpenChange(false);
+      console.log('🔥 Client created successfully, staying in admin portal');
+    });
   };
 
   const handleTaxesChange = (taxes: { gst: boolean; incomeTax: boolean; mca: boolean; tdsTcs: boolean; other: boolean }) => {

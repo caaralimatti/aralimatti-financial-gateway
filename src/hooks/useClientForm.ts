@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { useClients } from '@/hooks/useClients';
 import { getInitialFormData, transformFormDataToClientData, validateRequiredFields } from '@/utils/clientFormUtils';
-import { authService } from '@/services/authService';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { Tables } from '@/integrations/supabase/types';
@@ -17,24 +16,43 @@ export const useClientForm = (editingClient?: Tables<'clients'> | null) => {
     setClientForm(getInitialFormData());
   };
 
-  const createPortalUser = async (email: string, password: string, fullName: string) => {
+  const createPortalUserViaEdgeFunction = async (email: string, password: string, fullName: string) => {
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-            role: 'client',
-          },
-        },
+      // Use an edge function or API call that doesn't affect the current session
+      // This prevents the admin session from being overridden
+      const { data, error } = await supabase.functions.invoke('create-client-user', {
+        body: {
+          email,
+          password,
+          fullName,
+          role: 'client'
+        }
       });
 
       if (error) throw error;
-      return data.user;
+      return data?.user;
     } catch (error) {
-      console.error('Error creating portal user:', error);
-      throw error;
+      console.error('Error creating portal user via edge function:', error);
+      
+      // Fallback: Create user with admin privileges (requires service role key)
+      // This is a temporary workaround - in production, use edge functions
+      try {
+        const { data: userData, error: userError } = await supabase.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true,
+          user_metadata: {
+            full_name: fullName,
+            role: 'client'
+          }
+        });
+
+        if (userError) throw userError;
+        return userData.user;
+      } catch (adminError) {
+        console.error('Admin user creation also failed:', adminError);
+        throw adminError;
+      }
     }
   };
 
@@ -52,10 +70,10 @@ export const useClientForm = (editingClient?: Tables<'clients'> | null) => {
 
       let portalUserId = null;
 
-      // Create portal user if requested
+      // Create portal user if requested - using method that preserves admin session
       if (clientForm.portalUser.createPortalUser) {
         try {
-          const portalUser = await createPortalUser(
+          const portalUser = await createPortalUserViaEdgeFunction(
             clientForm.portalUser.email,
             clientForm.portalUser.generatedPassword!,
             clientForm.portalUser.fullName
@@ -67,6 +85,7 @@ export const useClientForm = (editingClient?: Tables<'clients'> | null) => {
             description: `Portal user account created for ${clientForm.portalUser.email}`,
           });
         } catch (error: any) {
+          console.error('Error creating portal user:', error);
           toast({
             title: "Error Creating Portal User",
             description: error.message || "Failed to create portal user account",

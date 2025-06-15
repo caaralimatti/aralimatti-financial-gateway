@@ -107,7 +107,8 @@ const PortalUserTab = ({ clientForm, setClientForm }: PortalUserTabProps) => {
               <Alert>
                 <AlertDescription>
                   A new user account will be created for this client to access the client portal. 
-                  The login credentials will be generated automatically.
+                  The login credentials will be generated automatically. The client will need to log in 
+                  separately using these credentials.
                 </AlertDescription>
               </Alert>
 
@@ -184,7 +185,7 @@ const PortalUserTab = ({ clientForm, setClientForm }: PortalUserTabProps) => {
                   <Alert className="mt-2">
                     <AlertDescription className="text-sm">
                       <strong>Important:</strong> Please copy this password and provide it to the client securely. 
-                      They should change it upon first login.
+                      They should change it upon first login. Your admin session will not be affected by creating this client account.
                     </AlertDescription>
                   </Alert>
                 </div>
