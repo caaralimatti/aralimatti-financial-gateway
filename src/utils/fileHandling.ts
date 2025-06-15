@@ -23,17 +23,20 @@ export const isViewableInBrowser = (fileType: string): boolean => {
   return viewableTypes.includes(fileType);
 };
 
-// Track if a file is currently being viewed to prevent double execution
-let isViewingFile = false;
+// Proper debounce mechanism to prevent double execution
+const viewingFiles = new Set<string>();
 
 export const handleFileView = async (fileUrl: string, fileName: string, fileType: string): Promise<void> => {
+  // Create a unique identifier for this file view operation
+  const fileId = `${fileUrl}-${fileName}`;
+  
   // Prevent double execution
-  if (isViewingFile) {
-    console.log('File view already in progress, skipping...');
+  if (viewingFiles.has(fileId)) {
+    console.log('File view already in progress, skipping...', fileName);
     return;
   }
   
-  isViewingFile = true;
+  viewingFiles.add(fileId);
   
   try {
     if (isViewableInBrowser(fileType)) {
@@ -78,10 +81,10 @@ export const handleFileView = async (fileUrl: string, fileName: string, fileType
     // Fallback to download if view fails
     handleFileDownload(fileUrl, fileName);
   } finally {
-    // Reset the flag after a short delay
+    // Remove from tracking set after a longer delay to prevent rapid successive calls
     setTimeout(() => {
-      isViewingFile = false;
-    }, 1000);
+      viewingFiles.delete(fileId);
+    }, 2000);
   }
 };
 

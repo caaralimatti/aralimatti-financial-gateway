@@ -99,13 +99,17 @@ const ClientDocumentsManager: React.FC<Props> = ({ selectedClientId, onSelectCli
     } catch {}
   };
 
-  // Improved view handler
-  const handleViewDocument = (fileUrl: string, fileName: string, fileType: string) => {
+  // Improved view handler with proper event handling
+  const handleViewDocument = (e: React.MouseEvent, fileUrl: string, fileName: string, fileType: string) => {
+    e.preventDefault();
+    e.stopPropagation();
     handleFileView(fileUrl, fileName, fileType);
   };
 
-  // Improved download handler
-  const handleDownloadDocument = (fileUrl: string, fileName: string) => {
+  // Improved download handler with proper event handling
+  const handleDownloadDocument = (e: React.MouseEvent, fileUrl: string, fileName: string) => {
+    e.preventDefault();
+    e.stopPropagation();
     handleFileDownload(fileUrl, fileName);
   };
 
@@ -340,13 +344,13 @@ const ClientDocumentsManager: React.FC<Props> = ({ selectedClientId, onSelectCli
                         <TableCell>
                           <div className="flex gap-2">
                             <Button size="icon" variant="ghost" 
-                              onClick={() => handleViewDocument(doc.file_url, doc.file_name, doc.file_type)}
+                              onClick={(e) => handleViewDocument(e, doc.file_url, doc.file_name, doc.file_type)}
                               title="View Document"
                             >
                               <Eye className="w-4 h-4" />
                             </Button>
                             <Button size="icon" variant="ghost"
-                              onClick={() => handleDownloadDocument(doc.file_url, doc.file_name)}
+                              onClick={(e) => handleDownloadDocument(e, doc.file_url, doc.file_name)}
                               title="Download Document"
                             >
                               <Download className="w-4 h-4" />
