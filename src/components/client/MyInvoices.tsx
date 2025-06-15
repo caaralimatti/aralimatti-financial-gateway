@@ -23,11 +23,12 @@ const MyInvoices: React.FC = () => {
 
       console.log('🔥 MyInvoices: Starting invoice fetch for profile:', profile.id);
       
-      // First, let's check if there's a client record for this user
+      // Check for client record linked to this portal user
+      // Look in both working_user_id and primary_portal_user_profile_id fields
       const { data: clientData, error: clientError } = await supabase
         .from('clients')
         .select('id, name, file_no')
-        .eq('working_user_id', profile.id);
+        .or(`working_user_id.eq.${profile.id},primary_portal_user_profile_id.eq.${profile.id}`);
 
       console.log('🔥 MyInvoices: Client lookup result:', { clientData, clientError });
 
