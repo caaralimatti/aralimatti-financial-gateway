@@ -815,6 +815,50 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          link: string | null
+          message: string
+          metadata: Json | null
+          notification_type: string
+          read_at: string | null
+          recipient_user_id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message: string
+          metadata?: Json | null
+          notification_type: string
+          read_at?: string | null
+          recipient_user_id: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message?: string
+          metadata?: Json | null
+          notification_type?: string
+          read_at?: string | null
+          recipient_user_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_recipient_user_id_fkey"
+            columns: ["recipient_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
@@ -1338,6 +1382,17 @@ export type Database = {
       cleanup_expired_temp_passwords: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      create_notification: {
+        Args: {
+          p_recipient_user_id: string
+          p_title: string
+          p_message: string
+          p_notification_type: string
+          p_link?: string
+          p_metadata?: Json
+        }
+        Returns: string
       }
       delete_client_with_portal_user: {
         Args: { client_uuid: string }
