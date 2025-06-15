@@ -123,34 +123,52 @@ export type Database = {
           client_id: string
           created_at: string
           description: string | null
+          document_status: string
           file_name: string
           file_size: number | null
           file_type: string | null
           file_url: string
           id: string
+          is_current_version: boolean
+          shared_with_client: boolean
+          updated_at: string
           uploaded_by: string | null
+          uploaded_by_role: string | null
+          version_number: number
         }
         Insert: {
           client_id: string
           created_at?: string
           description?: string | null
+          document_status?: string
           file_name: string
           file_size?: number | null
           file_type?: string | null
           file_url: string
           id?: string
+          is_current_version?: boolean
+          shared_with_client?: boolean
+          updated_at?: string
           uploaded_by?: string | null
+          uploaded_by_role?: string | null
+          version_number?: number
         }
         Update: {
           client_id?: string
           created_at?: string
           description?: string | null
+          document_status?: string
           file_name?: string
           file_size?: number | null
           file_type?: string | null
           file_url?: string
           id?: string
+          is_current_version?: boolean
+          shared_with_client?: boolean
+          updated_at?: string
           uploaded_by?: string | null
+          uploaded_by_role?: string | null
+          version_number?: number
         }
         Relationships: [
           {

@@ -30,7 +30,21 @@ export const useClientAttachments = (clientId?: string) => {
   });
 
   const uploadAttachmentMutation = useMutation({
-    mutationFn: async ({ clientId, file, description }: { clientId: string; file: File; description?: string }) => {
+    mutationFn: async ({ 
+      clientId, 
+      file, 
+      description,
+      documentStatus = 'Uploaded',
+      sharedWithClient = false,
+      uploadedByRole = 'firm'
+    }: { 
+      clientId: string; 
+      file: File; 
+      description?: string;
+      documentStatus?: string;
+      sharedWithClient?: boolean;
+      uploadedByRole?: string;
+    }) => {
       // Validate file
       if (!validateFileType(file)) {
         throw new Error('Invalid file type. Only PDF, DOCX, XLSX, JPG, and PNG files are allowed.');
@@ -38,6 +52,28 @@ export const useClientAttachments = (clientId?: string) => {
       
       if (!validateFileSize(file)) {
         throw new Error('File size too large. Maximum size is 10MB.');
+      }
+
+      // Check for existing file with same name to handle versioning
+      const { data: existingFiles } = await supabase
+        .from('client_attachments')
+        .select('version_number, id')
+        .eq('client_id', clientId)
+        .eq('file_name', file.name)
+        .eq('is_current_version', true);
+
+      let versionNumber = 1;
+      if (existingFiles && existingFiles.length > 0) {
+        // Get the highest version number and increment
+        const maxVersion = Math.max(...existingFiles.map(f => Number(f.version_number)));
+        versionNumber = maxVersion + 1;
+
+        // Mark existing files as not current version
+        await supabase
+          .from('client_attachments')
+          .update({ is_current_version: false })
+          .eq('client_id', clientId)
+          .eq('file_name', file.name);
       }
 
       // Upload to storage
@@ -63,7 +99,12 @@ export const useClientAttachments = (clientId?: string) => {
           file_size: file.size,
           file_type: file.type,
           description: description || null,
-          uploaded_by: profile?.id
+          document_status: documentStatus,
+          shared_with_client: sharedWithClient,
+          uploaded_by: profile?.id,
+          uploaded_by_role: uploadedByRole,
+          version_number: versionNumber,
+          is_current_version: true
         })
         .select()
         .single();
@@ -75,14 +116,14 @@ export const useClientAttachments = (clientId?: string) => {
       queryClient.invalidateQueries({ queryKey: ['client-attachments', clientId] });
       toast({
         title: "Success",
-        description: "File uploaded successfully",
+        description: "Document uploaded successfully",
       });
     },
     onError: (error) => {
       console.error('Error uploading attachment:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to upload file",
+        description: error.message || "Failed to upload document",
         variant: "destructive",
       });
     }
@@ -114,14 +155,53 @@ export const useClientAttachments = (clientId?: string) => {
       queryClient.invalidateQueries({ queryKey: ['client-attachments', clientId] });
       toast({
         title: "Success",
-        description: "File deleted successfully",
+        description: "Document deleted successfully",
       });
     },
     onError: (error) => {
       console.error('Error deleting attachment:', error);
       toast({
         title: "Error",
-        description: "Failed to delete file",
+        description: "Failed to delete document",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const updateAttachmentMutation = useMutation({
+    mutationFn: async ({ 
+      attachmentId, 
+      updates 
+    }: { 
+      attachmentId: string; 
+      updates: { 
+        document_status?: string; 
+        shared_with_client?: boolean; 
+        description?: string; 
+      } 
+    }) => {
+      const { data, error } = await supabase
+        .from('client_attachments')
+        .update(updates)
+        .eq('id', attachmentId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['client-attachments', clientId] });
+      toast({
+        title: "Success",
+        description: "Document updated successfully",
+      });
+    },
+    onError: (error) => {
+      console.error('Error updating attachment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update document",
         variant: "destructive",
       });
     }
@@ -132,7 +212,9 @@ export const useClientAttachments = (clientId?: string) => {
     isLoading,
     uploadAttachment: uploadAttachmentMutation.mutateAsync,
     deleteAttachment: deleteAttachmentMutation.mutateAsync,
+    updateAttachment: updateAttachmentMutation.mutateAsync,
     isUploading: uploadAttachmentMutation.isPending,
-    isDeleting: deleteAttachmentMutation.isPending
+    isDeleting: deleteAttachmentMutation.isPending,
+    isUpdating: updateAttachmentMutation.isPending
   };
 };

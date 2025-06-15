@@ -1,4 +1,3 @@
-
 import type { Tables } from '@/integrations/supabase/types';
 
 export interface CustomField {
@@ -18,14 +17,21 @@ export interface ContactPerson {
 }
 
 export interface ClientAttachment {
-  id?: string;
+  id: string;
+  client_id?: string;
   file_name: string;
   file_url: string;
   file_size: number;
   file_type: string;
   description?: string;
+  document_status: string;
+  shared_with_client: boolean;
   uploaded_by?: string;
-  created_at?: string;
+  uploaded_by_role?: string;
+  version_number: number;
+  is_current_version: boolean;
+  created_at: string;
+  updated_at?: string;
 }
 
 export interface ClientFormData {
