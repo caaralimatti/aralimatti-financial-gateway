@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -16,24 +15,10 @@ import MaintenancePage from '@/pages/MaintenancePage';
 import WelcomeToast from '@/components/WelcomeToast';
 import ClientUserProfile from "@/pages/ClientUserProfile";
 import ClientTasksPage from "@/pages/ClientTasksPage";
+import ClientInvoicesPage from "@/pages/ClientInvoicesPage";
+import ClientDocumentsPage from "@/pages/ClientDocumentsPage";
 
 // Dummy/stub components for remaining client sub-pages
-function ClientDocumentsPage() {
-  return (
-    <div className="p-8">
-      <h2 className="text-2xl font-bold">Documents</h2>
-      <p className="text-gray-600">This page is under construction.</p>
-    </div>
-  );
-}
-function ClientInvoicesPage() {
-  return (
-    <div className="p-8">
-      <h2 className="text-2xl font-bold">My Invoices</h2>
-      <p className="text-gray-600">This page is under construction.</p>
-    </div>
-  );
-}
 function ClientCalendarPage() {
   return (
     <div className="p-8">
