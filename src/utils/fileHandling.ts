@@ -1,4 +1,3 @@
-
 export const getFileContentType = (fileType: string): string => {
   const mimeTypes: Record<string, string> = {
     'image/jpeg': 'image/jpeg',
@@ -26,38 +25,37 @@ export const isViewableInBrowser = (fileType: string): boolean => {
 // Proper debounce mechanism to prevent double execution
 const viewingFiles = new Set<string>();
 
-export const handleFileView = async (fileUrl: string, fileName: string, fileType: string): Promise<void> => {
-  // Create a unique identifier for this file view operation
+export const handleFileView = async (
+  fileUrl: string,
+  fileName: string,
+  fileType: string
+): Promise<void> => {
   const fileId = `${fileUrl}-${fileName}`;
-  
-  // Prevent double execution
   if (viewingFiles.has(fileId)) {
     console.log('File view already in progress, skipping...', fileName);
     return;
   }
-  
+
   viewingFiles.add(fileId);
-  
+
   try {
     if (isViewableInBrowser(fileType)) {
       // For viewable files, fetch the blob and create an object URL
-      // This ensures proper content type handling for PDFs and images
       const response = await fetch(fileUrl);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
       const blob = await response.blob();
-      
-      // Create a new blob with the correct MIME type to ensure proper rendering
       const typedBlob = new Blob([blob], { type: getFileContentType(fileType) });
       const blobUrl = URL.createObjectURL(typedBlob);
-      
+
       // Open the blob URL in a new window
       const newWindow = window.open(blobUrl, '_blank', 'noopener,noreferrer');
-      
+      console.log('window.open called:', !!newWindow);
+
+      // If popup blocked or window didn't open, fallback ONLY if window.open returns null
       if (!newWindow) {
-        // If popup blocked, fallback to creating a link
+        console.log('window.open failed; using fallback anchor method');
         const link = document.createElement('a');
         link.href = blobUrl;
         link.target = '_blank';
@@ -66,12 +64,12 @@ export const handleFileView = async (fileUrl: string, fileName: string, fileType
         link.click();
         document.body.removeChild(link);
       }
-      
-      // Clean up the blob URL after a delay to allow the browser to load it
+
+      // Cleanup the blob URL after a delay
       setTimeout(() => {
         URL.revokeObjectURL(blobUrl);
-      }, 10000); // 10 seconds should be enough for the browser to load the file
-      
+      }, 10000);
+
     } else {
       // For non-viewable files, trigger download
       handleFileDownload(fileUrl, fileName);
@@ -81,7 +79,6 @@ export const handleFileView = async (fileUrl: string, fileName: string, fileType
     // Fallback to download if view fails
     handleFileDownload(fileUrl, fileName);
   } finally {
-    // Remove from tracking set after a longer delay to prevent rapid successive calls
     setTimeout(() => {
       viewingFiles.delete(fileId);
     }, 2000);
@@ -94,16 +91,16 @@ export const handleFileDownload = async (fileUrl: string, fileName: string): Pro
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
-    
+
     const link = document.createElement('a');
     link.href = url;
     link.download = fileName;
     document.body.appendChild(link);
     link.click();
-    
+
     // Cleanup
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
