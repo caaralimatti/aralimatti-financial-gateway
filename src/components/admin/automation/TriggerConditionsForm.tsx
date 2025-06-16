@@ -18,15 +18,6 @@ const taskStatuses = [
   { value: 'cancelled', label: 'Cancelled' },
 ];
 
-const documentTypes = [
-  { value: 'tax_return', label: 'Tax Return' },
-  { value: 'financial_statement', label: 'Financial Statement' },
-  { value: 'compliance_document', label: 'Compliance Document' },
-  { value: 'contract', label: 'Contract' },
-  { value: 'invoice', label: 'Invoice' },
-  { value: 'other', label: 'Other' },
-];
-
 const TriggerConditionsForm: React.FC<TriggerConditionsFormProps> = ({
   triggerType,
   value = {},
@@ -44,86 +35,133 @@ const TriggerConditionsForm: React.FC<TriggerConditionsFormProps> = ({
       case 'task_status_changed':
         return (
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <FormLabel>From Status</FormLabel>
-                <Select 
-                  value={value.from_status || ''} 
-                  onValueChange={(val) => updateCondition('from_status', val)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Any status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Any Status</SelectItem>
-                    {taskStatuses.map((status) => (
-                      <SelectItem key={status.value} value={status.value}>
-                        {status.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <FormLabel>To Status</FormLabel>
-                <Select 
-                  value={value.to_status || ''} 
-                  onValueChange={(val) => updateCondition('to_status', val)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select target status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {taskStatuses.map((status) => (
-                      <SelectItem key={status.value} value={status.value}>
-                        {status.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div>
+              <FormLabel>From Status (Optional)</FormLabel>
+              <Select 
+                value={value.from_status || ''} 
+                onValueChange={(val) => updateCondition('from_status', val)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Any status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Any status</SelectItem>
+                  {taskStatuses.map((status) => (
+                    <SelectItem key={status.value} value={status.value}>
+                      {status.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                Only trigger when task changes from this specific status
+              </FormDescription>
+            </div>
+            <div>
+              <FormLabel>To Status (Optional)</FormLabel>
+              <Select 
+                value={value.to_status || ''} 
+                onValueChange={(val) => updateCondition('to_status', val)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Any status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Any status</SelectItem>
+                  {taskStatuses.map((status) => (
+                    <SelectItem key={status.value} value={status.value}>
+                      {status.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                Only trigger when task changes to this specific status
+              </FormDescription>
             </div>
           </div>
         );
 
       case 'task_deadline_approaching':
-      case 'compliance_deadline_approaching':
         return (
           <div>
             <FormLabel>Days Before Deadline</FormLabel>
             <Input
               type="number"
               min="1"
-              placeholder="7"
+              max="30"
+              placeholder="1"
               value={value.days_before || ''}
-              onChange={(e) => updateCondition('days_before', parseInt(e.target.value) || 7)}
+              onChange={(e) => updateCondition('days_before', parseInt(e.target.value) || 1)}
             />
             <FormDescription>
-              Trigger this many days before the deadline
+              Trigger when task deadline is this many days away
             </FormDescription>
           </div>
         );
 
-      case 'document_uploaded':
+      case 'task_overdue':
         return (
           <div>
-            <FormLabel>Document Type</FormLabel>
+            <FormLabel>Days Overdue</FormLabel>
+            <Input
+              type="number"
+              min="1"
+              max="30"
+              placeholder="1"
+              value={value.days_overdue || ''}
+              onChange={(e) => updateCondition('days_overdue', parseInt(e.target.value) || 1)}
+            />
+            <FormDescription>
+              Trigger when task is overdue by this many days
+            </FormDescription>
+          </div>
+        );
+
+      case 'client_created':
+        return (
+          <div>
+            <FormLabel>Client Type (Optional)</FormLabel>
             <Select 
-              value={value.document_type || ''} 
-              onValueChange={(val) => updateCondition('document_type', val)}
+              value={value.client_type || ''} 
+              onValueChange={(val) => updateCondition('client_type', val)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Any document type" />
+                <SelectValue placeholder="Any client type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any Document Type</SelectItem>
-                {documentTypes.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
-                    {type.label}
-                  </SelectItem>
-                ))}
+                <SelectItem value="">Any client type</SelectItem>
+                <SelectItem value="Individual">Individual</SelectItem>
+                <SelectItem value="Proprietorship">Proprietorship</SelectItem>
+                <SelectItem value="Partnership">Partnership</SelectItem>
+                <SelectItem value="LLP">LLP</SelectItem>
+                <SelectItem value="Company">Company</SelectItem>
+                <SelectItem value="Trust">Trust</SelectItem>
+                <SelectItem value="Society">Society</SelectItem>
+                <SelectItem value="HUF">HUF</SelectItem>
               </SelectContent>
             </Select>
+            <FormDescription>
+              Only trigger for clients of this specific type
+            </FormDescription>
+          </div>
+        );
+
+      case 'invoice_overdue':
+        return (
+          <div>
+            <FormLabel>Days Overdue</FormLabel>
+            <Input
+              type="number"
+              min="1"
+              max="90"
+              placeholder="7"
+              value={value.days_overdue || ''}
+              onChange={(e) => updateCondition('days_overdue', parseInt(e.target.value) || 7)}
+            />
+            <FormDescription>
+              Trigger when invoice is overdue by this many days
+            </FormDescription>
           </div>
         );
 
@@ -134,12 +172,13 @@ const TriggerConditionsForm: React.FC<TriggerConditionsFormProps> = ({
             <Input
               type="number"
               min="1"
+              max="90"
               placeholder="30"
               value={value.days_before_expiry || ''}
               onChange={(e) => updateCondition('days_before_expiry', parseInt(e.target.value) || 30)}
             />
             <FormDescription>
-              Trigger this many days before DSC expires
+              Trigger when DSC expires in this many days
             </FormDescription>
           </div>
         );
@@ -148,18 +187,21 @@ const TriggerConditionsForm: React.FC<TriggerConditionsFormProps> = ({
         return (
           <div className="space-y-4">
             <div>
-              <FormLabel>Schedule Time</FormLabel>
+              <FormLabel>Time</FormLabel>
               <Input
                 type="time"
-                value={value.schedule_time || ''}
-                onChange={(e) => updateCondition('schedule_time', e.target.value)}
+                value={value.scheduled_time || ''}
+                onChange={(e) => updateCondition('scheduled_time', e.target.value)}
               />
+              <FormDescription>
+                Time of day to trigger (24-hour format)
+              </FormDescription>
             </div>
             <div>
-              <FormLabel>Schedule Days</FormLabel>
+              <FormLabel>Days of Week</FormLabel>
               <Select 
-                value={value.schedule_days || ''} 
-                onValueChange={(val) => updateCondition('schedule_days', val)}
+                value={value.days_of_week || ''} 
+                onValueChange={(val) => updateCondition('days_of_week', val)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select days" />
@@ -181,15 +223,6 @@ const TriggerConditionsForm: React.FC<TriggerConditionsFormProps> = ({
           </div>
         );
 
-      case 'task_created':
-      case 'task_overdue':
-      case 'document_status_changed':
-      case 'client_created':
-      case 'client_status_changed':
-      case 'invoice_created':
-      case 'invoice_overdue':
-      case 'payment_received':
-      case 'user_login':
       default:
         return (
           <div>

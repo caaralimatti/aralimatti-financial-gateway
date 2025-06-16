@@ -1456,6 +1456,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_task_deadlines_for_automation: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       cleanup_expired_temp_passwords: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -1474,6 +1478,10 @@ export type Database = {
       delete_client_with_portal_user: {
         Args: { client_uuid: string }
         Returns: boolean
+      }
+      execute_automation_rule: {
+        Args: { p_trigger_type: string; p_event_data: Json }
+        Returns: undefined
       }
       generate_invoice_number: {
         Args: Record<PropertyKey, never>
