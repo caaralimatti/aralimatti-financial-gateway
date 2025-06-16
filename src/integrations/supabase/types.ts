@@ -118,6 +118,83 @@ export type Database = {
         }
         Relationships: []
       }
+      automation_rules: {
+        Row: {
+          action_parameters: Json | null
+          action_type: Database["public"]["Enums"]["automation_action_type"]
+          created_at: string
+          created_by: string
+          delay_minutes: number | null
+          description: string | null
+          execution_count: number | null
+          frequency_type: string | null
+          frequency_value: number | null
+          id: string
+          is_active: boolean
+          last_executed_at: string | null
+          max_executions: number | null
+          metadata: Json | null
+          name: string
+          priority: number | null
+          tags: string[] | null
+          trigger_conditions: Json | null
+          trigger_type: Database["public"]["Enums"]["automation_trigger_type"]
+          updated_at: string
+        }
+        Insert: {
+          action_parameters?: Json | null
+          action_type: Database["public"]["Enums"]["automation_action_type"]
+          created_at?: string
+          created_by: string
+          delay_minutes?: number | null
+          description?: string | null
+          execution_count?: number | null
+          frequency_type?: string | null
+          frequency_value?: number | null
+          id?: string
+          is_active?: boolean
+          last_executed_at?: string | null
+          max_executions?: number | null
+          metadata?: Json | null
+          name: string
+          priority?: number | null
+          tags?: string[] | null
+          trigger_conditions?: Json | null
+          trigger_type: Database["public"]["Enums"]["automation_trigger_type"]
+          updated_at?: string
+        }
+        Update: {
+          action_parameters?: Json | null
+          action_type?: Database["public"]["Enums"]["automation_action_type"]
+          created_at?: string
+          created_by?: string
+          delay_minutes?: number | null
+          description?: string | null
+          execution_count?: number | null
+          frequency_type?: string | null
+          frequency_value?: number | null
+          id?: string
+          is_active?: boolean
+          last_executed_at?: string | null
+          max_executions?: number | null
+          metadata?: Json | null
+          name?: string
+          priority?: number | null
+          tags?: string[] | null
+          trigger_conditions?: Json | null
+          trigger_type?: Database["public"]["Enums"]["automation_trigger_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_attachments: {
         Row: {
           client_id: string
@@ -1433,6 +1510,33 @@ export type Database = {
       }
     }
     Enums: {
+      automation_action_type:
+        | "send_email_notification"
+        | "create_task"
+        | "update_task_status"
+        | "create_notification"
+        | "send_sms"
+        | "assign_task"
+        | "update_client_status"
+        | "create_reminder"
+        | "escalate_task"
+        | "generate_report"
+      automation_trigger_type:
+        | "task_created"
+        | "task_status_changed"
+        | "task_deadline_approaching"
+        | "task_overdue"
+        | "document_uploaded"
+        | "document_status_changed"
+        | "client_created"
+        | "client_status_changed"
+        | "invoice_created"
+        | "invoice_overdue"
+        | "payment_received"
+        | "compliance_deadline_approaching"
+        | "dsc_expiring"
+        | "user_login"
+        | "scheduled_time"
       client_status: "Active" | "Inactive" | "Pending" | "Suspended"
       client_type:
         | "Individual"
@@ -1558,6 +1662,35 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      automation_action_type: [
+        "send_email_notification",
+        "create_task",
+        "update_task_status",
+        "create_notification",
+        "send_sms",
+        "assign_task",
+        "update_client_status",
+        "create_reminder",
+        "escalate_task",
+        "generate_report",
+      ],
+      automation_trigger_type: [
+        "task_created",
+        "task_status_changed",
+        "task_deadline_approaching",
+        "task_overdue",
+        "document_uploaded",
+        "document_status_changed",
+        "client_created",
+        "client_status_changed",
+        "invoice_created",
+        "invoice_overdue",
+        "payment_received",
+        "compliance_deadline_approaching",
+        "dsc_expiring",
+        "user_login",
+        "scheduled_time",
+      ],
       client_status: ["Active", "Inactive", "Pending", "Suspended"],
       client_type: [
         "Individual",
