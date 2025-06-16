@@ -10,7 +10,8 @@ import {
   Megaphone,
   KeyRound,
   Receipt,
-  Shield
+  Shield,
+  Workflow
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentUserPermissions } from '@/hooks/useAdminPermissions';
@@ -50,6 +51,12 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({ activeTab, se
       label: 'Analytics', 
       icon: BarChart3, 
       module: 'analytics' 
+    },
+    { 
+      id: 'automation', 
+      label: 'Automation', 
+      icon: Workflow, 
+      module: 'automation' 
     },
     { 
       id: 'dsc', 

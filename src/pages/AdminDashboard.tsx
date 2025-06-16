@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import AdminSidebar from '@/components/admin/AdminSidebar';
@@ -21,6 +22,7 @@ import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
 import BillingDashboard from '@/components/admin/BillingDashboard';
 import BulkInvoices from '@/components/admin/billing/BulkInvoices';
 import AdminPermissionsManagement from '@/components/admin/AdminPermissionsManagement';
+import AutomationManagement from '@/components/admin/AutomationManagement';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentUserPermissions } from '@/hooks/useAdminPermissions';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -92,6 +94,12 @@ const AdminDashboard: React.FC = () => {
               Only Super Admins can access this feature.
             </AlertDescription>
           </Alert>
+        );
+      case 'automation':
+        return (
+          <ProtectedContent module="automation">
+            <AutomationManagement />
+          </ProtectedContent>
         );
       case 'clients':
       case 'clients-add':
