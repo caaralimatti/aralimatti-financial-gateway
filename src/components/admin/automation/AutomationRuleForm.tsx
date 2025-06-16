@@ -117,12 +117,29 @@ const AutomationRuleForm: React.FC<AutomationRuleFormProps> = ({
 
   const createMutation = useMutation({
     mutationFn: async (data: AutomationRuleFormData) => {
+      const currentUser = await supabase.auth.getUser();
+      
+      const insertData = {
+        name: data.name,
+        description: data.description || null,
+        is_active: data.is_active,
+        trigger_type: data.trigger_type as any, // Cast to match enum
+        trigger_conditions: data.trigger_conditions || null,
+        action_type: data.action_type as any, // Cast to match enum
+        action_parameters: data.action_parameters || null,
+        delay_minutes: data.delay_minutes,
+        frequency_type: data.frequency_type,
+        frequency_value: data.frequency_value,
+        priority: data.priority,
+        max_executions: data.max_executions,
+        tags: data.tags || null,
+        metadata: data.metadata || null,
+        created_by: currentUser.data.user?.id,
+      };
+
       const { error } = await supabase
         .from('automation_rules')
-        .insert([{
-          ...data,
-          created_by: (await supabase.auth.getUser()).data.user?.id,
-        }]);
+        .insert([insertData]);
 
       if (error) throw error;
     },
@@ -146,9 +163,26 @@ const AutomationRuleForm: React.FC<AutomationRuleFormProps> = ({
 
   const updateMutation = useMutation({
     mutationFn: async (data: AutomationRuleFormData) => {
+      const updateData = {
+        name: data.name,
+        description: data.description || null,
+        is_active: data.is_active,
+        trigger_type: data.trigger_type as any, // Cast to match enum
+        trigger_conditions: data.trigger_conditions || null,
+        action_type: data.action_type as any, // Cast to match enum
+        action_parameters: data.action_parameters || null,
+        delay_minutes: data.delay_minutes,
+        frequency_type: data.frequency_type,
+        frequency_value: data.frequency_value,
+        priority: data.priority,
+        max_executions: data.max_executions,
+        tags: data.tags || null,
+        metadata: data.metadata || null,
+      };
+
       const { error } = await supabase
         .from('automation_rules')
-        .update(data)
+        .update(updateData)
         .eq('id', initialData?.id);
 
       if (error) throw error;

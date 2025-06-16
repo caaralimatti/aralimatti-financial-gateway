@@ -26,11 +26,20 @@ interface AutomationRule {
   trigger_type: string;
   action_type: string;
   is_active: boolean;
+  trigger_conditions: any;
+  action_parameters: any;
+  delay_minutes: number;
+  frequency_type: string;
+  frequency_value: number;
+  priority: number;
+  max_executions: number | null;
+  execution_count: number;
   created_at: string;
   updated_at: string;
-  execution_count: number;
   last_executed_at: string | null;
-  priority: number;
+  created_by: string;
+  tags: string[] | null;
+  metadata: any;
 }
 
 const AutomationManagement: React.FC = () => {
