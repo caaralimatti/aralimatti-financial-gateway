@@ -53,18 +53,18 @@ const ActionParametersForm: React.FC<ActionParametersFormProps> = ({
             <div>
               <FormLabel>Task Name Template</FormLabel>
               <Input
-                placeholder="e.g., Follow up on {{client_name}}"
+                placeholder="e.g., Follow up on client_name"
                 value={value.task_name || ''}
                 onChange={(e) => updateParameter('task_name', e.target.value)}
               />
               <FormDescription>
-                Use {'{{'}}client_name{'}}'}, {'{{'}}trigger_date{'}}'} for dynamic values
+                Use double curly braces around client_name, trigger_date for dynamic values
               </FormDescription>
             </div>
             <div>
               <FormLabel>Task Description Template</FormLabel>
               <Textarea
-                placeholder="e.g., Automatic follow-up task created for {{client_name}}"
+                placeholder="e.g., Automatic follow-up task created for client_name"
                 value={value.task_description || ''}
                 onChange={(e) => updateParameter('task_description', e.target.value)}
               />
@@ -128,7 +128,7 @@ const ActionParametersForm: React.FC<ActionParametersFormProps> = ({
             <div>
               <FormLabel>Title Template</FormLabel>
               <Input
-                placeholder="e.g., Task Update: {{task_name}}"
+                placeholder="e.g., Task Update: task_name"
                 value={value.title || ''}
                 onChange={(e) => updateParameter('title', e.target.value)}
               />
@@ -136,12 +136,12 @@ const ActionParametersForm: React.FC<ActionParametersFormProps> = ({
             <div>
               <FormLabel>Message Template</FormLabel>
               <Textarea
-                placeholder="e.g., Your task {{task_name}} is due on {{due_date}}"
+                placeholder="e.g., Your task task_name is due on due_date"
                 value={value.message || ''}
                 onChange={(e) => updateParameter('message', e.target.value)}
               />
               <FormDescription>
-                Use {'{{'}}task_name{'}}'}, {'{{'}}client_name{'}}'}, {'{{'}}due_date{'}}'} for dynamic values
+                Use double curly braces around task_name, client_name, due_date for dynamic values
               </FormDescription>
             </div>
           </div>
@@ -215,7 +215,7 @@ const ActionParametersForm: React.FC<ActionParametersFormProps> = ({
             <div>
               <FormLabel>Escalation Message</FormLabel>
               <Textarea
-                placeholder="e.g., Task {{task_name}} requires urgent attention"
+                placeholder="e.g., Task task_name requires urgent attention"
                 value={value.escalation_message || ''}
                 onChange={(e) => updateParameter('escalation_message', e.target.value)}
               />
@@ -247,7 +247,7 @@ const ActionParametersForm: React.FC<ActionParametersFormProps> = ({
             <div>
               <FormLabel>SMS Message Template</FormLabel>
               <Textarea
-                placeholder="e.g., Reminder: {{task_name}} is due {{due_date}}"
+                placeholder="e.g., Reminder: task_name is due due_date"
                 value={value.sms_message || ''}
                 onChange={(e) => updateParameter('sms_message', e.target.value)}
                 maxLength={160}
@@ -286,7 +286,7 @@ const ActionParametersForm: React.FC<ActionParametersFormProps> = ({
             <div>
               <FormLabel>Reminder Title</FormLabel>
               <Input
-                placeholder="e.g., Upcoming deadline for {{client_name}}"
+                placeholder="e.g., Upcoming deadline for client_name"
                 value={value.reminder_title || ''}
                 onChange={(e) => updateParameter('reminder_title', e.target.value)}
               />
@@ -294,7 +294,7 @@ const ActionParametersForm: React.FC<ActionParametersFormProps> = ({
             <div>
               <FormLabel>Reminder Message</FormLabel>
               <Textarea
-                placeholder="e.g., Don't forget about {{task_name}} due on {{due_date}}"
+                placeholder="e.g., Don't forget about task_name due on due_date"
                 value={value.reminder_message || ''}
                 onChange={(e) => updateParameter('reminder_message', e.target.value)}
               />
