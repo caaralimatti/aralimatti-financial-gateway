@@ -104,7 +104,10 @@ The Management Team
       ].join('\r\n');
       
       // Encode in base64url format (required by Gmail API)
-      const base64Email = btoa(emailContent)
+      // Use TextEncoder to handle Unicode characters properly
+      const encoder = new TextEncoder();
+      const emailBytes = encoder.encode(emailContent);
+      const base64Email = btoa(String.fromCharCode(...emailBytes))
         .replace(/\+/g, '-')
         .replace(/\//g, '_')
         .replace(/=+$/, '');
