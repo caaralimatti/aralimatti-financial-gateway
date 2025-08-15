@@ -11,7 +11,8 @@ import {
   KeyRound,
   Receipt,
   Shield,
-  Workflow
+  Workflow,
+  Mail
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentUserPermissions } from '@/hooks/useAdminPermissions';
@@ -74,6 +75,12 @@ const AdminSidebarContent: React.FC<AdminSidebarContentProps> = ({ activeTab, se
       id: 'settings', 
       label: 'Settings', 
       icon: Settings, 
+      module: 'system_settings' 
+    },
+    { 
+      id: 'gmail-test', 
+      label: 'Gmail API Test', 
+      icon: Mail, 
       module: 'system_settings' 
     },
   ];

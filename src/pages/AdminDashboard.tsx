@@ -28,6 +28,7 @@ import { useCurrentUserPermissions } from '@/hooks/useAdminPermissions';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield } from 'lucide-react';
 import ClientDocumentsManager from "@/components/admin/ClientDocumentsManager";
+import GmailTestButton from '@/components/admin/GmailTestButton';
 
 const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -191,6 +192,14 @@ const AdminDashboard: React.FC = () => {
         return (
           <ProtectedContent module="system_settings">
             <SystemSettings />
+          </ProtectedContent>
+        );
+      case 'gmail-test':
+        return (
+          <ProtectedContent module="system_settings">
+            <div className="max-w-2xl mx-auto">
+              <GmailTestButton />
+            </div>
           </ProtectedContent>
         );
       case "manage-documents":
