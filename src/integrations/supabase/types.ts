@@ -19,7 +19,7 @@ export type Database = {
           activity_type: string
           description: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           metadata: Json | null
           timestamp: string
           user_id: string
@@ -28,7 +28,7 @@ export type Database = {
           activity_type: string
           description: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           timestamp?: string
           user_id: string
@@ -37,7 +37,7 @@ export type Database = {
           activity_type?: string
           description?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           timestamp?: string
           user_id?: string
@@ -1126,7 +1126,7 @@ export type Database = {
           action_type: string
           description: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           metadata: Json | null
           super_admin_id: string
           target_id: string | null
@@ -1138,7 +1138,7 @@ export type Database = {
           action_type: string
           description: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           super_admin_id: string
           target_id?: string | null
@@ -1150,7 +1150,7 @@ export type Database = {
           action_type?: string
           description?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           super_admin_id?: string
           target_id?: string | null
@@ -1461,14 +1461,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      check_task_deadlines_for_automation: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      cleanup_expired_temp_passwords: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      check_task_deadlines_for_automation: { Args: never; Returns: undefined }
+      cleanup_expired_temp_passwords: { Args: never; Returns: undefined }
       create_notification: {
         Args: {
           p_link?: string
@@ -1488,12 +1482,9 @@ export type Database = {
         Args: { p_event_data: Json; p_trigger_type: string }
         Returns: undefined
       }
-      generate_invoice_number: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      generate_invoice_number: { Args: never; Returns: string }
       get_manageable_users: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           created_at: string
           email: string
@@ -1505,22 +1496,13 @@ export type Database = {
           updated_at: string
         }[]
       }
-      is_current_user_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      is_current_user_admin: { Args: never; Returns: boolean }
       is_staff_assigned_to_client: {
         Args: { client_id: string; staff_id: string }
         Returns: boolean
       }
-      is_super_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_user_active: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      is_super_admin: { Args: never; Returns: boolean }
+      is_user_active: { Args: never; Returns: boolean }
     }
     Enums: {
       automation_action_type:
